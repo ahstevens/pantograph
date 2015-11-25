@@ -66,7 +66,7 @@ const float eyeOffset     = 1.0f;
 
 //---------------------------------------------------------------------------- 
 
-std::string inputFiles[] = { "../haloes_data/256cosmo.0.7.cosmo" };
+std::string inputFiles[] = { "haloes_data/256cosmo.0.7.cosmo" };
 //std::string inputFiles[] = { "/mnt/main/haloes_data/256cosmo.0.7.cosmo" };
 
 Cosmo *cosmo;
