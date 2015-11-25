@@ -71,7 +71,6 @@ using namespace std;
   //#include <GL/glui.h>
   #include <GL/wglew.h>
   #include <GL/wglext.h>
-  #include <GL/wglext.h>
 #define _CRT_SECURE_NO_WARNINGS
 
 #ifndef M_PI
