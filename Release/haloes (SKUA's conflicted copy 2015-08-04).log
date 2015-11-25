@@ -1,0 +1,28 @@
+﻿Build started 8/4/2015 2:44:51 PM.
+     1>Project "C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\haloes.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Release\haloes_reader.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         main.cpp
+     1>main.cpp(393): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\haloes_reader.exe" /NOLOGO opengl32.lib glew32s.lib glu32.lib gdi32.lib freeglut_static.lib glui32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\haloes_reader.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\haloes_reader.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\haloes_reader.lib" /MACHINE:X86 Release\Cosmo.obj
+         Release\main.obj
+         Release\Object.obj
+         Release\Stopwatch.obj
+     1>LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+         Generating code
+         Finished generating code
+     1>glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\vc120.pdb'; linking object as if no debug info
+         haloes.vcxproj -> C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\haloes_reader.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\Release\haloes_reader.exe;#1" /manifest Release\haloes_reader.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "Release\haloes_reader.unsuccessfulbuild".
+         Touching "Release\haloes_reader.lastbuildstate".
+     1>Done Building Project "C:\Users\eaygar\Dropbox\summer\workspace\haloes_reader_v08\haloes.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.31
