@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -12,15 +12,25 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cosmo.cpp" />
+    <ClCompile Include="DrawFunctions.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Pantograph.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SMTFlow.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="TouchManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColorsAndSizes.h" />
     <ClInclude Include="Cosmo.h" />
+    <ClInclude Include="DrawFunctions.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="Pantograph.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="TouchManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -28,19 +38,19 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7D94DC4D-FAB6-4638-AA72-C8A1A375ECDB}</ProjectGuid>
     <RootNamespace>hairyv2</RootNamespace>
-    <ProjectName>haloes_reader</ProjectName>
+    <ProjectName>pantograph</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -70,7 +80,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glu32.lib;gdi32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PQMTClient.lib;opengl32.lib;glew32s.lib;glu32.lib;gdi32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -86,7 +96,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glu32.lib;gdi32.lib;freeglut_static.lib;freeglut.lib;glui32.lib;SDL2.lib;SDL2main.lib;AntTweakBarStatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PQMTClient.lib;opengl32.lib;glew32s.lib;glu32.lib;gdi32.lib;freeglut_static.lib;freeglut.lib;glui32.lib;SDL2.lib;SDL2main.lib;AntTweakBarStatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
