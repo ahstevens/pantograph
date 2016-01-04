@@ -4,9 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define _USE_MATH_DEFINES
 #include <math.h>
-
-const float PI = 3.14159265359f;
 
 void drawStrokeLabel3D(float x, float y, float z, float scale, char *text);
 

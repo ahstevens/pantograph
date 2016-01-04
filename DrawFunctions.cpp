@@ -26,22 +26,22 @@ void drawHalfEllipse( float x, float y, float width, float height, bool archUp, 
 	float centerPointY = y;
 	float vertRadius = height;
 	float horzRadius = width / 2.f;
-	float increment = PI / numSegs;
+	float increment = M_PI / numSegs;
 
 	if ( archUp )
 	{
 		glBegin( GL_POLYGON );
-			for ( float i = 0.f; i < PI; i += increment )
+			for ( float i = 0.f; i < M_PI; i += increment )
 				glVertex2f( centerPointX + cos( i ) * horzRadius, centerPointY + sin( i ) * vertRadius );
-			glVertex2f( centerPointX + cos( PI ) * horzRadius, centerPointY + sin( PI ) * vertRadius );
+			glVertex2f( centerPointX + cos(M_PI) * horzRadius, centerPointY + sin(M_PI) * vertRadius );
 		glEnd();
 	}
 	else
 	{
 		glBegin( GL_POLYGON );
-			for ( float i = PI; i < ( 2.f * PI ); i += increment )
+			for ( float i = M_PI; i < ( 2.f * M_PI); i += increment )
 				glVertex2f( centerPointX + cos( i ) * horzRadius, centerPointY + sin( i ) * vertRadius );
-			glVertex2f( centerPointX + cos( 2.f * PI ) * horzRadius, centerPointY + sin( 2.f * PI ) * vertRadius );
+			glVertex2f( centerPointX + cos( 2.f * M_PI) * horzRadius, centerPointY + sin( 2.f * M_PI) * vertRadius );
 		glEnd();
 	}
 }//end drawHalfEllipse
@@ -136,13 +136,13 @@ void drawNukeSymbol3D( float x, float y, float z, float radius )
 	glColor3f( 0.80f, 0.80f, 0.f );
 	//draw yellow background circle
 	glBegin( GL_POLYGON );
-	for ( float i = 0.f; i < ( 2.f * PI ); i += 0.15f )
+	for ( float i = 0.f; i < ( 2.f * M_PI); i += 0.15f )
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 1 );
 	glEnd();
 
 	glColor3f( 0.65f, 0.65f, 0.25f );
 	glBegin( GL_TRIANGLE_STRIP );
-	for ( float i = 0.f; i < ( 2.f * PI ); i += 0.15f )
+	for ( float i = 0.f; i < ( 2.f * M_PI); i += 0.15f )
 	{
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 1.f );
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 10.f );
@@ -157,14 +157,14 @@ void drawNukeSymbol3D( float x, float y, float z, float radius )
 	//draw inner black ring
 	float innerRadius = radFactor*2;
 	glBegin( GL_POLYGON );
-	for ( float i = 0.f; i < 2.f * PI; i += 0.10f )
+	for ( float i = 0.f; i < 2.f * M_PI; i += 0.10f )
 		glVertex3f( x + cos( i ) * innerRadius, y + sin( i ) * innerRadius, z );
 	glEnd();
 	//draw trefoils
 	float outerRadius = radFactor * 10.f;
 	innerRadius = radFactor * 3.f;
 	glBegin( GL_TRIANGLE_STRIP );
-	for ( float i = 0.f; i < PI / 3.f; i += 0.1f )
+	for ( float i = 0.f; i < M_PI / 3.f; i += 0.1f )
 	{
 		glVertex3f( x + cos( i ) * innerRadius, y + sin( i ) * innerRadius, z );
 		glVertex3f( x + cos( i ) * outerRadius, y + sin( i ) * outerRadius, z );
@@ -172,7 +172,7 @@ void drawNukeSymbol3D( float x, float y, float z, float radius )
 	glEnd();
 
 	glBegin( GL_TRIANGLE_STRIP );
-	for ( float i =  2.f * PI / 3.f ; i < PI; i += 0.1f )
+	for ( float i =  2.f * M_PI / 3.f ; i < M_PI; i += 0.1f )
 	{
 		glVertex3f( x + cos( i ) * innerRadius, y + sin( i ) * innerRadius, z );
 		glVertex3f( x + cos( i ) * outerRadius, y + sin( i ) * outerRadius, z );
@@ -180,7 +180,7 @@ void drawNukeSymbol3D( float x, float y, float z, float radius )
 	glEnd();
 
 	glBegin(GL_TRIANGLE_STRIP);
-	for ( float i = 4.f * PI / 3.f; i < 5.f * PI / 3.f; i += 0.1f )
+	for ( float i = 4.f * M_PI / 3.f; i < 5.f * M_PI / 3.f; i += 0.1f )
 	{
 		glVertex3f( x + cos( i ) * innerRadius, y + sin( i ) * innerRadius, z );
 		glVertex3f( x + cos( i ) * outerRadius, y + sin( i ) * outerRadius, z );
@@ -194,11 +194,11 @@ void drawMapPoint3D( float x, float y, float z, float radius )
 	glColor3f( 0.2f, 0.2f, 0.2f );
 	//draw background circle
 	glBegin( GL_POLYGON );
-	for ( float i = 0.f; i < 2.f * PI;i += 0.15f )
+	for ( float i = 0.f; i < 2.f * M_PI; i += 0.15f )
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 1.f);
 	glEnd();
 	glBegin(GL_TRIANGLE_STRIP);
-	for ( float i = 0.f; i < 2.f * PI; i += 0.15f )
+	for ( float i = 0.f; i < 2.f * M_PI; i += 0.15f )
 	{
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 1.f);
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 10.f);
@@ -211,7 +211,7 @@ void drawMapPoint3D( float x, float y, float z, float radius )
 	radius = radFactor * 2.f;
 	glColor3f( 0.65f, 0.15f, 0.15f );
 	glBegin( GL_POLYGON );
-	for ( float i = 0.f; i < 2.f * PI; i += 0.15f )
+	for ( float i = 0.f; i < 2.f * M_PI; i += 0.15f )
 		glVertex3f( x + cos( i ) * radius, y + sin( i ) * radius, z - 1.f );
 	glEnd();
 	
@@ -248,7 +248,7 @@ void drawCircle(float centerX, float centerY, float radius, float lineWidth, flo
 		glBegin(GL_LINE_LOOP);
 	}
 
-	for (float i=0;i<2*PI;i+=increment)
+	for (float i=0; i < 2 * M_PI; i+=increment)
 	{
 		glVertex2f(centerX+cos(i)*radius, centerY+sin(i)*radius);
 	}
@@ -452,9 +452,9 @@ void drawReticle(float centerX, float centerY, float radius, float radian)
 	float middleRadius = radius * 0.6;
 	
 	float radian1 = radian;
-	float radian2 = radian1 + PI / 2.f;
-	float radian3 = radian2 + PI / 2.f;
-	float radian4 = radian3 + PI / 2.f;
+	float radian2 = radian1 + M_PI / 2.f;
+	float radian3 = radian2 + M_PI / 2.f;
+	float radian4 = radian3 + M_PI / 2.f;
 
 	glVertex2f(centerX+cos(radian1)*radius, centerY+sin(radian1)*radius);
 
@@ -507,7 +507,7 @@ void draw3DReticle(float centerX, float centerY, float centerZ, float radius, fl
 
 	glPushMatrix();
 		glTranslatef(centerX, centerY, centerZ);
-		glRotatef(radian*180.f/PI, 0.25, 0.65, 0.15);
+		glRotatef(radian*180.f/M_PI, 0.25, 0.65, 0.15);
 
 		glBegin(GL_LINES);
 			glVertex3f(-radius, 0, 0);
@@ -627,7 +627,7 @@ bool isOnArcButton(float x, float y, float centerX, float centerY, float innerRa
 	float vectorX = centerX - x;
 	float vectorY = centerY - y;
 	float dist = sqrt(  pow((vectorX),2) + pow((vectorY),2) );
-	float angle = atan2(vectorY, vectorX) + PI;//atan(vectorY/vectorX);
+	float angle = atan2(vectorY, vectorX) + M_PI;//atan(vectorY/vectorX);
 	printf("dist = %f, angle = %f\n", dist, angle);
 	if (angle >= minAngle && angle <= maxAngle)
 	{
@@ -713,7 +713,7 @@ void drawVolumeCursor(float x, float y, float z, float radius)
 		//draw one circle around it perpendicular to the camera to maintain screen size/area
 		glLineWidth(1);
 		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.f*PI; i += 0.15)
+		for (float i = 0; i < 2.f*M_PI; i += 0.15)
 		{
 			glVertex3f(cos(i)*radius, sin(i)*radius, 0);
 		}
@@ -725,15 +725,15 @@ void drawVolumeCursor(float x, float y, float z, float radius)
 		//rotate other circles to attract attention
 		glRotatef(spinAngle,0.25,0.75,0.4);
 		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.f*PI; i += 0.15)
+		for (float i = 0; i < 2.f*M_PI; i += 0.15)
 			glVertex3f(cos(i)*radius, sin(i)*radius, 0);
 		glEnd();
 		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.f*PI; i += 0.15)
+		for (float i = 0; i < 2.f*M_PI; i += 0.15)
 			glVertex3f(cos(i)*radius, 0, sin(i)*radius);
 		glEnd();
 		glBegin(GL_LINE_LOOP);
-		for (float i = 0; i < 2.f*PI; i += 0.15)
+		for (float i = 0; i < 2.f*M_PI; i += 0.15)
 			glVertex3f(0, cos(i)*radius, sin(i)*radius);
 		glEnd();
 

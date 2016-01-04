@@ -27,9 +27,6 @@
     <ClCompile Include="Stopwatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SMTFlow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DrawFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

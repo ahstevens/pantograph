@@ -179,10 +179,17 @@ void Cosmo::read( std::string fileName )
     file.close();
     delete[] buffer;
 
+	maxDepth = max.z;
+	minDepth = min.z;
+
     particleCount = vParticles.size();
     std::cout << "done! " << std::endl;
     std::cout << particleCount << " particles..." << std::endl;
 }
+
+float Cosmo::getMaxDepth(){ return maxDepth; }
+
+float Cosmo::getMinDepth() { return minDepth; }
 
 
 //----------------------------------------------------------------------------

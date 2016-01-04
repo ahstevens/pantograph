@@ -267,7 +267,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//PANTOGRAPH MODE////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (settings->positioningDyePotPantograph)
+	//if (settings->positioningDyePotPantograph)
 	{
 		switch(tp.point_event)
 		{
@@ -594,7 +594,7 @@ void TouchManager:: OnTG_Move(const TouchGesture & tg,void * call_object)
 	{
 		float amountToMoveX = tg.params[0] - tm->lastFingerNavX;
 		float amountToMoveY = tg.params[1] - tm->lastFingerNavY;
-		tm->settings->camera->TranslateAlongGroundPlane(amountToMoveX, -amountToMoveY);
+		//tm->settings->camera->TranslateAlongGroundPlane(amountToMoveX, -amountToMoveY);
 		tm->lastFingerNavX = tg.params[0];
 		tm->lastFingerNavY = tg.params[1];
 	}
@@ -775,7 +775,7 @@ void TouchManager::OnTG_NearParrelMove(const TouchGesture & tg,void * call_objec
 {
 	if (SHOW_DEBUG_MESSAGES) printf("TG_NEAR_PARREL_MOVE at (%0.0f, %0.0f) ((%0.0f, %0.0f) and (%0.0f, %0.0f))\n", tg.params[0], tg.params[1], tg.params[2], tg.params[3], tg.params[4], tg.params[5]);
 	TouchManager* tm = static_cast<TouchManager*>(call_object);
-	tm->settings->camera->changeViewDistance((tm->lastParallelY - tg.params[1])*12);  //Xcomp = (tm->lastParallelX - tg.params[0])/8
+	//tm->settings->camera->changeViewDistance((tm->lastParallelY - tg.params[1])*12);  //Xcomp = (tm->lastParallelX - tg.params[0])/8
 	tm->lastParallelX = tg.params[0];
 	tm->lastParallelY = tg.params[1];
 	//tm->settings->toProcessCode.push_back(1);
@@ -868,7 +868,7 @@ void TouchManager::OnTG_MultiMove(const TouchGesture & tg,void * call_object)
 	
 	/*tm->settings->camera->ChangeHeading((tg.params[0] - tm->lastMultiX)/15);
 	tm->settings->camera->ChangePitch((tg.params[1] - tm->lastMultiY)/15);*/
-	tm->settings->camera->changeViewAngle((tm->lastMultiX - tg.params[0])/8, -(tm->lastMultiY - tg.params[1])/8);
+	//tm->settings->camera->changeViewAngle((tm->lastMultiX - tg.params[0])/8, -(tm->lastMultiY - tg.params[1])/8);
 	tm->lastMultiX = tg.params[0];
 	tm->lastMultiY = tg.params[1];
 
@@ -935,13 +935,13 @@ void TouchManager::draw2D()
 	}
 
 	//draw pantograph stuff
-	if (settings->positioningDyePotPantograph)
+	//if (settings->positioningDyePotPantograph)
 		pantograph->draw2D();
 }
 
 void TouchManager::draw3D()
 {
-	if (settings->positioningDyePotPantograph)
+	//if (settings->positioningDyePotPantograph)
 		pantograph->draw3D();
 
 	//if (settings->movingAUVWaypoints > 0)
@@ -953,7 +953,7 @@ void TouchManager::draw3D()
 
 void TouchManager::perRenderUpdate()
 {
-	if (settings->positioningDyePotPantograph)
+	//if (settings->positioningDyePotPantograph)
 	{
 		//send new screen coords to process into model coords during next render
 		float pantoX, pantoY, pantoDepth;

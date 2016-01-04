@@ -11,11 +11,15 @@ class Cosmo: public Object
         void read(std::string fileName);
         void resample( int samples );
         //void getSamples(int n, float radius, vec3 center);
+		float getMaxDepth();
+		float getMinDepth();
 
     protected:
         std::vector<Particle> vParticles;       
         int particleCount;
         int samples;        // # of random samples points
+
+		float maxDepth, minDepth;
 
         std::vector<int> vSampleIDs;
 };

@@ -157,11 +157,11 @@ void processPendingInteractions()
 	//printf("Processing Mouse Click\n");
 	//draw a ground plane at height zero to fill depth buffer so we can get selection depth from it
 	glBegin(GL_QUADS);
-	glNormal3f(0, 0, 1);
-	glVertex3f(-10000, 0, 0);
-	glVertex3f(-10000, 10000, 0);
-	glVertex3f(10000, 10000, 0);
-	glVertex3f(10000, 0, 0);
+		glNormal3f(0, 0, 1);
+		glVertex3f(-100, 100, 0);
+		glVertex3f(-100, -100, 0);
+		glVertex3f(100, -100, 0);
+		glVertex3f(100, 100, 0);
 	glEnd();
 
 	GLint viewport[4];
@@ -215,23 +215,25 @@ void processPendingInteractions()
 		settings->positioningModelCoords[0] = p1x;
 		settings->positioningModelCoords[1] = p1y;
 
-		float depthHere = dataset->getDepthAt(p1x, p1y);
+		//float depthHere = dataset->getDepthAt(p1x, p1y);
+		float depthHere = cosmo->getMaxDepth();
 		if (depthHere != -1 && depthHere != 0)
 		{
 			//store model depth
 			settings->positioningModelCoords[2] = depthHere;
 
 			//get actual depth from model
-			float interpolatedLayer = (-depthHere / dataset->dataBoundsMaxFakeDepth)*dataset->numDepths;
-			int aboveLayer = floor((double)interpolatedLayer);
-			int belowLayer = ceil((double)interpolatedLayer);
-			float aboveDepth = dataset->getActualDepthAtLayer(aboveLayer);
-			float belowDepth = dataset->getActualDepthAtLayer(belowLayer);
-			float factor = interpolatedLayer - aboveLayer;
-			float depth = factor*belowDepth + (1 - factor)*aboveDepth;
+			//float interpolatedLayer = (-depthHere / dataset->dataBoundsMaxFakeDepth)*dataset->numDepths;
+			//int aboveLayer = floor((double)interpolatedLayer);
+			//int belowLayer = ceil((double)interpolatedLayer);
+			//float aboveDepth = dataset->getActualDepthAtLayer(aboveLayer);
+			//float belowDepth = dataset->getActualDepthAtLayer(belowLayer);
+			//float factor = interpolatedLayer - aboveLayer;
+			//float depth = factor*belowDepth + (1 - factor)*aboveDepth;
 
 			//store actual depth
-			settings->positioningModelCoords[3] = depth;
+			//settings->positioningModelCoords[3] = depth;
+			settings->positioningModelCoords[3] = depthHere;
 			//printf("depths model %f, actual %f\n", settings->positioningModelCoords[2], settings->positioningModelCoords[3]);
 		}
 		else
@@ -390,6 +392,8 @@ void processPendingInteractions()
 
 	//}//end for each pending interaction
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 }//end processPendingInteractions()
 
 void drawScene(int eye) //0=left or mono, 1=right
@@ -402,20 +406,20 @@ void drawScene(int eye) //0=left or mono, 1=right
 		processPendingInteractions();
 
 	//draw axes
-	glLineWidth(1.0);
-	glBegin(GL_LINES);
-	glColor3f(1, 0, 0);
-	glVertex3f(0, 0, 0);
-	glVertex3f(100, 0, 0);
+	//glLineWidth(1.0);
+	//glBegin(GL_LINES);
+	//glColor3f(1, 0, 0);
+	//glVertex3f(0, 0, 0);
+	//glVertex3f(100, 0, 0);
 
-	glColor3f(0, 1, 0);
-	glVertex3f(0, 0, 0);
-	glVertex3f(0, 100, 0);
+	//glColor3f(0, 1, 0);
+	//glVertex3f(0, 0, 0);
+	//glVertex3f(0, 100, 0);
 
-	glColor3f(0, 0, 1);
-	glVertex3f(0, 0, 0);
-	glVertex3f(0, 0, 100);
-	glEnd();
+	//glColor3f(0, 0, 1);
+	//glVertex3f(0, 0, 0);
+	//glVertex3f(0, 0, 100);
+	//glEnd();
 
 	// Draw Cosmos
 	glMatrixMode(GL_MODELVIEW);
