@@ -12,12 +12,12 @@ Cosmo::Cosmo()
 #define ID_T        int32_t
 
 struct cosmoData {
-    POSVEL_T xx;         // Y velocity for particles on this processor
+    POSVEL_T xx;         // X location for particles on this processor
     POSVEL_T vx;         // X velocity for particles on this processor
-    POSVEL_T yy;         // Z velocity for particles on this processor
-    POSVEL_T vy;         // Y location for particles on this processor
-    POSVEL_T zz;         // X location for particles on this processor
-    POSVEL_T vz;         // Z location for particles on this processor  
+    POSVEL_T yy;         // Y location for particles on this processor
+    POSVEL_T vy;         // Y velocity for particles on this processor
+    POSVEL_T zz;         // Z location for particles on this processor
+    POSVEL_T vz;         // Z velocity for particles on this processor  
     POSVEL_T mass;       // Mass for particles on this processor 
     ID_T     tag;
 };

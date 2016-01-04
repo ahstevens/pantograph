@@ -1151,12 +1151,12 @@ int main(int argc, char* argv[])
 	}
 
 
-	glutIdleFunc(idle);
-	glutReshapeFunc(reshape);
 	glutDisplayFunc(display);
+	glutIdleFunc(idle);
+	glutMotionFunc(motionFunc);
 	glutKeyboardFunc(keyboard);
 	glutMouseFunc(mouseSelection);
-	glutMotionFunc(motionFunc);
+	glutReshapeFunc(reshape);
 
 	glutMainLoop();
 	

@@ -137,11 +137,395 @@ void generate_theta()
 	}
 }
 
-void redraw( void )
+
+void perRenderUpdates()
 {
+	//mouse zooming
+	//zoom();
+
 	transition();
 
 	rt = timer % 120; // 60 Hz on 60 Hz machine
+
+	focalCenter = vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
+
+	touchManager->perRenderUpdate();
+}
+
+void processPendingInteractions()
+{
+	//printf("Processing Mouse Click\n");
+	//draw a ground plane at height zero to fill depth buffer so we can get selection depth from it
+	glBegin(GL_QUADS);
+	glNormal3f(0, 0, 1);
+	glVertex3f(-10000, 0, 0);
+	glVertex3f(-10000, 10000, 0);
+	glVertex3f(10000, 10000, 0);
+	glVertex3f(10000, 0, 0);
+	glEnd();
+
+	GLint viewport[4];
+	GLdouble modelview[16];
+	GLdouble projection[16];
+	GLfloat winX, winY, winZ = 0.0;
+	GLdouble posX, posY, posZ;
+
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	//if fingers down convert screen coords to model coords
+	if (settings->finger1sX != -1 && settings->finger1sY != -1 && settings->finger2sX != -1 && settings->finger2sY != -1)
+	{
+		glReadPixels(settings->finger1sX, settings->finger1sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+		gluUnProject(settings->finger1sX, settings->finger1sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+		float p1x, p1y, p1z;
+		p1x = (float)posX;
+		p1y = (float)posY;
+		p1z = (float)posZ;
+
+		settings->finger1modelCoords[0] = p1x;
+		settings->finger1modelCoords[1] = p1y;
+		settings->finger1modelCoords[2] = p1z;
+
+		glReadPixels(settings->finger2sX, settings->finger2sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+		gluUnProject(settings->finger2sX, settings->finger2sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+		p1x = (float)posX;
+		p1y = (float)posY;
+		p1z = (float)posZ;
+
+		settings->finger2modelCoords[0] = p1x;
+		settings->finger2modelCoords[1] = p1y;
+		settings->finger2modelCoords[2] = p1z;		
+	}
+
+	//if actively positioning finger, maintain corresponding model coordinates
+	if (settings->positioningXYFingerLocation[0] != -1 && settings->positioningZFingerLocation[2] != -1)
+	{
+		glReadPixels(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+		gluUnProject(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+		float p1x, p1y, p1z;
+		p1x = (float)posX;
+		p1y = (float)posY;
+		p1z = (float)posZ;
+
+		settings->positioningModelCoords[0] = p1x;
+		settings->positioningModelCoords[1] = p1y;
+
+		float depthHere = dataset->getDepthAt(p1x, p1y);
+		if (depthHere != -1 && depthHere != 0)
+		{
+			//store model depth
+			settings->positioningModelCoords[2] = depthHere;
+
+			//get actual depth from model
+			float interpolatedLayer = (-depthHere / dataset->dataBoundsMaxFakeDepth)*dataset->numDepths;
+			int aboveLayer = floor((double)interpolatedLayer);
+			int belowLayer = ceil((double)interpolatedLayer);
+			float aboveDepth = dataset->getActualDepthAtLayer(aboveLayer);
+			float belowDepth = dataset->getActualDepthAtLayer(belowLayer);
+			float factor = interpolatedLayer - aboveLayer;
+			float depth = factor*belowDepth + (1 - factor)*aboveDepth;
+
+			//store actual depth
+			settings->positioningModelCoords[3] = depth;
+			//printf("depths model %f, actual %f\n", settings->positioningModelCoords[2], settings->positioningModelCoords[3]);
+		}
+		else
+		{
+			settings->positioningModelCoords[2] = -1;
+			settings->positioningModelCoords[3] = -1;
+		}
+	}//if need to update active positioning
+	else
+	{
+		settings->positioningModelCoords[0] = -1;
+		settings->positioningModelCoords[1] = -1;
+		settings->positioningModelCoords[2] = -1;
+	}
+
+
+	//for (int i = 0; i<settings->toProcessCode.size(); i++)
+	//{
+	//	if (settings->toProcessCode.at(i) == ADD_DYEPOLE) //if add dyePole to location
+	//	{
+
+	//		winX = (float)settings->toProcessX.at(i);
+	//		winY = (float)settings->toProcessY.at(i);
+	//		//printf("winx %f, winy %f\n", winX, winY);
+	//		glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+
+	//		//printf("depth buffer is %f\n", (float)winZ);
+
+	//		gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+	//		//gluUnProject( winX, winY, 0.0, selectionModelview, selectionProjection, selectionViewport, &posX, &posY, &posZ);
+
+	//		float p1x, p1y, p1z;
+	//		p1x = (float)posX;
+	//		p1y = (float)posY;
+	//		p1z = (float)posZ;
+	//		//printf("Clicked on %f, %f, %f\n", (float)posX, (float)posY, (float)posZ);
+
+	//		float depthHere = dataset->getDepthAt(p1x, p1y);
+	//		if (depthHere != -1 && depthHere != 0)
+	//		{
+	//			particleSystem->addDyePole(p1x, p1y, dataset->getDepthAt(p1x, p1y), 0);
+	//			panelMan->addDyePolePanel(particleSystem->getDyePoleClosestTo(p1x, p1y), winX, winY);
+	//		}
+	//		else if (depthHere != -1)
+	//			printf("ERROR: No depth info where clicked, off map?\n");
+	//		else if (depthHere != 0)
+	//			printf("ERROR: Can't spawn a dye pole on land!\n");
+	//		settings->toProcessCode.erase(settings->toProcessCode.begin() + i);
+	//		settings->toProcessX.erase(settings->toProcessX.begin() + i);
+	//		settings->toProcessY.erase(settings->toProcessY.begin() + i);
+	//		settings->toProcessZ.erase(settings->toProcessZ.begin() + i);
+	//		i++;
+	//	}//end if add dye to location
+	//	else if (settings->toProcessCode.at(i) == ADD_PRECISE_DYEPOT) //if add precise dyePot to location
+	//	{
+	//		float ptx = (float)settings->toProcessX.at(i);
+	//		float pty = (float)settings->toProcessY.at(i);
+	//		float ptz = (float)settings->toProcessZ.at(i);
+	//		particleSystem->addDyePole(ptx, pty, dataset->getDepthAt(ptx, pty), 0);
+	//		DyePole* tempDP = particleSystem->getDyePoleClosestTo(ptx, pty);
+	//		tempDP->deleteEmitter(0);
+	//		tempDP->addEmitter(ptz, ptz);
+	//		tempDP->changeEmitterSpread(0, 1);
+	//		tempDP->changeEmitterColor(0, 1);
+	//		panelMan->addDyePolePanel(tempDP, settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1]);
+
+	//		/*
+	//		//add uneditable point emitter:
+	//		particleSystem->addDyePole((float)settings->toProcessX.at(i),(float)settings->toProcessY.at(i), (float)settings->toProcessZ.at(i), (float)settings->toProcessZ.at(i));
+	//		panelMan->addDyePolePanel(particleSystem->getDyePoleClosestTo((float)settings->toProcessX.at(i),(float)settings->toProcessY.at(i)), settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1]);
+	//		*/
+
+	//		settings->toProcessCode.erase(settings->toProcessCode.begin() + i);
+	//		settings->toProcessX.erase(settings->toProcessX.begin() + i);
+	//		settings->toProcessY.erase(settings->toProcessY.begin() + i);
+	//		settings->toProcessZ.erase(settings->toProcessZ.begin() + i);
+	//		i++;
+	//	}//end if add dye to location
+	//	else if (settings->toProcessCode.at(i) == ADD_AUV_WAYPOINT) //if add AUV waypoint to location
+	//	{
+	//		float ptx = (float)settings->toProcessX.at(i);
+	//		float pty = (float)settings->toProcessY.at(i);
+	//		float ptz = (float)settings->toProcessZ.at(i);
+
+	//		if (dataset->isWaterAt(ptx, pty, -ptz))
+	//			pathPanel->path->addWaypoint(ptx, pty, ptz);
+	//		//pathPanel->path->smooth();
+
+	//		settings->toProcessCode.erase(settings->toProcessCode.begin() + i);
+	//		settings->toProcessX.erase(settings->toProcessX.begin() + i);
+	//		settings->toProcessY.erase(settings->toProcessY.begin() + i);
+	//		settings->toProcessZ.erase(settings->toProcessZ.begin() + i);
+	//		i++;
+	//	}//end if add AUV waypoint
+	//	else if (settings->toProcessCode.at(i) == DELETE_ALL_DYEPOLES) //delete dyepole(s)
+	//	{
+	//		particleSystem->deleteAllDyePoles();
+	//		settings->toProcessCode.erase(settings->toProcessCode.begin() + i);
+	//		settings->toProcessX.erase(settings->toProcessX.begin() + i);
+	//		settings->toProcessY.erase(settings->toProcessY.begin() + i);
+	//		settings->toProcessZ.erase(settings->toProcessZ.begin() + i);
+	//		i++;
+	//	}//end if delete all dyepoles
+	//	else if (settings->toProcessCode.at(i) == SELECT_DYEPOLE ||
+	//		settings->toProcessCode.at(i) == DELETE_DYEPOLE) //if select or delete existing dyepole
+	//	{
+	//		winX = (float)settings->toProcessX.at(i);
+	//		winY = (float)settings->toProcessY.at(i);
+	//		//printf("winx %f, winy %f\n", winX, winY);
+	//		glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+
+	//		//printf("depth buffer is %f\n", (float)winZ);
+
+	//		gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+	//		//gluUnProject( winX, winY, 0.0, selectionModelview, selectionProjection, selectionViewport, &posX, &posY, &posZ);
+
+	//		float p1x, p1y, p1z;
+	//		p1x = (float)posX;
+	//		p1y = (float)posY;
+	//		p1z = (float)posZ;
+	//		//printf("Clicked on %f, %f, %f\n", (float)posX, (float)posY, (float)posZ);
+
+	//		//find closest dyepole
+	//		float minDist = 10000000;
+	//		int closestDP = -1;
+	//		for (int j = 0; j<particleSystem->dyePoles.size(); j++)
+	//		{
+	//			float dpx = particleSystem->dyePoles.at(j)->x;
+	//			float dpy = particleSystem->dyePoles.at(j)->y;
+	//			float dist = sqrt((p1x - dpx)*(p1x - dpx) + (p1y - dpy)*(p1y - dpy));
+	//			if (dist < minDist)
+	//			{
+	//				minDist = dist;
+	//				closestDP = j;
+	//			}
+	//		}
+	//		if (closestDP > -1)
+	//		{
+	//			if (settings->toProcessCode.at(i) == SELECT_DYEPOLE)
+	//				panelMan->addDyePolePanel(particleSystem->dyePoles.at(closestDP), winX, winY);
+	//			else if (settings->toProcessCode.at(i) == DELETE_DYEPOLE)
+	//			{
+	//				particleSystem->deleteDyePole(closestDP);
+	//			}
+	//		}
+
+	//		settings->toProcessCode.erase(settings->toProcessCode.begin() + i);
+	//		settings->toProcessX.erase(settings->toProcessX.begin() + i);
+	//		settings->toProcessY.erase(settings->toProcessY.begin() + i);
+	//		settings->toProcessZ.erase(settings->toProcessZ.begin() + i);
+	//		i++;
+
+	//	}//end if select existing dyepole
+
+	//}//end for each pending interaction
+
+}//end processPendingInteractions()
+
+void drawScene(int eye) //0=left or mono, 1=right
+{
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	if (eye == 0)
+		processPendingInteractions();
+
+	//draw axes
+	glLineWidth(1.0);
+	glBegin(GL_LINES);
+	glColor3f(1, 0, 0);
+	glVertex3f(0, 0, 0);
+	glVertex3f(100, 0, 0);
+
+	glColor3f(0, 1, 0);
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, 100, 0);
+
+	glColor3f(0, 0, 1);
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, 0, 100);
+	glEnd();
+
+	// Draw Cosmos
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 20.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+	glVertex3f(0.0, -1.0, 0.0);
+	glVertex3f(0.0, -20.0, 0.0);
+	glEnd();
+
+	glPushMatrix();
+		if (startStop)glRotatef(rotation[rt], 0.0, 1.0, 0.0);
+		//glutWireCube(12.0);
+		glScalef(scale, scale, scale);
+		glRotatef(rotY + dragX, 0.0, 1.0, 0.0);
+		glTranslatef(cowX, cowY, cowZ);
+		glScalef(0.1f, 0.1f, 0.1f);
+		//drawPts();
+		//--------------------------------------------------
+		glPointSize(pointSize);
+		glColor4f(pointColor.x, pointColor.y, pointColor.z, pointColor.w);
+		if (point) cosmo->renderPoints();
+		if (velocity) cosmo->renderVelocities();
+		if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
+		////draw_triangles();
+		//--------------------------------------------------
+	glPopMatrix();
+
+	//draw active positioning pole:
+	if (settings->positioningModelCoords[2] != -1)
+	{
+		glLineWidth(2);
+		glColor4f(0.8, 0.8, 0.95, 1.0);
+		glBegin(GL_LINES);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 0);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
+		glEnd();
+		glColor4f(1.0, 1.0, 0.25, 1.0);
+		glPointSize(6);
+		glBegin(GL_POINTS);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		glEnd();
+	}
+
+	touchManager->draw3D();
+}
+
+void drawOverlay()
+{
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDepthFunc(GL_ALWAYS);
+
+	//draw 2D interface elements:
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0, glutGet(GLUT_WINDOW_WIDTH), 0.0, glutGet(GLUT_WINDOW_HEIGHT), -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glDisable(GL_LIGHTING);
+
+	touchManager->draw2D();
+
+	static float fps = 0.0f;
+	static float lastTime = 0.0f;
+	static int lastfps = 0;
+	static char buffer[32] = { 0 };
+	float currentTime = GetTickCount64() * 0.001f;
+	++fps;
+
+	if (currentTime - lastTime > 1.0f)
+	{
+		lastfps = (int)fps;
+		fps = 0;
+		lastTime = currentTime;
+	}
+	sprintf(buffer, "FPS: %d", lastfps);
+	glColor3f(1, 1, 1);
+	glLineWidth(1);
+	drawStrokeLabel3D(glutGet(GLUT_WINDOW_WIDTH) - 50, 2, 0, 0.075, buffer);
+
+	glColor3f(1, 1, 1);
+	glLineWidth(1);
+	drawStrokeLabel3D(glutGet(GLUT_WINDOW_WIDTH) - 150, 2, 0, 0.075, buffer);
+
+	//if (dyeMode)
+	//{
+	//	glColor3f(1, 0, 0);
+	//	glLineWidth(2);
+	//	drawStrokeLabel3D(5, 5, 0, 0.150, "DYE TOOL ENABLED");
+	//}
+
+
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
+	//glEnable(GL_LIGHTING);
+
+}
+
+void redraw( void )
+{
+	perRenderUpdates();
+
 	//focalCenter = vec3(cowX, cowY, cowZ);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -235,10 +619,7 @@ void draw_triangles()
 //-------------------------------------------------------------------------------
 void redraw_stereo(void)
 {
-	transition();
-	rt = timer % 120; // 60 Hz on 60 Hz machine
-
-	focalCenter = vec3(  cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP-10) );
+	perRenderUpdates();
 
   	//--------------------------------------------------
     // SETUP LEFT
@@ -254,34 +635,10 @@ void redraw_stereo(void)
 	glTranslatef( eyeOffset,0.0,-NEAR_CP-10.0); // center of universe offset..
 
     //--------------------------------------------------
+
     // DRAW UNIVERSE
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-	glBegin(GL_LINES);
-		glVertex3f(0.0,20.0,0.0);
-		glVertex3f(0.0,1.0,0.0);
-		glVertex3f(0.0,-1.0,0.0);
-		glVertex3f(0.0,-20.0,0.0);
-	glEnd();
-
-	glPushMatrix();	
-		if(startStop)glRotatef(rotation[rt],0.0,1.0,0.0);
-		//glutWireCube(12.0);
-		glScalef(scale,scale,scale);
-		glRotatef(rotY + dragX,0.0,1.0,0.0);
-		glTranslatef(cowX, cowY, cowZ);
-		glScalef(0.1f,0.1f,0.1f);
-		//drawPts();
-		//--------------------------------------------------
-        glPointSize( pointSize );
-        glColor4f( pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-        if(point) cosmo->renderPoints();
-        if(velocity) cosmo->renderVelocities();
-        if (isBarVisible){ TwSetCurrentWindow(mainWindow); TwDraw(); }
-        ////draw_triangles();
-		//--------------------------------------------------
-	glPopMatrix();
+	drawScene(0);
+	drawOverlay();
 
 	//--------------------------------------------------
     // SETUP RIGHT
@@ -298,33 +655,8 @@ void redraw_stereo(void)
 
     //--------------------------------------------------
     // DRAW UNIVERSE
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-	glBegin(GL_LINES);
-		glVertex3f(0.0,20.0,0.0);
-		glVertex3f(0.0,1.0,0.0);
-		glVertex3f(0.0,-1.0,0.0);
-		glVertex3f(0.0,-20.0,0.0);
-	glEnd();
-
-	glPushMatrix();	
-		if(startStop)glRotatef(rotation[rt],0.0,1.0,0.0);
-		//glutWireCube(12.0);
-		glScalef(scale,scale,scale);
-		glRotatef(rotY + dragX,0.0,1.0,0.0);
-		glTranslatef(cowX, cowY, cowZ);
-		glScalef(0.1f,0.1f,0.1f);
-		//drawPts();
-		//--------------------------------------------------
-        glPointSize( pointSize );
-        glColor4f( pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-        if(point) cosmo->renderPoints();
-        if(velocity) cosmo->renderVelocities();
-        if (isBarVisible){ TwSetCurrentWindow(mainWindow); TwDraw(); }
-        //draw_triangles();
-		//--------------------------------------------------
-	glPopMatrix();
+	drawScene(1);
+	drawOverlay();
 
 	//--------------------------------------------------
 	glutSwapBuffers();
@@ -656,6 +988,7 @@ void init(void)
 	glClearColor(MAIN_BACKGROUND_COLOR, 1.0);
 	//glClearDepth(0.0);
 	//glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_NORMALIZE);
 	//glEnable(GL_LIGHTING);
