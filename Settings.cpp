@@ -3,8 +3,8 @@
 Settings::Settings()
 {
 	resetToDefaults();
-	camera = new FocalCamera();
-	textMan = new TextureManager();
+	//camera = new FocalCamera();
+	//textMan = new TextureManager();
 }
 
 void Settings::resetToDefaults()

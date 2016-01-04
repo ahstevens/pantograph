@@ -978,14 +978,14 @@ void motionFunc(int x, int y)
 		//settings->camera->ChangePitch(-deltaY/15);
 
 		//settings->camera->ChangeYawPitch(deltaX/15, -deltaY/15);
-		settings->camera->changeViewAngle(-deltaX/8, deltaY/8);
+		//settings->camera->changeViewAngle(-deltaX/8, deltaY/8);
 	}
 	if (mouseLeftNav)
 	{
 		float deltaX = x - lastMouseNavX;
 		float deltaY = y - lastMouseNavY;
 
-		settings->camera->TranslateAlongGroundPlane(deltaX, deltaY);
+		//settings->camera->TranslateAlongGroundPlane(deltaX, deltaY);
 	}
 	else if (zooming)
 	{
@@ -995,7 +995,7 @@ void motionFunc(int x, int y)
 		//settings->camera->ChangeHeading(-deltaX/15);
 		//settings->camera->ChangePitch(deltaY/15);
 		//settings->camera->ChangeYawPitch(-deltaX/15, deltaY/15);
-		settings->camera->changeViewAngle(-deltaX/8, deltaY/8);
+		//settings->camera->changeViewAngle(-deltaX/8, deltaY/8);
 	}
 	
 	lastMouseNavX = x;

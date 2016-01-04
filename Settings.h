@@ -8,8 +8,6 @@
 
 //#include "cv.h"
 #include <vector>
-#include "FocalCamera.h"
-#include "TextureManager.h"
 
 #define ADD_DYEPOLE 1
 #define DELETE_ALL_DYEPOLES 2
@@ -27,8 +25,8 @@ public:
 
 	void resetToDefaults();
 
-	FocalCamera* camera;
-	TextureManager* textMan;
+	//FocalCamera* camera;
+	//TextureManager* textMan;
 	
 	
 	bool mirror;

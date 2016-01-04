@@ -6,6 +6,9 @@
 #include <math.h>
 #include "Stopwatch.h"
 #include <AntTweakBar.h>
+#include "Settings.h"
+#include "ColorsAndSizes.h"
+#include "TouchManager.h"
 
 /*
 //--------------------------------------------------
@@ -28,6 +31,10 @@ using namespace std;
 #define REFRESH 60
 Stopwatch *aclock;
 
+Settings* settings;
+
+TouchManager* touchManager;
+
 float rx,ry;
 //float rw, rh;
 float mXscreen = 0.0f ,mYscreen = 0.0f;  // mouse x in screen coords.
@@ -38,7 +45,8 @@ float xeye = 0.0f, yeye= 0.0f, zeye = 0.0f; // the offsets calculated for a move
 float rotX,rotY; // change the rotation about the cow
 float holdMx, holdMy;
 
-bool mouseDown; // for dragging
+bool leftMouseDown;
+bool rightMouseDown;
 float dragX, dragY; // used for rotating the universe
 float rotation[500];
 int timer;
@@ -48,6 +56,23 @@ int rt; // rotation timer
 bool startStop;
 bool autoRefresh = false;
 
+//---------------------------------------------------------------------------- 
+///MOVE SPEED NOW A FRACTION OF BBOX LENGTH
+#define DEFAULTMOVESPEED 10
+
+int processMouseClick;
+
+bool takeSnapshot;
+
+bool mouseLeftNav;
+bool mouseRightNav;
+int lastMouseNavX;
+int lastMouseNavY;
+
+bool zoomIn;
+bool zooming;
+
+float moveSpeed;
 //----------------------------------------------------------------------------
 vec3 focalCenter = vec3(0.0f, 0.0f, 0.0f);
 float aspect = 1.0f;
@@ -353,7 +378,7 @@ static int mouseButton(int button, int state, int x, int y)
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
 
-		mouseDown = true;
+		rightMouseDown = true;
 		holdMx = rx;
 		holdMy = ry;
 		
@@ -362,7 +387,7 @@ static int mouseButton(int button, int state, int x, int y)
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
 	{
-		mouseDown = false;
+		rightMouseDown = false;
 		
 		rotY = rotY + dragX;	
 		//cerr << "Rot Up Y " << rotY << "\n";
@@ -405,7 +430,7 @@ static int motion(int x, int y)
 
 	rx = float(x); ry = float(winHeight - y);
 
-	if(mouseDown)// used for rotating with the right mouse button
+	if(rightMouseDown)// used for rotating with the right mouse button
 	{
 		dragX = (rx - holdMx)*0.1f;
 		//cerr << "Rot Y Drag " << dragX << " " << rotY + dragX << "\n";
@@ -596,6 +621,48 @@ int specialFunction(int glutKey, int mouseX, int mouseY)
 	}
 //-------------------------------------------------------------------------------
 
+//This is the GLUT initialization function
+void init(void)
+{
+	leftMouseDown = false;
+	rightMouseDown = false;
+
+	srand(time(NULL));
+	settings = new Settings();
+
+	touchManager = new TouchManager(settings);
+	int err_code = touchManager->Init();
+	if (err_code != PQMTE_SUCCESS)
+	{
+		printf("ERROR initializing touch manager!\n");
+	}
+
+	//particleSystem = new ParticleSystem(dataset, settings);
+	//panelMan->addParticleSystemPanel(particleSystem);
+	//pathPanel = panelMan->addAUVPathPanel(dataset);
+
+	takeSnapshot = false;
+	processMouseClick = 0;
+
+	lastMouseNavX = 0;
+	lastMouseNavY = 0;
+	mouseLeftNav = false;
+	mouseRightNav = false;
+	zoomIn = true;
+	zooming = false;
+	moveSpeed = DEFAULTMOVESPEED;
+
+
+	glClearColor(MAIN_BACKGROUND_COLOR, 1.0);
+	//glClearDepth(0.0);
+	//glEnable(GL_DEPTH_TEST);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_NORMALIZE);
+	//glEnable(GL_LIGHTING);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//	glShadeModel(GL_SMOOTH);
+}
 
 int main(int argc, char *argv[])
 {
@@ -606,15 +673,16 @@ int main(int argc, char *argv[])
    #ifdef __APPLE__
         glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
     #else
-        if(QUAD_BUFFER) { glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STEREO | GLUT_STENCIL);}
-        else            { glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH ); }
+        if(QUAD_BUFFER) { glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_STENCIL | GLUT_STEREO);}
+        else            { glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_STENCIL); }
     #endif
 
 	glutInitWindowSize( winWidth, winHeight );
     glutInitWindowPosition( 200, 100 );  
-    mainWindow = glutCreateWindow("Haloes Project");
+    mainWindow = glutCreateWindow("Pantograph");
     glutSetWindow(mainWindow);
     glutFullScreen();
+	init();
 
 	//---------------------------------------------------------------------------
     // initialize Open GL Extension library
@@ -633,11 +701,6 @@ int main(int argc, char *argv[])
     if(QUAD_BUFFER) { glutDisplayFunc( redraw_stereo ); glutIdleFunc( redraw_stereo ); }
     else { glutDisplayFunc( redraw ); glutIdleFunc( redraw ); }
 
-
-
-	glClearColor(0.1f,0.1f,0.1f,1.0f);
-    glClearDepth(0.0);
-
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum(VP_LEFT, VP_RIGHT, VP_BOTTOM, VP_TOP, NEAR_CP, FAR);
@@ -647,10 +710,7 @@ int main(int argc, char *argv[])
 	glMatrixMode(GL_MODELVIEW);;
 	glLoadIdentity();
 
-	//glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );  
+ 
     //glEnable (GL_POINT_SMOOTH);
     //glHint (GL_POINT_SMOOTH_HINT, GL_NICEST);
 
