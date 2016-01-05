@@ -337,33 +337,6 @@ void Pantograph::draw3D()
 
 		glEnd();
 
-		glLineWidth( 1 );
-		glBegin( GL_LINES );
-			//glVertex3f(selection[0], selection[1], zMax);
-			//glVertex3f(settings->finger2modelCoords[0],settings->finger2modelCoords[1], settings->finger2modelCoords[2]);
-			//glVertex3f(selection[0], selection[1], selection[2]);
-			//glVertex3f(settings->currentlySelectedPoint[0],settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
-		glEnd();
-		
-		/*
-		glColor3f(0.65,0,0.95);
-		glPointSize(10);
-		glBegin(GL_POINTS);
-			glVertex3f(selectionX, selectionY, selectionZ);
-		glEnd();
-		*/
-
-		/*
-		if (drawReticle)
-		{
-			int msPerRotation = 3000;
-			float radian = ((float)((int)GetTickCount64()%msPerRotation)/msPerRotation)*6.28318;
-			//glColor3f(0.25,0.65,0.25);
-			glColor4f(0.35,1.0,0.35, 0.75);
-			glLineWidth(1);
-			draw3DReticle(selection[0], selection[1], selection[2], 20, radian);
-		}
-		*/
 	}//end if both fingers valid draw pantograph
 }
 

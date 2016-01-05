@@ -92,7 +92,7 @@ void Cosmo::read( std::string fileName )
     file.read (buffer, size);
     file.close();
 
-    std::cout << "size: "<< size;
+    std::cout << " file size: "<< size << "...";
 
     //------------------------------------------------
     // parse the data into related object vector
@@ -184,7 +184,15 @@ void Cosmo::read( std::string fileName )
 
     particleCount = vParticles.size();
     std::cout << "done! " << std::endl;
-    std::cout << particleCount << " particles..." << std::endl;
+
+
+	std::cout << "Min X = " << min.x << std::endl;
+	std::cout << "Max X = " << max.x << std::endl;
+	std::cout << "Min Y = " << min.y << std::endl;
+	std::cout << "Max Y = " << max.y << std::endl;
+	std::cout << "Min Z = " << minDepth << std::endl;
+	std::cout << "Max Z = " << maxDepth << std::endl;
+    std::cout << "Particle Count = " << particleCount << std::endl;
 }
 
 float Cosmo::getMaxDepth(){ return maxDepth; }
