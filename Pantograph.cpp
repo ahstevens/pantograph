@@ -292,48 +292,19 @@ void Pantograph::draw3D()
 		glLineWidth( 1.5 );
 		glBegin( GL_LINES );
 		
-			//glVertex3f(f1X, f1Y, f1Z);
 			glVertex3f( settings->finger1modelCoords[ 0 ],
 				settings->finger1modelCoords[ 1 ],
 				settings->finger1modelCoords[ 2 ] );
-			//glVertex3f(selection[0], selection[1], selection[2]);
 			glVertex3f( settings->currentlySelectedPoint[ 0 ],
 				settings->currentlySelectedPoint[ 1 ],
-				settings->currentlySelectedPoint[ 2 ] );
-		
-			if ( lastDistanceBetween > maxDistanceBetween )
-			{
-				//glVertex2f(f1X+(lastVectorX*maxDistanceBetween), f1Y+(lastVectorY*maxDistanceBetween));
-				glVertex3f( settings->finger2modelCoords[ 0 ],
-					settings->finger2modelCoords[ 1 ],
-					settings->finger2modelCoords[ 2 ] );
-				//glVertex3f(selection[0], selection[1], selection[2]);
-				glVertex3f( settings->currentlySelectedPoint[ 0 ],
-					settings->currentlySelectedPoint[ 1 ],
-					settings->currentlySelectedPoint[ 2 ] );
-			}
-			else if ( lastDistanceBetween < minDistanceBetween )
-			{
-				//glVertex2f(f1X+(lastVectorX*minDistanceBetween), f1Y+(lastVectorY*minDistanceBetween));
-				glVertex3f( settings->finger2modelCoords[ 0 ],
-					settings->finger2modelCoords[ 1 ],
-					settings->finger2modelCoords[ 2 ] );
-				//glVertex3f(selection[0], selection[1], selection[2]);
-				glVertex3f( settings->currentlySelectedPoint[ 0 ],
-					settings->currentlySelectedPoint[ 1 ],
-					settings->currentlySelectedPoint[ 2 ] );
-			}
-			else
-			{
-				//glVertex3f(f2X, f2Y, f2Z);
-				glVertex3f( settings->finger2modelCoords[ 0 ],
-					settings->finger2modelCoords[ 1 ],
-					settings->finger2modelCoords[ 2 ]);
-				//glVertex3f(selection[0], selection[1], selection[2]);
-				glVertex3f( settings->currentlySelectedPoint[ 0 ],
-					settings->currentlySelectedPoint[ 1 ],
-					settings->currentlySelectedPoint[ 2 ] );
-			}
+				settings->currentlySelectedPoint[ 2 ] );		
+			
+			glVertex3f( settings->finger2modelCoords[ 0 ],
+				settings->finger2modelCoords[ 1 ],
+				settings->finger2modelCoords[ 2 ] );
+			glVertex3f( settings->currentlySelectedPoint[ 0 ],
+				settings->currentlySelectedPoint[ 1 ],
+				settings->currentlySelectedPoint[ 2 ] );			
 
 		glEnd();
 

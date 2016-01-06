@@ -158,10 +158,10 @@ void processPendingInteractions()
 	//draw a ground plane at height zero to fill depth buffer so we can get selection depth from it
 	glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glVertex3f(-100, 100, 0);
-		glVertex3f(-100, -100, 0);
-		glVertex3f(100, -100, 0);
-		glVertex3f(100, 100, 0);
+		glVertex3f(-100, 100, 10);
+		glVertex3f(-100, -100, 10);
+		glVertex3f(100, -100, 10);
+		glVertex3f(100, 100, 10);
 	glEnd();
 
 	GLint viewport[4];
@@ -216,7 +216,7 @@ void processPendingInteractions()
 		settings->positioningModelCoords[1] = p1y;
 
 		//float depthHere = dataset->getDepthAt(p1x, p1y);
-		float depthHere = cosmo->getMaxDepth();
+		float depthHere = -cosmo->getMaxDepth() / 2 * 0.1;
 		if (depthHere != -1 && depthHere != 0)
 		{
 			//store model depth
@@ -257,7 +257,6 @@ void drawScene(int eye) //0=left or mono, 1=right
 		glTranslatef(-eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
 	// Draw Cosmos
-
 	glBegin(GL_LINES);
 	glVertex3f(0.0, 20.0, 0.0);
 	glVertex3f(0.0, 1.0, 0.0);
@@ -282,30 +281,24 @@ void drawScene(int eye) //0=left or mono, 1=right
 		////draw_triangles();
 		//--------------------------------------------------
 	glPopMatrix();
+	
+	//draw active positioning pole:
+	if (settings->positioningModelCoords[2] != -1)
+	{
+		glLineWidth(2);
+		glColor4f(0.8, 0.8, 0.95, 1.0);
+		glBegin(GL_LINES);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 4.50704);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
+		glEnd();
+		glColor4f(1.0, 1.0, 0.25, 1.0);
+		glPointSize(6);
+		glBegin(GL_POINTS);
+		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		glEnd();
+	}
 
-	glPushMatrix();
-		//glScalef(scale, scale, scale);
-		//glTranslatef(cowX, cowY, cowZ);
-		//glScalef(0.1f, 0.1f, 0.1f);
-
-		//draw active positioning pole:
-		if (settings->positioningModelCoords[2] != -1)
-		{
-			glLineWidth(2);
-			glColor4f(0.8, 0.8, 0.95, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 0);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
-			glEnd();
-			glColor4f(1.0, 1.0, 0.25, 1.0);
-			glPointSize(6);
-			glBegin(GL_POINTS);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glEnd();
-		}
-
-		touchManager->draw3D();
-	glPopMatrix();
+	touchManager->draw3D();
 
 }
 

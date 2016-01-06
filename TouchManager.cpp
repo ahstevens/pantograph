@@ -915,24 +915,24 @@ void TouchManager::OnTG_MultiMoveDown(const TouchGesture & tg,void * call_object
 void TouchManager::draw2D()
 {
 	//printf("draw!!!");
-	if (settings->positioningDyePot && settings->positioningXYFingerLocation[0] != -1 && settings->positioningXYFingerLocation[1] != -1 && !settings->positioningDyePotPantograph  && !settings->positioningAUVWaypoint)
-	{
-		//draw recticle
-		if (settings->positioningModelCoords[2] == -1)
-			glColor4f(1.0,0.25,0.25,1.0);
-		else
-			glColor4f(0.75,1.0,0.75,1.0);
-		int msPerRotation = 7000;
-		int msPerZoom = 4000;
-		float radian = ((float)((int)GetTickCount64()%msPerRotation)/msPerRotation)*6.28318;
-		float ticker = ((float)((int)GetTickCount64()%msPerZoom)/msPerZoom)*20;
-		float radius;
-		if (ticker < 10)
-			radius = 100 - ticker;
-		else
-			radius = 90 + (ticker-10);
-		drawReticle(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], radius, radian);
-	}
+	//if (settings->positioningDyePot && settings->positioningXYFingerLocation[0] != -1 && settings->positioningXYFingerLocation[1] != -1 && !settings->positioningDyePotPantograph  && !settings->positioningAUVWaypoint)
+	//{
+	//	//draw recticle
+	//	if (settings->positioningModelCoords[2] == -1)
+	//		glColor4f(1.0,0.25,0.25,1.0);
+	//	else
+	//		glColor4f(0.75,1.0,0.75,1.0);
+	//	int msPerRotation = 7000;
+	//	int msPerZoom = 4000;
+	//	float radian = ((float)((int)GetTickCount64()%msPerRotation)/msPerRotation)*6.28318;
+	//	float ticker = ((float)((int)GetTickCount64()%msPerZoom)/msPerZoom)*20;
+	//	float radius;
+	//	if (ticker < 10)
+	//		radius = 100 - ticker;
+	//	else
+	//		radius = 90 + (ticker-10);
+	//	drawReticle(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], radius, radian);
+	//}
 
 	//draw pantograph stuff
 	//if (settings->positioningDyePotPantograph)
@@ -972,7 +972,7 @@ void TouchManager::perRenderUpdate()
 			{
 				settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
 				settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
-				settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2] * pantoDepth;
+				settings->currentlySelectedPoint[2] = -4.50704 + 9.01408 * pantoDepth;
 			}
 
 		}//end if valid selection
