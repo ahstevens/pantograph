@@ -63,6 +63,44 @@ void Object::renderPoints()
         glDrawArrays( GL_POINTS, 0, numberOfPoints ); 
     glBindVertexArray(0);
 }
+
+void Object::renderPointsWithin( vec3 point, float radius)
+{
+	std::vector<Particle>::iterator it;
+
+	glBegin(GL_POINTS);
+		for (it = vSample.begin(); it != vSample.end(); ++it)
+		{
+			if (it->pos.x <= (point.x + radius) && it->pos.x >= (point.x - radius) &&
+				it->pos.y <= (point.y + radius) && it->pos.y >= (point.y - radius) &&
+				it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
+				sqrtf(pow(it->pos.x - point.x,2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
+			{
+				glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+			}
+			else
+				glColor4f(1.f, 1.f, 1.f, 0.05f);
+
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+		}
+
+		for (it = vFocal.begin(); it != vFocal.end(); ++it)
+		{
+			if (it->pos.x <= (point.x + radius) && it->pos.x >= (point.x - radius) &&
+				it->pos.y <= (point.y + radius) && it->pos.y >= (point.y - radius) &&
+				it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
+				sqrtf(pow(it->pos.x - point.x, 2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
+			{
+				glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+			}
+			else
+				glColor4f(1.f, 1.f, 1.f, 0.05f);
+
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+		}
+	glEnd();
+}
+
 //-------------------------------------------------------------------------------
 void Object::renderVelocities()
 {

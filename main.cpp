@@ -275,7 +275,13 @@ void drawScene(int eye) //0=left or mono, 1=right
 		//--------------------------------------------------
 		glPointSize(pointSize);
 		glColor4f(pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-		if (point) cosmo->renderPoints();
+		if (point)
+		{
+			if(settings->positioningModelCoords[2] != -1) 
+				cosmo->renderPointsWithin(vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1] , settings->currentlySelectedPoint[2] ) * 10.f, 5.f);
+			else 
+				cosmo->renderPoints();
+		}
 		if (velocity) cosmo->renderVelocities();
 		if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
 		////draw_triangles();
