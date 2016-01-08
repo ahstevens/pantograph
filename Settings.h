@@ -74,6 +74,9 @@ public:
 
 	bool drawTemps;
 
+	bool dimming;
+	int dimTimer;
+
 
 private:
 

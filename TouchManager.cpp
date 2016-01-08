@@ -278,6 +278,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				firstFingerX = x;
 				firstFingerY = y;
 				pantograph->setFinger1(x,y);
+				if(settings->dimming) settings->dimming = false;
 				break;
 			}
 			else if (secondFingerID == -1)
@@ -301,6 +302,9 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 						firstFingerX = x;
 						firstFingerY = y;
 					}
+
+					settings->dimming = true;
+					if (settings->dimTimer == -1) settings->dimTimer = 40;
 					break;
 				}
 				else //second finger was set previously
@@ -425,111 +429,6 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 		return;
 	}//end pantograph mode
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////normal behavior////////////////////////////////////
-	//switch(tp.point_event)
-	//{
-	//case TP_DOWN:
-	//	//printf("down");
-	//	fingerDownTimeMap[tp.id] = GetTickCount64();
-	//	fingerDownXMap[tp.id] = x;
-	//	fingerDownYMap[tp.id] = y;
-	//	if (panelMan->isOnPanel(x,y))
-	//	{
-	//		if (panelMan->processPoint(x,y))
-	//		{
-	//			gestureTypeMap[tp.id] =	GESTURE_BUTTON_PRESSED;
-	//			ignoreGestures = true;
-	//		}
-	//		else
-	//		{
-	//			gestureTypeMap[tp.id] =	GESTURE_MOVING_PANEL;
-	//			ignoreGestures = true;
-	//			panelMan->startMovingPanel(x,y);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		gestureTypeMap[tp.id] =	GESTURE_NULL;
-	//	}
-	//	//printf("ID %d: TP_DOWN at (%d, %d), size (%d, %d)\n", tp.id, tp.x, tp.y, tp.dx, tp.dy);
-	//	break;
-	//case TP_MOVE:
-	//	//printf("move");
-	//	if (gestureTypeMap[tp.id] == GESTURE_BUTTON_PRESSED)
-	//	{
-	//		panelMan->processMovement(x,y);
-	//		return;
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_MOVING_PANEL)
-	//	{
-	//		if (GetTickCount64()-fingerDownTimeMap[tp.id] > RADIAL_MENU_LINGER_TIME && !gestureActive &&
-	//			sqrt( (x-fingerDownXMap[tp.id])*(x-fingerDownXMap[tp.id]) + (y-fingerDownYMap[tp.id])*(y-fingerDownYMap[tp.id])) < 30)
-	//		{
-	//			//spawn radial menu and start radial menu selection mode
-	//			panelMan->openMenuOnMovingPanel();
-	//			panelMan->doneMovingPanel();
-
-	//			gestureTypeMap[tp.id] = GESTURE_PANEL_MENU;
-	//			ignoreGestures = true;
-	//			panelMenu->handleStart(x,y);
-	//		}
-	//		else //keep moving
-	//			panelMan->keepMovingPanel(x,y);
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_NULL)
-	//	{
-	//		//check if should spawn a radial menu
-	//		//if down over 1 second
-	//		if (GetTickCount64()-fingerDownTimeMap[tp.id] > RADIAL_MENU_LINGER_TIME && !gestureActive)
-	//		{
-	//			//if hasn't moved much since down
-	//			float distFromInitDown = sqrt( (x-fingerDownXMap[tp.id])*(x-fingerDownXMap[tp.id]) + (y-fingerDownYMap[tp.id])*(y-fingerDownYMap[tp.id]));
-	//			if (distFromInitDown < 30)
-	//			{
-	//				//spawn radial menu and start radial menu selection mode
-	//				gestureTypeMap[tp.id] = GESTURE_MAP_MENU;
-	//				ignoreGestures = true;
-	//				mapMenu->handleStart(x,y);
-	//			}
-	//		}
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_MAP_MENU)
-	//	{
-	//		mapMenu->handleMove(x,y);
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_PANEL_MENU)
-	//	{
-	//		panelMenu->handleMove(x,y);
-	//	}
-	//	//printf("ID %d: TP_MOVE at (%d, %d), size (%d, %d)\n", tp.id, tp.x, tp.y, tp.dx, tp.dy);
-	//	break;
-	//case TP_UP:
-	//	//printf("up");
-	//	if (gestureTypeMap[tp.id] == GESTURE_BUTTON_PRESSED)
-	//	{
-	//		panelMan->processUp(x,y);
-	//		ignoreGestures = false;
-	//		return;
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_MOVING_PANEL)
-	//	{
-	//		ignoreGestures = false;
-	//		panelMan->doneMovingPanel();
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_MAP_MENU)
-	//	{
-	//		mapMenu->handleUp(x,y);
-	//		ignoreGestures = false;
-	//	}
-	//	else if (gestureTypeMap[tp.id] == GESTURE_PANEL_MENU)
-	//	{
-	//		panelMenu->handleUp(x,y);
-	//		ignoreGestures = false;
-	//	}
-	//	//printf("ID %d: TP_UP at (%d, %d), size (%d, %d)\n", tp.id, tp.x, tp.y, tp.dx, tp.dy);
-	//	break;
-	//}
 }
 void TouchManager:: OnTouchGesture(const TouchGesture & tg)
 {

@@ -35,7 +35,8 @@ class Object
 
     void renderVelocities();
     void renderPoints();
-	void renderPointsWithin(vec3 point, float radius);
+	void renderPointsWithin(vec3 point, float radius, float dimness);
+	void renderStreaksWithin(vec3 point, float radius, float dimness);
 
   protected:
     std::vector<Particle> vSample;

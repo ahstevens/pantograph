@@ -87,7 +87,7 @@ bool stereo = true;
 
 #define QUAD_BUFFER true
 //float eyeOffset     = 3.25f * 10.0f/16.8f;
-const float eyeOffset     = 1.0f;
+const float eyeOffset     = 0.5f;
 
 //---------------------------------------------------------------------------- 
 
@@ -103,12 +103,14 @@ std::vector<Cosmo*> vCosmo;
 //----------------------------------------------------------------------------
 #define TRANS_FRAMES 40
 int transTimer;
-float p;
+
+#define DIM_FRAMES 40
+float dimness = 0.f;
+
 
 void transition()  // used to translate smoothly
-{
-
-	p = float(transTimer)/TRANS_FRAMES;
+{	
+	float p = float(transTimer)/TRANS_FRAMES;
 
 	if (transTimer >= 0)
 	{
@@ -128,15 +130,56 @@ void transition()  // used to translate smoothly
 
 }
 
+void dim()
+{
+	float t = (float)settings->dimTimer / (float) DIM_FRAMES;
+
+	if (settings->dimTimer >= 0 && settings->dimTimer <= DIM_FRAMES)
+	{
+		dimness = 1.f - t;
+
+		if (settings->dimming)
+			--settings->dimTimer;
+		else
+			++settings->dimTimer;
+	}
+
+	if (settings->dimTimer < 0 && settings->dimming)
+	{
+		dimness = 1.f;
+		settings->dimming = false;
+	}
+
+	if (settings->dimTimer > DIM_FRAMES)
+	{
+		dimness = 0.f;
+		settings->dimTimer = -1;
+	}
+}
+
 //-------------------------------------------------------------------------------
 void generate_theta()
 {
 	for(int i=0; i<2*REFRESH; ++i) // 0.5 Hz oscillation
 	{
-		rotation[i] = 10.0f*sin(float(i)*2.0f*3.141592f/(2.0f*REFRESH));
+		rotation[i] = 1.0f*sin(float(i)*2.0f*3.141592f/(2.0f*REFRESH));
 	}
 }
 
+void drawAxes(float scale = 1.f)
+{
+	glBegin(GL_LINES);
+		glColor3f(1.f, 0.f, 0.f);
+		glVertex3f(0.f, 0.f, 0.f);
+		glVertex3f(scale, 0.f, 0.f);
+		glColor3f(0.f, 1.f, 0.f);
+		glVertex3f(0.f, 0.f, 0.f);
+		glVertex3f(0.f, scale, 0.f);
+		glColor3f(0.f, 0.f, 1.f);
+		glVertex3f(0.f, 0.f, 0.f);
+		glVertex3f(0.f, 0.f, scale);
+	glEnd();
+}
 
 void perRenderUpdates()
 {
@@ -144,6 +187,8 @@ void perRenderUpdates()
 	//zoom();
 
 	transition();
+
+	dim();
 
 	rt = timer % 120; // 60 Hz on 60 Hz machine
 
@@ -248,37 +293,42 @@ void drawScene(int eye) //0=left or mono, 1=right
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	if (eye == 0)
-	{
-		glTranslatef(eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
-		processPendingInteractions();
-	}
-	else
-		glTranslatef(-eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
+	// translate origin to be 10 units behind near clipping plane
+	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
-	// Draw Cosmos
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 20.0, 0.0);
-	glVertex3f(0.0, 1.0, 0.0);
-	glVertex3f(0.0, -1.0, 0.0);
-	glVertex3f(0.0, -20.0, 0.0);
-	glEnd();
+	if (!eye) processPendingInteractions();	
+
+	// Draw world-space y-axis
+	//glBegin(GL_LINES);
+	//	glVertex3f(0.0, 20.0, 0.0);
+	//	glVertex3f(0.0, 1.0, 0.0);
+	//	glVertex3f(0.0, -1.0, 0.0);
+	//	glVertex3f(0.0, -20.0, 0.0);
+	//glEnd();
+
+	//draw world space axes
+	//drawAxes();
 
 	glPushMatrix();
-		if (startStop)glRotatef(rotation[rt], 0.0, 1.0, 0.0);
+		if (startStop) glRotatef(rotation[rt], 0.0, 1.0, 0.0);
 		//glutWireCube(12.0);
 		glScalef(scale, scale, scale);
 		glRotatef(rotY + dragX, 0.0, 1.0, 0.0);
 		glTranslatef(cowX, cowY, cowZ);
 		glScalef(0.1f, 0.1f, 0.1f);
 		//drawPts();
+		drawAxes(10.f);
 		//--------------------------------------------------
 		glPointSize(pointSize);
 		glColor4f(pointColor.x, pointColor.y, pointColor.z, pointColor.w);
 		if (point)
 		{
-			if(settings->positioningModelCoords[2] != -1) 
-				cosmo->renderPointsWithin(vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1] , settings->currentlySelectedPoint[2] ) * 10.f, 5.f);
+			if (settings->positioningModelCoords[2] != -1)
+			{
+				vec3 curPt = vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
+				curPt *= 10.f;
+				cosmo->renderStreaksWithin(curPt, 10.f, dimness);
+			}
 			else 
 				cosmo->renderPoints();
 		}
@@ -288,23 +338,28 @@ void drawScene(int eye) //0=left or mono, 1=right
 		//--------------------------------------------------
 	glPopMatrix();
 	
-	//draw active positioning pole:
-	if (settings->positioningModelCoords[2] != -1)
-	{
-		glLineWidth(2);
-		glColor4f(0.8, 0.8, 0.95, 1.0);
-		glBegin(GL_LINES);
-		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 4.50704);
-		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
-		glEnd();
-		glColor4f(1.0, 1.0, 0.25, 1.0);
-		glPointSize(6);
-		glBegin(GL_POINTS);
-		glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-		glEnd();
-	}
+	glPushMatrix();
+		//draw active positioning pole:
 
-	touchManager->draw3D();
+		//glScalef(scale, scale, scale);
+
+		if (settings->positioningModelCoords[2] != -1)
+		{
+			glLineWidth(2);
+			glColor4f(0.8, 0.8, 0.95, 1.0);
+			glBegin(GL_LINES);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 4.50704);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
+			glEnd();
+			glColor4f(1.0, 1.0, 0.25, 1.0);
+			glPointSize(6);
+			glBegin(GL_POINTS);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+			glEnd();
+		}
+
+		touchManager->draw3D();
+	glPopMatrix();
 
 }
 
@@ -315,8 +370,8 @@ void drawOverlay()
 
 	//draw 2D interface elements:
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
+	glPushMatrix(); // save current projection matrix
+	glLoadIdentity(); // start fresh
 	glOrtho(0.0, glutGet(GLUT_WINDOW_WIDTH), 0.0, glutGet(GLUT_WINDOW_HEIGHT), -1.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -358,61 +413,19 @@ void redraw( void )
 {
 	perRenderUpdates();
 
-	//focalCenter = vec3(cowX, cowY, cowZ);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//--------------------------------------------------
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glFrustum(VP_LEFT + eyeOffset,	VP_RIGHT + eyeOffset,
+		aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
+	//--------------------------------------------------
+	drawScene(0);
+	drawOverlay();
 
-	glColor3f(0.5,0.5,0.5);
-	
-	glBegin(GL_LINES);
-		glVertex3f(0.0,20.0,0.0);
-		glVertex3f(0.0,1.0,0.0);
-		glVertex3f(0.0,-1.0,0.0);
-		glVertex3f(0.0,-20.0,0.0);
-	glEnd();
-
-	glPushMatrix();	
-		if(startStop)glRotatef(rotation[rt],0.0,1.0,0.0);
-		glScalef(scale,scale,scale);
-		glRotatef(rotY + dragX, 0.0f, 1.0f, 0.0f);
-		
-		// glFrustum( VP_LEFT, VP_RIGHT, aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
-		// glTranslatef(0.0,0.0,-NEAR_CP-10.0); // center of universe offset..
-		//focalCenter = vec3( -cowX*20, -cowY*20, -cowZ);
-		focalCenter = vec3(  cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP-10) );
-
-		glTranslatef(cowX, cowY, cowZ);
-		glScalef(0.1f,0.1f,0.1f);
-		//drawPts();
-
-	    //glutWireSphere(5.0f, 50, 50);
-	    //cosmo->renderFocal();
-/*
-		glPushMatrix();
-			glPointSize( 20.0f );
-			glColor4f( 0.0f, 1.0f, 0.0f, 0.9f);
-		    glBegin(GL_POINTS);
-				glVertex3f(focalCenter.x, focalCenter.y, focalCenter.z);   
-			glEnd();
-		glPopMatrix();
-*/
-		//--------------------------------------------------
-        glPointSize( pointSize );
-        glColor4f( pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-        if(point) cosmo->renderPoints();
-        if(velocity) cosmo->renderVelocities();   
-		//--------------------------------------------------
-	glPopMatrix();
-
-
-    if (isBarVisible){ TwSetCurrentWindow(mainWindow); TwDraw(); }
-
+	//--------------------------------------------------
 	glutSwapBuffers();
-	if(timer%60 == 0)
-	{
-		//cerr << timer/60.0 << " ";
-		//cerr << aclock->sinceLastRead() << "\n";
-	}
+
 	++timer;
 }
 
@@ -422,49 +435,26 @@ void redraw_stereo(void)
 	perRenderUpdates();
 
   	//--------------------------------------------------
-    // SETUP LEFT
-    glDrawBuffer(GL_BACK_LEFT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glColor3f(0.5,0.5,0.5);
-	//--------------------------------------------------
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-	//--------------------------------------------------   
-    glFrustum( VP_LEFT + eyeOffset, VP_RIGHT + eyeOffset, 
-    	aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
-
-    //--------------------------------------------------
-
-    // DRAW UNIVERSE
-	drawScene(0);
-	drawOverlay();
-
-	//--------------------------------------------------
-    // SETUP RIGHT
-	glDrawBuffer(GL_BACK_RIGHT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glColor3f(0.5,0.5,0.5);
-	//--------------------------------------------------
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-	//--------------------------------------------------   b
-    glFrustum( VP_LEFT - eyeOffset, VP_RIGHT - eyeOffset, 
-    	aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
-
-    //--------------------------------------------------
-    // DRAW UNIVERSE
-	drawScene(1);
-	drawOverlay();
+	// LEFT EYE = 0, RIGHT EYE = 1
+	for (int eye = 0; eye < 2; ++eye)
+	{
+		glDrawBuffer(!eye ? GL_BACK_LEFT : GL_BACK_RIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//--------------------------------------------------
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glFrustum(VP_LEFT + (!eye ? eyeOffset : -eyeOffset),
+			VP_RIGHT + (!eye ? eyeOffset : -eyeOffset),
+			aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
+		//--------------------------------------------------
+		drawScene(eye);
+		drawOverlay();
+	}
 
 	//--------------------------------------------------
 	glutSwapBuffers();
-	if(timer%60 == 0)
-	{
-		//cerr << timer/60.0 << " ";
-		//cerr << aclock->sinceLastRead() << "\n";
-	}
-	++timer;
 
+	++timer;
 }
 
 static int mouseButton(int button, int state, int x, int y)
@@ -570,7 +560,7 @@ static int motion(int x, int y)
 void reset_values()
 {
 	timer = 0;
-	//holdCowX = holdCowY = holdCowZ = 0.0;
+	holdCowX = holdCowY = holdCowZ = 0.0;
 	xeye = 0.0f;
 	cowX = cowY = cowZ = 0.0;
 	rotX = rotY = 0.0;
@@ -578,7 +568,7 @@ void reset_values()
 	startStop = true;
 	transTimer = -1;
 	//winWidth = 1024; winHeight = 1024;
-	scale = 1.0f;
+	scale = 1.f;
 	vectorScale = 1.0f;
 }
 

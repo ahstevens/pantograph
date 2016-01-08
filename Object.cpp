@@ -64,7 +64,7 @@ void Object::renderPoints()
     glBindVertexArray(0);
 }
 
-void Object::renderPointsWithin( vec3 point, float radius)
+void Object::renderPointsWithin( vec3 point, float radius, float dimness)
 {
 	std::vector<Particle>::iterator it;
 
@@ -76,10 +76,11 @@ void Object::renderPointsWithin( vec3 point, float radius)
 				it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
 				sqrtf(pow(it->pos.x - point.x,2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
 			{
-				glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+				//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+				glColor4f(1.f, 1.f, 1.f, 0.55f);
 			}
 			else
-				glColor4f(1.f, 1.f, 1.f, 0.05f);
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 
 			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
 		}
@@ -91,13 +92,77 @@ void Object::renderPointsWithin( vec3 point, float radius)
 				it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
 				sqrtf(pow(it->pos.x - point.x, 2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
 			{
-				glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+				//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+				glColor4f(1.f, 1.f, 1.f, 0.55f);
 			}
 			else
-				glColor4f(1.f, 1.f, 1.f, 0.05f);
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 
 			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
 		}
+	glEnd();
+}
+
+void Object::renderStreaksWithin(vec3 point, float radius, float dimness)
+{
+	std::vector<Particle>::iterator it;
+
+	glBegin(GL_POINTS);
+	for (it = vSample.begin(); it != vSample.end(); ++it)
+	{
+		if (it->pos.x <= (point.x + radius) && it->pos.x >= (point.x - radius) &&
+			it->pos.y <= (point.y + radius) && it->pos.y >= (point.y - radius) &&
+			it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
+			sqrtf(pow(it->pos.x - point.x, 2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
+		{
+			vec3 end = it->pos + it->vel * 0.005f;
+
+			glEnd();
+
+			glBegin(GL_LINES);
+				glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
+				glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+
+				glColor4f(it->col.r, it->col.g, it->col.b, 1.0f);
+				glVertex3f(end.x, end.y, end.z);
+			glEnd();
+
+			glBegin(GL_POINTS);
+			continue;
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.05f + (0.8f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+
+	for (it = vFocal.begin(); it != vFocal.end(); ++it)
+	{
+		if (it->pos.x <= (point.x + radius) && it->pos.x >= (point.x - radius) &&
+			it->pos.y <= (point.y + radius) && it->pos.y >= (point.y - radius) &&
+			it->pos.z <= (point.z + radius) && it->pos.z >= (point.z - radius) &&
+			sqrtf(pow(it->pos.x - point.x, 2) + pow(it->pos.y - point.y, 2) + pow(it->pos.z - point.z, 2)) <= radius)
+		{
+			vec3 end = it->pos + it->vel * 0.005f;
+
+			glEnd();
+
+			glBegin(GL_LINES);
+			glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+
+			glColor4f(it->col.r, it->col.g, it->col.b, 1.0f);
+			glVertex3f(end.x, end.y, end.z);
+			glEnd();
+
+			glBegin(GL_POINTS);
+			continue;
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.05f + (0.8f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
 	glEnd();
 }
 

@@ -37,4 +37,7 @@ void Settings::resetToDefaults()
 	currentlySelectedPoint[2] = -1;
 	
 	drawTemps = false;
+
+	dimming = false;
+	dimTimer = -1;
 }
