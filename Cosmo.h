@@ -14,10 +14,30 @@ class Cosmo: public Object
 		float getMaxDepth();
 		float getMinDepth();
 
+		void setLensPosition(vec3 pos);
+		void setLensPosition(float x, float y, float z);
+		void setLensSize(float radius);
+		void setDimness(float dimness);
+
+		void setLensMode(bool yesno);
+		void setVelocityMode(bool yesno);
+
+		void render();
+
     protected:
+		void renderPoints();
+		void renderPointsWithin();
+		void renderStreaksWithin();
+		void renderVelocities();
+
         std::vector<Particle> vParticles;       
         int particleCount;
         int samples;        // # of random samples points
+
+		bool lensMode, velocityMode;
+
+		vec3 lensPos;
+		float lensRadius, dimness;
 
 		float maxDepth, minDepth;
 

@@ -740,3 +740,18 @@ void drawVolumeCursor(float x, float y, float z, float radius)
 	glPopMatrix();
 	glDisable(GL_BLEND);
 }
+
+void drawAxes(float scale)
+{
+	glBegin(GL_LINES);
+	glColor3f(1.f, 0.f, 0.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(scale, 0.f, 0.f);
+	glColor3f(0.f, 1.f, 0.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(0.f, scale, 0.f);
+	glColor3f(0.f, 0.f, 1.f);
+	glVertex3f(0.f, 0.f, 0.f);
+	glVertex3f(0.f, 0.f, scale);
+	glEnd();
+}

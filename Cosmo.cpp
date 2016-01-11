@@ -6,6 +6,9 @@
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
 {
+	lensMode = velocityMode = false;
+	particleCount = samples = 0;
+	lensRadius = dimness = maxDepth = minDepth = 0.f;
 }
 
 #define POSVEL_T    float
@@ -53,7 +56,7 @@ void Cosmo::resample( int n )
 
     // generate N2 random points within focal area
     // get random particles within limit
-    float radius = 50.0f / pow(0.95, 10) / scale;// / std::sqrt(scale); //std::sqrt(
+	float radius = 50.0f / powf(0.95, 10);// / scale;// / std::sqrt(scale); //std::sqrt(
     Particle p;
     int count = 0;
     while(count < 200000 )  
@@ -179,19 +182,15 @@ void Cosmo::read( std::string fileName )
     file.close();
     delete[] buffer;
 
-	maxDepth = max.z;
-	minDepth = min.z;
+	maxDepth = (max.z - min.z) / 2;
+	minDepth = -maxDepth;
 
     particleCount = vParticles.size();
     std::cout << "done! " << std::endl;
 
-
-	std::cout << "Min X = " << min.x << std::endl;
-	std::cout << "Max X = " << max.x << std::endl;
-	std::cout << "Min Y = " << min.y << std::endl;
-	std::cout << "Max Y = " << max.y << std::endl;
-	std::cout << "Min Z = " << minDepth << std::endl;
-	std::cout << "Max Z = " << maxDepth << std::endl;
+	std::cout << "X Size = " << (max.x - min.x) << std::endl;
+	std::cout << "Y Size = " << (max.y - min.y) << std::endl;
+	std::cout << "Z Size = " << (max.z - min.z) << std::endl;
     std::cout << "Particle Count = " << particleCount << std::endl;
 }
 
@@ -199,6 +198,210 @@ float Cosmo::getMaxDepth(){ return maxDepth; }
 
 float Cosmo::getMinDepth() { return minDepth; }
 
+void Cosmo::setLensPosition(vec3 pos)
+{
+	lensPos = pos;
+}
 
+void Cosmo::setLensPosition(float x, float y, float z)
+{
+	setLensPosition(vec3(x, y, z));
+}
+
+void Cosmo::setLensSize(float radius)
+{
+	lensRadius = radius;
+}
+
+void Cosmo::setDimness(float dimness)
+{
+	this->dimness = dimness;
+}
+
+void Cosmo::setLensMode(bool yesno)
+{
+	lensMode = yesno;
+}
+
+void Cosmo::setVelocityMode(bool yesno)
+{
+	velocityMode = yesno;
+}
+
+//-------------------------------------------------------------------------------
+void Cosmo::renderPoints()
+{
+	glColor4f(1.f, 1.f, 1.f, 0.2f);
+	glBindVertexArray(vaoID);
+	glDrawArrays(GL_POINTS, 0, numberOfPoints);
+	glBindVertexArray(0);
+}
+
+void Cosmo::renderPointsWithin()
+{
+	std::vector<Particle>::iterator it;
+
+	glBegin(GL_POINTS);
+	for (it = vSample.begin(); it != vSample.end(); ++it)
+	{
+		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
+			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
+			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
+			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		{
+			//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+			glColor4f(1.f, 1.f, 1.f, 0.55f);
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+
+	for (it = vFocal.begin(); it != vFocal.end(); ++it)
+	{
+		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
+			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
+			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
+			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		{
+			//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
+			glColor4f(1.f, 1.f, 1.f, 0.55f);
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+	glEnd();
+}
+
+void Cosmo::renderStreaksWithin()
+{
+	std::vector<Particle>::iterator it;
+
+	glBegin(GL_POINTS);
+	for (it = vSample.begin(); it != vSample.end(); ++it)
+	{
+		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
+			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
+			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
+			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		{
+			vec3 end = it->pos + it->vel * 0.005f;
+
+			glEnd();
+
+			glBegin(GL_LINES);
+			glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+
+			glColor4f(it->col.r, it->col.g, it->col.b, 1.0f);
+			glVertex3f(end.x, end.y, end.z);
+			glEnd();
+
+			glBegin(GL_POINTS);
+			continue;
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.05f + (0.8f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+
+	for (it = vFocal.begin(); it != vFocal.end(); ++it)
+	{
+		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
+			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
+			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
+			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		{
+			vec3 end = it->pos + it->vel * 0.005f;
+
+			glEnd();
+
+			glBegin(GL_LINES);
+			glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+
+			glColor4f(it->col.r, it->col.g, it->col.b, 1.0f);
+			glVertex3f(end.x, end.y, end.z);
+			glEnd();
+
+			glBegin(GL_POINTS);
+			continue;
+		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.05f + (0.8f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+	glEnd();
+}
+
+//-------------------------------------------------------------------------------
+void Cosmo::renderVelocities()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+	vec3 v = vec3(0.0f, 0.0f, 0.0f); // 63.71757, 19.2537, 0.0488669 
+	vec4 c = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	vec3 p;
+	for (int i = 0; i < (int)vSample.size() / 2; ++i)
+	{
+		p = vSample.at(i).pos;
+		v = (vSample.at(i).vel) * 0.0035f / scale * vectorScale;
+		c = vSample.at(i).col;
+
+		// its done in CPU, implement geometry shader and move to GPU
+		glBegin(GL_LINES);
+		glColor4f(c.x, c.y, c.z, 1.0f);
+		glVertex3f(p.x, p.y, p.z);
+		p -= v;
+		glColor4f(c.x, c.y, c.z, 0.0f);
+		glVertex3f(p.x, p.y, p.z);
+		glEnd();
+	}
+
+	for (int i = 0; i < (int)vFocal.size(); ++i)
+	{
+		p = vFocal.at(i).pos;
+		v = (vFocal.at(i).vel) * 0.0025f / scale * vectorScale;
+		c = vFocal.at(i).col;
+
+		// its done in CPU, implement geometry shader and move to GPU
+		glBegin(GL_LINES);
+		glColor4f(c.x, c.y, c.z, 1.0f);
+		glVertex3f(p.x, p.y, p.z);
+		p -= v;
+		glColor4f(c.x, c.y, c.z, 0.0f);
+		glVertex3f(p.x, p.y, p.z);
+		glEnd();
+	}
+}
 //----------------------------------------------------------------------------
 
+void Cosmo::render()
+{
+	glPushMatrix();
+		glTranslatef(position.x, position.y, position.z);
+		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		glScalef(scale.x, scale.y, scale.z);
+		//drawPts();
+		drawAxes(10.f);
+
+		if (lensMode)
+			if (velocityMode)
+				renderStreaksWithin();
+			else
+				renderPointsWithin();
+		else
+			if (velocityMode)
+				renderVelocities();
+			else
+				renderPoints();
+		//--------------------------------------------------
+	glPopMatrix();
+}

@@ -155,6 +155,8 @@ void dim()
 		dimness = 0.f;
 		settings->dimTimer = -1;
 	}
+
+	cosmo->setDimness(dimness);
 }
 
 //-------------------------------------------------------------------------------
@@ -164,21 +166,6 @@ void generate_theta()
 	{
 		rotation[i] = 1.0f*sin(float(i)*2.0f*3.141592f/(2.0f*REFRESH));
 	}
-}
-
-void drawAxes(float scale = 1.f)
-{
-	glBegin(GL_LINES);
-		glColor3f(1.f, 0.f, 0.f);
-		glVertex3f(0.f, 0.f, 0.f);
-		glVertex3f(scale, 0.f, 0.f);
-		glColor3f(0.f, 1.f, 0.f);
-		glVertex3f(0.f, 0.f, 0.f);
-		glVertex3f(0.f, scale, 0.f);
-		glColor3f(0.f, 0.f, 1.f);
-		glVertex3f(0.f, 0.f, 0.f);
-		glVertex3f(0.f, 0.f, scale);
-	glEnd();
 }
 
 void perRenderUpdates()
@@ -193,6 +180,10 @@ void perRenderUpdates()
 	rt = timer % 120; // 60 Hz on 60 Hz machine
 
 	focalCenter = vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
+
+	if (startStop) cosmo->setRotation(rotation[rt], 0.0, 1.0, 0.0);
+
+	cosmo->setPosition(cowX, cowY, cowZ);
 
 	touchManager->perRenderUpdate();
 }
@@ -261,7 +252,7 @@ void processPendingInteractions()
 		settings->positioningModelCoords[1] = p1y;
 
 		//float depthHere = dataset->getDepthAt(p1x, p1y);
-		float depthHere = -cosmo->getMaxDepth() / 2 * 0.1;
+		float depthHere = cosmo->getMaxDepth() * 0.1;
 		if (depthHere != -1 && depthHere != 0)
 		{
 			//store model depth
@@ -286,14 +277,13 @@ void processPendingInteractions()
 
 void drawScene(int eye) //0=left or mono, 1=right
 {
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	// translate origin to be 10 units behind near clipping plane
+	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
 	if (!eye) processPendingInteractions();	
@@ -306,42 +296,27 @@ void drawScene(int eye) //0=left or mono, 1=right
 	//	glVertex3f(0.0, -20.0, 0.0);
 	//glEnd();
 
-	//draw world space axes
-	//drawAxes();
-
 	glPushMatrix();
-		if (startStop) glRotatef(rotation[rt], 0.0, 1.0, 0.0);
-		//glutWireCube(12.0);
-		glScalef(scale, scale, scale);
 		glRotatef(rotY + dragX, 0.0, 1.0, 0.0);
-		glTranslatef(cowX, cowY, cowZ);
-		glScalef(0.1f, 0.1f, 0.1f);
-		//drawPts();
-		drawAxes(10.f);
 		//--------------------------------------------------
 		glPointSize(pointSize);
 		glColor4f(pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-		if (point)
+		if (point && settings->positioningModelCoords[2] != -1)
 		{
-			if (settings->positioningModelCoords[2] != -1)
-			{
-				vec3 curPt = vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
-				curPt *= 10.f;
-				cosmo->renderStreaksWithin(curPt, 10.f, dimness);
-			}
-			else 
-				cosmo->renderPoints();
+			vec3 curPt = vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
+			curPt *= 10.f;
+			cosmo->setLensPosition(curPt);
+			cosmo->setDimness(dimness);
+			cosmo->setLensMode(true);
 		}
-		if (velocity) cosmo->renderVelocities();
-		if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
-		////draw_triangles();
+		else cosmo->setLensMode(false);
+
+		cosmo->render();
 		//--------------------------------------------------
 	glPopMatrix();
 	
 	glPushMatrix();
 		//draw active positioning pole:
-
-		//glScalef(scale, scale, scale);
 
 		if (settings->positioningModelCoords[2] != -1)
 		{
@@ -361,6 +336,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 		touchManager->draw3D();
 	glPopMatrix();
 
+	if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
 }
 
 void drawOverlay()
@@ -607,8 +583,12 @@ static int keyboard( unsigned char key, int x, int y )
 
 	if(key == 'g') cosmo->resample(100000);
 
-	if(key == 'p') point = !point;
-	if(key == 'v') velocity = !velocity;
+	if (key == 'p')	point = !point;
+	if (key == 'v')
+	{
+		velocity = !velocity;
+		cosmo->setVelocityMode(velocity);
+	}
 
 	if(key == ' ') { reset_values(); cosmo->resample(100000); }
 /*
@@ -828,13 +808,13 @@ int main(int argc, char *argv[])
 
 	reset_values();
 
-    for (int i = 0; i < 1; ++i)
-    {
-    	cosmo = new Cosmo();
-	    cosmo->read( inputFiles[i] );
-	    cosmo->resample(100000);
-	    vCosmo.push_back(cosmo);
-    }
+    cosmo = new Cosmo();
+	cosmo->read( inputFiles[0] );
+	cosmo->resample(100000);
+	cosmo->setScale(0.1f);
+	cosmo->setLensSize(10.f);
+
+	vCosmo.push_back(cosmo);
 
 
     //---------------------------------------------------------------------------

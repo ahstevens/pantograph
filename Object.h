@@ -10,8 +10,8 @@
 #include <algorithm>
 
 #include "main.h"
+#include "DrawFunctions.h"
 
-extern float scale;
 extern float vectorScale;
 
 extern vec3 focalCenter;
@@ -33,10 +33,17 @@ class Object
     ~Object();
     void push();
 
-    void renderVelocities();
-    void renderPoints();
-	void renderPointsWithin(vec3 point, float radius, float dimness);
-	void renderStreaksWithin(vec3 point, float radius, float dimness);
+	void setPosition(vec3 pos);
+	void setPosition(float x = 0.f, float y = 0.f, float z = 0.f);
+
+	void setScale(vec3 scale);
+	void setScale(float x, float y, float z);
+	void setScale(float scale = 1.f);
+
+	void setRotation(float deg, vec3 axis);
+	void setRotation(float deg, float x, float y, float z);
+
+	virtual void render() = 0;
 
   protected:
     std::vector<Particle> vSample;
@@ -47,6 +54,8 @@ class Object
     GLuint vaoID;
     GLuint bufferID;
 
+	vec3 position, scale, rotationAxis;
+	float rotation;
 };
 
 #endif /*OBJECT_H_*/

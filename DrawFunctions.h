@@ -47,3 +47,5 @@ bool isOnArcButton(float x, float y, float centerX, float centerY, float innerRa
 void drawArcScale(float centerX, float centerY, float radius, float startAngle, float endAngle, float indicatorAngle, char* startLabel, char* endLabel, char* scaleLabel);
 
 void drawVolumeCursor(float x, float y, float z, float radius);
+
+void drawAxes(float scale);
