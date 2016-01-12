@@ -8,7 +8,7 @@ Cosmo::Cosmo()
 {
 	lensMode = velocityMode = false;
 	particleCount = samples = 0;
-	lensRadius = dimness = maxDepth = minDepth = 0.f;
+	lensRadius = dimness = maxDimension = 0.f;
 }
 
 #define POSVEL_T    float
@@ -182,21 +182,19 @@ void Cosmo::read( std::string fileName )
     file.close();
     delete[] buffer;
 
-	maxDepth = (max.z - min.z) / 2;
-	minDepth = -maxDepth;
+	maxDimension = sqrtf(max.x * max.x + max.y * max.y + max.z * max.z) / 2.f;
 
     particleCount = vParticles.size();
     std::cout << "done! " << std::endl;
 
-	std::cout << "X Size = " << (max.x - min.x) << std::endl;
-	std::cout << "Y Size = " << (max.y - min.y) << std::endl;
-	std::cout << "Z Size = " << (max.z - min.z) << std::endl;
+	std::cout << "X = " << min.x << " - " << max.x << " (" << (max.x - min.x) << ")" << std::endl;
+	std::cout << "Y = " << min.y << " - " << max.y << " (" << (max.y - min.y) << ")" << std::endl;
+	std::cout << "Z = " << min.z << " - " << max.z << " (" << (max.z - min.z) << ")" << std::endl;
+	std::cout << "Max Length = " << maxDimension << std::endl;
     std::cout << "Particle Count = " << particleCount << std::endl;
 }
 
-float Cosmo::getMaxDepth(){ return maxDepth; }
-
-float Cosmo::getMinDepth() { return minDepth; }
+float Cosmo::getMaxDimension(){ return maxDimension; }
 
 void Cosmo::setLensPosition(vec3 pos)
 {
@@ -226,6 +224,18 @@ void Cosmo::setLensMode(bool yesno)
 void Cosmo::setVelocityMode(bool yesno)
 {
 	velocityMode = yesno;
+}
+
+void Cosmo::getMV(double *mv)
+{
+	glPushMatrix();
+		glLoadIdentity();
+		glTranslatef(position.x, position.y, position.z);
+		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);
+		glScalef(scale.x, scale.y, scale.z);
+
+		glGetDoublev(GL_MODELVIEW_MATRIX, mv);
+	glPopMatrix();
 }
 
 //-------------------------------------------------------------------------------
@@ -288,7 +298,7 @@ void Cosmo::renderStreaksWithin()
 			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
 			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
 		{
-			vec3 end = it->pos + it->vel * 0.005f;
+			vec3 end = it->pos + it->vel * 0.0025f;
 
 			glEnd();
 
@@ -389,8 +399,12 @@ void Cosmo::render()
 		glTranslatef(position.x, position.y, position.z);
 		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);
 		glScalef(scale.x, scale.y, scale.z);
-		//drawPts();
+
 		drawAxes(10.f);
+
+
+		glPointSize(2.f);
+		glColor4f(1.f, 1.f, 1.f, 0.2f);
 
 		if (lensMode)
 			if (velocityMode)

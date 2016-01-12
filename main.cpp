@@ -26,8 +26,9 @@ float cowZ          = 30.f;
 #define VP_TOP		10.0f
 #define NEAR_CP		20.0f
 #define COW_Z 		30.0f
-#define FAR 		300.0f 
+#define FAR 		100.0f 
 using namespace std;
+#define OSC_ANGLE 2.f
 #define REFRESH 60
 Stopwatch *aclock;
 
@@ -97,8 +98,6 @@ std::string inputFiles[] = { "haloes_data/256cosmo.0.7.cosmo" };
 Cosmo *cosmo;
 bool point = true;
 bool velocity = false;
-float pointSize = 2.0f;
-vec4 pointColor = vec4( 1.0f, 1.0f, 1.0f, 0.2f ); 
 std::vector<Cosmo*> vCosmo;
 //----------------------------------------------------------------------------
 #define TRANS_FRAMES 40
@@ -164,28 +163,8 @@ void generate_theta()
 {
 	for(int i=0; i<2*REFRESH; ++i) // 0.5 Hz oscillation
 	{
-		rotation[i] = 1.0f*sin(float(i)*2.0f*3.141592f/(2.0f*REFRESH));
+		rotation[i] = OSC_ANGLE * sin(float(i)*3.141592f/(REFRESH)) / 2.f;
 	}
-}
-
-void perRenderUpdates()
-{
-	//mouse zooming
-	//zoom();
-
-	transition();
-
-	dim();
-
-	rt = timer % 120; // 60 Hz on 60 Hz machine
-
-	focalCenter = vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
-
-	if (startStop) cosmo->setRotation(rotation[rt], 0.0, 1.0, 0.0);
-
-	cosmo->setPosition(cowX, cowY, cowZ);
-
-	touchManager->perRenderUpdate();
 }
 
 void processPendingInteractions()
@@ -213,6 +192,7 @@ void processPendingInteractions()
 	//if fingers down convert screen coords to model coords
 	if (settings->finger1sX != -1 && settings->finger1sY != -1 && settings->finger2sX != -1 && settings->finger2sY != -1)
 	{
+		// get finger 1 model space coords
 		glReadPixels(settings->finger1sX, settings->finger1sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger1sX, settings->finger1sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
@@ -225,6 +205,7 @@ void processPendingInteractions()
 		settings->finger1modelCoords[1] = p1y;
 		settings->finger1modelCoords[2] = p1z;
 
+		// get finger 2 model space coords
 		glReadPixels(settings->finger2sX, settings->finger2sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger2sX, settings->finger2sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
@@ -234,7 +215,11 @@ void processPendingInteractions()
 
 		settings->finger2modelCoords[0] = p1x;
 		settings->finger2modelCoords[1] = p1y;
-		settings->finger2modelCoords[2] = p1z;		
+		settings->finger2modelCoords[2] = p1z;
+
+		// activate lens mode
+		cosmo->setLensMode(true);
+		cosmo->setVelocityMode(true);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
@@ -252,11 +237,12 @@ void processPendingInteractions()
 		settings->positioningModelCoords[1] = p1y;
 
 		//float depthHere = dataset->getDepthAt(p1x, p1y);
-		float depthHere = cosmo->getMaxDepth() * 0.1;
-		if (depthHere != -1 && depthHere != 0)
+		float depthHere = cosmo->getMaxDimension();
+		if (depthHere != 0)
 		{
 			//store model depth
-			settings->positioningModelCoords[2] = depthHere;
+			settings->positioningModelCoords[2] = -depthHere;
+			settings->positioningModelCoords[3] = depthHere;
 		}
 		else
 		{
@@ -266,14 +252,65 @@ void processPendingInteractions()
 	}//if need to update active positioning
 	else
 	{
+		// reset positioning values
 		settings->positioningModelCoords[0] = -1;
 		settings->positioningModelCoords[1] = -1;
 		settings->positioningModelCoords[2] = -1;
+
+		// turn off lens mode
+		cosmo->setLensMode(false);
+		cosmo->setVelocityMode(false);
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 }//end processPendingInteractions()
+
+void updateLens()
+{
+	// get data object's model-view matrix and invert it
+	double mv[16];
+	cosmo->getMV(mv);
+	mat4 MVinv = glm::inverse( glm::make_mat4( mv ) );
+
+	// get current world-space pantograph point coord
+	vec4 pt = vec4(settings->currentlySelectedPoint[0],
+		settings->currentlySelectedPoint[1],
+		settings->currentlySelectedPoint[2],
+		1.f);
+
+	// get model-space coordinate for pantograph point and set it
+	vec4 newpt = MVinv * pt;
+
+	cosmo->setLensPosition(newpt.x,
+		newpt.y,
+		newpt.z);
+}
+
+void perRenderUpdates()
+{
+	//mouse zooming
+	//zoom();
+
+	transition();
+
+	dim();
+
+	rt = timer % 120; // 60 Hz on 60 Hz machine
+
+	focalCenter = vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
+
+	if (startStop) cosmo->setRotation(rotation[rt] + rotY + dragX, 0.0, 1.0, 0.0);
+	else cosmo->setRotation(rotY + dragX, 0.0, 1.0, 0.0);
+
+	cosmo->setPosition(cowX, cowY, cowZ);
+
+	touchManager->perRenderUpdate();
+
+	processPendingInteractions();
+
+	updateLens();
+}
 
 void drawScene(int eye) //0=left or mono, 1=right
 {
@@ -285,56 +322,35 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
-
-	if (!eye) processPendingInteractions();	
-
+	
 	// Draw world-space y-axis
 	//glBegin(GL_LINES);
-	//	glVertex3f(0.0, 20.0, 0.0);
-	//	glVertex3f(0.0, 1.0, 0.0);
-	//	glVertex3f(0.0, -1.0, 0.0);
+	//	glVertex3f(0.0,  20.0, 0.0);
+	//	glVertex3f(0.0,   1.0, 0.0);
+	//	glVertex3f(0.0,  -1.0, 0.0);
 	//	glVertex3f(0.0, -20.0, 0.0);
 	//glEnd();
 
-	glPushMatrix();
-		glRotatef(rotY + dragX, 0.0, 1.0, 0.0);
-		//--------------------------------------------------
-		glPointSize(pointSize);
-		glColor4f(pointColor.x, pointColor.y, pointColor.z, pointColor.w);
-		if (point && settings->positioningModelCoords[2] != -1)
-		{
-			vec3 curPt = vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
-			curPt *= 10.f;
-			cosmo->setLensPosition(curPt);
-			cosmo->setDimness(dimness);
-			cosmo->setLensMode(true);
-		}
-		else cosmo->setLensMode(false);
-
-		cosmo->render();
-		//--------------------------------------------------
-	glPopMatrix();
-	
-	glPushMatrix();
-		//draw active positioning pole:
-
-		if (settings->positioningModelCoords[2] != -1)
-		{
-			glLineWidth(2);
-			glColor4f(0.8, 0.8, 0.95, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 4.50704);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->positioningModelCoords[2]);
-			glEnd();
-			glColor4f(1.0, 1.0, 0.25, 1.0);
-			glPointSize(6);
-			glBegin(GL_POINTS);
+	// render cosmos point cloud
+	cosmo->render();
+		
+	//draw active positioning pole:
+	if (settings->positioningModelCoords[2] != -1)
+	{
+		glLineWidth(2);
+		glColor4f(0.8, 0.8, 0.95, 1.0);
+		glBegin(GL_LINES);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 10);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], -10);
+		glEnd();
+		glColor4f(1.0, 1.0, 0.25, 1.0);
+		glPointSize(6);
+		glBegin(GL_POINTS);
 			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glEnd();
-		}
+		glEnd();
+	}
 
-		touchManager->draw3D();
-	glPopMatrix();
+	touchManager->draw3D();
 
 	if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
 }
@@ -633,7 +649,6 @@ void reshape(int w, int h)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum( VP_LEFT, VP_RIGHT, aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
-	glTranslatef(0.0,0.0,-NEAR_CP-10.0); // center of universe offset..
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity(); 
@@ -811,8 +826,8 @@ int main(int argc, char *argv[])
     cosmo = new Cosmo();
 	cosmo->read( inputFiles[0] );
 	cosmo->resample(100000);
-	cosmo->setScale(0.1f);
-	cosmo->setLensSize(10.f);
+	cosmo->setScale(0.2f);
+	cosmo->setLensSize(5.f);
 
 	vCosmo.push_back(cosmo);
 
@@ -851,9 +866,9 @@ int main(int argc, char *argv[])
 	    //---------------------------------------------------------------------------
 
 	    // add another control
-	    TwAddVarRW(bar, "point size", TW_TYPE_FLOAT, &pointSize, 
-	     " min=1.0 max=5.0 step=0.1 keyIncr=+ keyDecr=- help='Point size the object.' ");
-	    TwAddSeparator(bar, NULL, NULL);
+	    //TwAddVarRW(bar, "point size", TW_TYPE_FLOAT, &pointSize, 
+	    // " min=1.0 max=5.0 step=0.1 keyIncr=+ keyDecr=- help='Point size the object.' ");
+	    //TwAddSeparator(bar, NULL, NULL);
 
 	    // add another control
 	    TwAddVarRW(bar, "vector length", TW_TYPE_FLOAT, &vectorScale, 

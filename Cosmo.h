@@ -11,8 +11,7 @@ class Cosmo: public Object
         void read(std::string fileName);
         void resample( int samples );
         //void getSamples(int n, float radius, vec3 center);
-		float getMaxDepth();
-		float getMinDepth();
+		float getMaxDimension();
 
 		void setLensPosition(vec3 pos);
 		void setLensPosition(float x, float y, float z);
@@ -21,6 +20,8 @@ class Cosmo: public Object
 
 		void setLensMode(bool yesno);
 		void setVelocityMode(bool yesno);
+
+		void getMV(double *mv);
 
 		void render();
 
@@ -39,7 +40,7 @@ class Cosmo: public Object
 		vec3 lensPos;
 		float lensRadius, dimness;
 
-		float maxDepth, minDepth;
+		float maxDimension;
 
         std::vector<int> vSampleIDs;
 };
