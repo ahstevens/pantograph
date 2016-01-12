@@ -282,9 +282,7 @@ void updateLens()
 	// get model-space coordinate for pantograph point and set it
 	vec4 newpt = MVinv * pt;
 
-	cosmo->setLensPosition(newpt.x,
-		newpt.y,
-		newpt.z);
+	cosmo->setLensPosition(newpt.x, newpt.y, newpt.z);
 }
 
 void perRenderUpdates()
@@ -341,12 +339,34 @@ void drawScene(int eye) //0=left or mono, 1=right
 		glColor4f(0.8, 0.8, 0.95, 1.0);
 		glBegin(GL_LINES);
 			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 10);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
 			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], -10);
 		glEnd();
+
 		glColor4f(1.0, 1.0, 0.25, 1.0);
 		glPointSize(6);
 		glBegin(GL_POINTS);
 			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		glEnd();
+		
+		vec3 yAxis = normalize( vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+			settings->finger2modelCoords[2] - settings->finger1modelCoords[2]) );
+
+		vec3 xAxis = normalize( glm::cross(yAxis, vec3(0.f, 0.f, 1.f)) ); 
+
+		glLineWidth(1);
+		glBegin(GL_LINES);
+			glColor4f(1.f, 0.f, 0.f, 1.f);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+			glVertex3f(settings->positioningModelCoords[0] + xAxis.x, settings->positioningModelCoords[1] + xAxis.y, settings->currentlySelectedPoint[2] + xAxis.z);
+			glColor4f(0.f, 1.f, 0.f, 1.f);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+			glVertex3f(settings->positioningModelCoords[0] + yAxis.x, settings->positioningModelCoords[1] + yAxis.y, settings->currentlySelectedPoint[2] + yAxis.z);
+			glColor4f(0.f, 0.f, 1.f, 1.f);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
 		glEnd();
 	}
 
