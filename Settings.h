@@ -8,6 +8,7 @@
 
 //#include "cv.h"
 #include <vector>
+#include <glm\glm.hpp>
 
 #define ADD_DYEPOLE 1
 #define DELETE_ALL_DYEPOLES 2
@@ -76,6 +77,9 @@ public:
 
 	bool dimming;
 	int dimTimer;
+
+	bool transitionRequested;
+	glm::vec3 rotationAxis, rotationPoint;
 
 
 private:

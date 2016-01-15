@@ -13,10 +13,17 @@ class Cosmo: public Object
         //void getSamples(int n, float radius, vec3 center);
 		float getMaxDimension();
 
-		void setLensPosition(vec3 pos);
+		void setLensPosition(glm::vec3 pos);
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
 		void setDimness(float dimness);
+
+		void setMovableRotation(float angle, glm::vec3 axis, glm::vec3 center);
+		void setMovableRotationAxis(glm::vec3 axis);
+		void setMovableRotationAxis(float x, float y, float z);
+		void setMovableRotationCenter(glm::vec3 ctr);
+		void setMovableRotationCenter(float x, float y, float z);
+		void setMovableRotationAngle(float angle);
 
 		void setLensMode(bool yesno);
 		void setVelocityMode(bool yesno);
@@ -37,7 +44,10 @@ class Cosmo: public Object
 
 		bool lensMode, velocityMode;
 
-		vec3 lensPos;
+		glm::vec3 movableRotationAxis, movableRotationCenter;
+		float movableRotationAngle;
+
+		glm::vec3 lensPos;
 		float lensRadius, dimness;
 
 		float maxDimension;

@@ -75,7 +75,7 @@ bool zooming;
 
 float moveSpeed;
 //----------------------------------------------------------------------------
-vec3 focalCenter = vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 focalCenter = glm::vec3(0.0f, 0.0f, 0.0f);
 float aspect = 1.0f;
 float scale;
 float vectorScale = 1.0f;
@@ -113,9 +113,9 @@ void transition()  // used to translate smoothly
 
 	if (transTimer >= 0)
 	{
-		cowX = holdCowX + xeye*(1.0f-p);
-		cowY = holdCowY + yeye*(1.0f-p);
-		cowZ = holdCowZ + zeye*(1.0f-p);
+		cowX = holdCowX + xeye*(1.f-p);
+		cowY = holdCowY + yeye*(1.f-p);
+		cowZ = holdCowZ + zeye*(1.f-p);
 		--transTimer;
 	}
 	if(transTimer == 0)
@@ -127,6 +127,21 @@ void transition()  // used to translate smoothly
 		xeye = yeye = zeye = 0;
 	}
 
+}
+
+void calculateTransition(float x, float y)
+{
+	xeye = settings->currentlySelectedPoint[0];
+	yeye = settings->currentlySelectedPoint[1];
+	zeye = settings->currentlySelectedPoint[2];
+
+	holdCowX = 0.f;
+	holdCowY = 0.f;
+	holdCowZ = 0.f;
+
+	transTimer = TRANS_FRAMES;
+
+	settings->transitionRequested = false;
 }
 
 void dim()
@@ -271,18 +286,19 @@ void updateLens()
 	// get data object's model-view matrix and invert it
 	double mv[16];
 	cosmo->getMV(mv);
-	mat4 MVinv = glm::inverse( glm::make_mat4( mv ) );
+	glm::mat4 MVinv = glm::inverse( glm::make_mat4( mv ) );
 
 	// get current world-space pantograph point coord
-	vec4 pt = vec4(settings->currentlySelectedPoint[0],
+	glm::vec4 pt = glm::vec4(settings->currentlySelectedPoint[0],
 		settings->currentlySelectedPoint[1],
 		settings->currentlySelectedPoint[2],
 		1.f);
 
 	// get model-space coordinate for pantograph point and set it
-	vec4 newpt = MVinv * pt;
+	glm::vec4 newpt = MVinv * pt;
 
 	cosmo->setLensPosition(newpt.x, newpt.y, newpt.z);
+	cosmo->setMovableRotationCenter(newpt.x, newpt.y, newpt.z);
 }
 
 void perRenderUpdates()
@@ -290,16 +306,22 @@ void perRenderUpdates()
 	//mouse zooming
 	//zoom();
 
+	if (settings->transitionRequested) calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
+
 	transition();
 
 	dim();
 
 	rt = timer % 120; // 60 Hz on 60 Hz machine
 
-	focalCenter = vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
+	focalCenter = glm::vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
 
-	if (startStop) cosmo->setRotation(rotation[rt] + rotY + dragX, 0.0, 1.0, 0.0);
-	else cosmo->setRotation(rotY + dragX, 0.0, 1.0, 0.0);
+	if (startStop)
+	{
+		cosmo->setMovableRotationAngle(rotation[rt] + rotY + dragX);
+		cosmo->setMovableRotationAxis(settings->rotationAxis);
+	}
+	else cosmo->setRotation(rotY + dragX, settings->rotationAxis);
 
 	cosmo->setPosition(cowX, cowY, cowZ);
 
@@ -350,11 +372,14 @@ void drawScene(int eye) //0=left or mono, 1=right
 			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
 		glEnd();
 		
-		vec3 yAxis = normalize( vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+		// draw axes
+		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
 			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
 			settings->finger2modelCoords[2] - settings->finger1modelCoords[2]) );
 
-		vec3 xAxis = normalize( glm::cross(yAxis, vec3(0.f, 0.f, 1.f)) ); 
+		settings->rotationAxis = yAxis;
+
+		glm::vec3 xAxis = normalize( glm::cross(yAxis, glm::vec3(0.f, 0.f, 1.f)) );
 
 		glLineWidth(1);
 		glBegin(GL_LINES);
@@ -476,35 +501,39 @@ static int mouseButton(int button, int state, int x, int y)
         return TwEventMouseButtonGLUT(button, state, x, y);
     }
 
-	float roty,rotx;
 	rx = float(x); 
 	ry = float(winHeight - y);
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		holdMy = float(y);
-			
-		mXscreen = aspect*(VP_RIGHT - VP_LEFT) * (float(x)/winWidth - 0.5f);
-		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (float(y)/winHeight - 0.5f);
 
-		roty = atan2(mXscreen,20.0f);
-		rotx = atan2(mYscreen,20.0f);
+		mXscreen = (VP_RIGHT - VP_LEFT) * (float(x) / winWidth - 0.5f);
+		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (float(y) / winHeight - 0.5f);
+
+		float roty = atan2(mXscreen, 20.0f);
+		float rotx = atan2(mYscreen, 20.0f);
+
+		cout << "(x,y)               = ( " << x << ", " << y << " )" << endl;
+		cout << "(mXscreen,mYscreen) = ( " << mXscreen << ", " << mYscreen << " )" << endl;
+		cout << "(rotx,roty)         = ( " << rotx << ", " << roty << " )" << endl;
+		cout << endl;
+		cout << endl;
 
 		// calculate the translation 
-		xeye = -COW_Z * sin(roty)/scale;
-		zeye =  COW_Z * cos(roty);
-		zeye = (zeye - COW_Z)/scale;
-		yeye = COW_Z * sin(rotx)/scale;
+		xeye = -COW_Z *   sin(roty) / scale;
+		zeye = COW_Z * (cos(roty) - 1.f) / scale;
+		yeye = COW_Z *   sin(rotx) / scale;
 
 		// now rotate by the current view direction
-	    float dz = sin( rotY * 3.141592f / 180.0f);
-	    float dx = cos( rotY * 3.141592f / 180.0f);
+		float dz = sin(rotY * M_PI / 180.0f);
+		float dx = cos(rotY * M_PI / 180.0f);
 
 		xeye = dx * xeye - dz * zeye;
 		zeye = dz * xeye + dx * zeye;
 
 		transTimer = TRANS_FRAMES;
 		// update the view angle for off center targets
-		rotY += roty * 180.0f / 3.141592f;
+		rotY += roty * 180.0f / M_PI;
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
@@ -531,8 +560,8 @@ static int mouseButton(int button, int state, int x, int y)
 
 	   // find rotations given current universe Rotation
 	   float dx, dz;
-	   dx = -sin(rotY*3.141592f/180.0f);
-	   dz = cos(rotY*3.141592f/180.0f);
+	   dx = -sin(rotY * M_PI / 180.0f);
+	   dz = cos(rotY * M_PI / 180.0f);
        // Each wheel event reports like a button click, GLUT_DOWN then GLUT_UP
        if (state == GLUT_UP) return 0; // Disregard redundant GLUT_UP events
        //printf("Scroll %s At %d %d\n", (button == 3) ? "Up" : "Down", x, y);
@@ -848,6 +877,7 @@ int main(int argc, char *argv[])
 	cosmo->resample(100000);
 	cosmo->setScale(0.2f);
 	cosmo->setLensSize(5.f);
+	cosmo->setMovableRotationAngle(1.f);
 
 	vCosmo.push_back(cosmo);
 

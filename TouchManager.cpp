@@ -358,6 +358,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				//check if on accept/select/deselect button
 				if (pantograph->isOnAcceptBubble(x,y))
 				{
+					printf("SELECT BUTTON PRESSED");
 					//make selection
 					settings->toProcessCode.push_back(ADD_PRECISE_DYEPOT);
 					//pantograph->recalcSelection();
@@ -366,21 +367,33 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					settings->toProcessX.push_back(settings->currentlySelectedPoint[0]);
 					settings->toProcessY.push_back(settings->currentlySelectedPoint[1]);
 					settings->toProcessZ.push_back(settings->currentlySelectedPoint[2]);
+
+
+					// update rotational axis
+					settings->rotationAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+						settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+						settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
+
+					settings->rotationPoint = glm::vec3(settings->currentlySelectedPoint[0], 
+						settings->currentlySelectedPoint[1], 
+						settings->currentlySelectedPoint[2]);
+
+					settings->transitionRequested = true;
 							
 					//settings->toProcessX.push_back(settings->positioningModelCoords[0]);
 					//settings->toProcessY.push_back(settings->positioningModelCoords[1]);
 					//settings->toProcessZ.push_back(settings->positioningModelCoords[2] * sDepth);
 					//reset
-					settings->positioningDyePotPantograph = false;
-					firstFingerID = -1;
-					firstFingerX = -1;
-					firstFingerY = -1;
-					secondFingerID = -1;
-					secondFingerX = -1;
-					secondFingerY = -1;
-					pantograph->resetFingers();
-					settings->positioningXYFingerLocation[0] = -1;
-					settings->positioningXYFingerLocation[1] = -1;
+					//settings->positioningDyePotPantograph = false;
+					//firstFingerID = -1;
+					//firstFingerX = -1;
+					//firstFingerY = -1;
+					//secondFingerID = -1;
+					//secondFingerX = -1;
+					//secondFingerY = -1;
+					//pantograph->resetFingers();
+					//settings->positioningXYFingerLocation[0] = -1;
+					//settings->positioningXYFingerLocation[1] = -1;
 					return;
 				}//end if on accept button
 			}//end else if third (or higher) finger
@@ -823,36 +836,33 @@ void TouchManager::draw3D()
 
 void TouchManager::perRenderUpdate()
 {
-	//if (settings->positioningDyePotPantograph)
+	//send new screen coords to process into model coords during next render
+	float pantoX, pantoY, pantoDepth;
+	if (pantograph->getSelectPoint(&pantoX, &pantoY) && pantograph->getDepthFactor(&pantoDepth))
 	{
-		//send new screen coords to process into model coords during next render
-		float pantoX, pantoY, pantoDepth;
-		if (pantograph->getSelectPoint(&pantoX, &pantoY) && pantograph->getDepthFactor(&pantoDepth))
-		{
-			settings->positioningXYFingerLocation[0] = pantoX;
-			settings->positioningXYFingerLocation[1] = pantoY;
+		settings->positioningXYFingerLocation[0] = pantoX;
+		settings->positioningXYFingerLocation[1] = pantoY;
 
-			settings->finger1sX = firstFingerX;
-			settings->finger1sY = firstFingerY;
-			settings->finger2sX = secondFingerX;
-			settings->finger2sY = secondFingerY;
+		settings->finger1sX = firstFingerX;
+		settings->finger1sY = firstFingerY;
+		settings->finger2sX = secondFingerX;
+		settings->finger2sY = secondFingerY;
 		
-			//and if a render returned model coords
-			if (settings->positioningModelCoords[0] != -1 && settings->positioningModelCoords[1] != -1)
-			{
-				settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
-				settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
-				//settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2] * pantoDepth;
-				settings->currentlySelectedPoint[2] = -10.f + 20.f * pantoDepth;
-			}
-
-		}//end if valid selection
-		else
+		//and if a render returned model coords
+		if (settings->positioningModelCoords[0] != -1 && settings->positioningModelCoords[1] != -1)
 		{
-			settings->finger1sX = -1;
-			settings->finger1sY = -1;
-			settings->finger2sX = -1;
-			settings->finger2sY = -1;
+			settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
+			settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
+			//settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2] * pantoDepth;
+			settings->currentlySelectedPoint[2] = -10.f + 20.f * pantoDepth;
 		}
-	}//if panto mode
+
+	}//end if valid selection
+	else
+	{
+		settings->finger1sX = -1;
+		settings->finger1sY = -1;
+		settings->finger2sX = -1;
+		settings->finger2sY = -1;
+	}
 }

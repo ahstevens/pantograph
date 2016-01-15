@@ -26,15 +26,15 @@ struct cosmoData {
 };
 
 //----------------------------------------------------------------------------
-bool in_focal_area(vec3 point, float r, vec3 center )
+bool in_focal_area(glm::vec3 point, float r, glm::vec3 center )
 {
     //vec3 center = vec3(0.0f, 0.0f, 0.0f);
     if (r <= 0.0f) r = 0.0001f;
-    vec3 d = point - center; //delta
+	glm::vec3 d = point - center; //delta
     return ( d.x*d.x + d.y*d.y + d.z*d.z <= r*r );
 }
 
-bool compare_vec3(vec3 v1, vec3 v2)
+bool compare_vec3(glm::vec3 v1, glm::vec3 v2)
 {
     return (v1 == v2);
 }
@@ -99,10 +99,10 @@ void Cosmo::read( std::string fileName )
 
     //------------------------------------------------
     // parse the data into related object vector
-    vec3 vmax     = vec3(0.0f, 0.0f, 0.0f);    //max velocity
-    vec3 vmin     = vec3(0.0f, 0.0f, 0.0f);    //min velocity
-    vec3 max      = vec3(0.0f, 0.0f, 0.0f);
-    vec3 min      = vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 vmax     = glm::vec3(0.0f, 0.0f, 0.0f);    //max velocity
+	glm::vec3 vmin     = glm::vec3(0.0f, 0.0f, 0.0f);    //min velocity
+	glm::vec3 max      = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 min      = glm::vec3(0.0f, 0.0f, 0.0f);
 
     cosmoData *data = (cosmoData*) buffer; 
     
@@ -144,8 +144,8 @@ void Cosmo::read( std::string fileName )
     }
 
     // calculate color for each particle
-    vec3 v = vec3(0.0f, 0.0f, 0.0f);;
-    vec4 c = vec4(0.0f, 0.0f, 0.0f, 0.85f);
+	glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);;
+	glm::vec4 c = glm::vec4(0.0f, 0.0f, 0.0f, 0.85f);
     for (int i = 0; i < n; ++i)
     {  
         //vParticles.at(id).col
@@ -167,7 +167,7 @@ void Cosmo::read( std::string fileName )
     
 
     // calculate center coordinate
-    vec3 center = vec3( (max.x - min.x) / 2, 
+	glm::vec3 center = glm::vec3( (max.x - min.x) / 2,
                         (max.y - min.y) / 2,
                         (max.z - min.z) / 2);
 
@@ -196,14 +196,39 @@ void Cosmo::read( std::string fileName )
 
 float Cosmo::getMaxDimension(){ return maxDimension; }
 
-void Cosmo::setLensPosition(vec3 pos)
+void Cosmo::setMovableRotationAxis(glm::vec3 axis)
+{
+	this->movableRotationAxis = axis;
+}
+
+void Cosmo::setMovableRotationAxis(float x, float y, float z)
+{
+	setMovableRotationAxis(glm::vec3(x, y, z));
+}
+
+void Cosmo::setMovableRotationCenter(glm::vec3 ctr)
+{
+	this->movableRotationCenter = ctr;
+}
+
+void Cosmo::setMovableRotationCenter(float x, float y, float z)
+{
+	setMovableRotationCenter(glm::vec3(x, y, z));
+}
+
+void Cosmo::setMovableRotationAngle(float angle)
+{
+	this->movableRotationAngle = angle;
+}
+
+void Cosmo::setLensPosition(glm::vec3 pos)
 {
 	lensPos = pos;
 }
 
 void Cosmo::setLensPosition(float x, float y, float z)
 {
-	setLensPosition(vec3(x, y, z));
+	setLensPosition(glm::vec3(x, y, z));
 }
 
 void Cosmo::setLensSize(float radius)
@@ -298,7 +323,7 @@ void Cosmo::renderStreaksWithin()
 			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
 			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
 		{
-			vec3 end = it->pos + it->vel * 0.0025f;
+			glm::vec3 end = it->pos + it->vel * 0.0025f;
 
 			glEnd();
 
@@ -326,7 +351,7 @@ void Cosmo::renderStreaksWithin()
 			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
 			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
 		{
-			vec3 end = it->pos + it->vel * 0.005f;
+			glm::vec3 end = it->pos + it->vel * 0.005f;
 
 			glEnd();
 
@@ -356,9 +381,9 @@ void Cosmo::renderVelocities()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	vec3 v = vec3(0.0f, 0.0f, 0.0f); // 63.71757, 19.2537, 0.0488669 
-	vec4 c = vec4(1.0f, 1.0f, 1.0f, 0.5f);
-	vec3 p;
+	glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f); // 63.71757, 19.2537, 0.0488669 
+	glm::vec4 c = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	glm::vec3 p;
 	for (int i = 0; i < (int)vSample.size() / 2; ++i)
 	{
 		p = vSample.at(i).pos;
@@ -400,8 +425,11 @@ void Cosmo::render()
 		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);
 		glScalef(scale.x, scale.y, scale.z);
 
-		drawAxes(10.f);
+		glTranslatef(movableRotationCenter.x, movableRotationCenter.y, movableRotationCenter.z);
+		glRotatef(movableRotationAngle, movableRotationAxis.x, movableRotationAxis.y, movableRotationAxis.z);
+		glTranslatef(-movableRotationCenter.x, -movableRotationCenter.y, -movableRotationCenter.z);
 
+		drawAxes(10.f);
 
 		glPointSize(2.f);
 		glColor4f(1.f, 1.f, 1.f, 0.2f);

@@ -12,9 +12,9 @@
 Object::Object()
 {   
 	rotation = 0.f;
-	rotationAxis = vec3(0.f, 1.f, 0.f);
-	position = vec3(0.f, 0.f, 0.f);
-	scale = vec3(1.f, 1.f, 1.f);
+	rotationAxis = glm::vec3(0.f, 1.f, 0.f);
+	position = glm::vec3(0.f, 0.f, 0.f);
+	scale = glm::vec3(1.f, 1.f, 1.f);
 }
 
 //----------------------------------------------------------------------------
@@ -32,8 +32,8 @@ void Object::push()
     
     // Fill the vertex, color, normals coordinate buffers
     int v = 0;
-    vec4 c = vec4(1.0f, 1.0f, 1.0f, 0.85f);
-    vec3 p = vec3(0.0, 0.0, 0.0);
+	glm::vec4 c = glm::vec4(1.0f, 1.0f, 1.0f, 0.85f);
+	glm::vec3 p = glm::vec3(0.0, 0.0, 0.0);
 
     for (int i = 0; i < (int) vSample.size(); ++i)
     {
@@ -68,32 +68,32 @@ Object::~Object()
 }
 
 
-void Object::setPosition(vec3 pos)
+void Object::setPosition(glm::vec3 pos)
 {
 	this->position = pos;
 }
 
 void Object::setPosition(float x, float y, float z)
 {
-	setPosition(vec3(x, y, z));
+	setPosition(glm::vec3(x, y, z));
 }
 
-void Object::setScale(vec3 scale)
+void Object::setScale(glm::vec3 scale)
 {
 	this->scale = scale;
 }
 
 void Object::setScale(float x, float y, float z)
 {
-	setScale(vec3(x, y, z));
+	setScale(glm::vec3(x, y, z));
 }
 
 void Object::setScale(float scale)
 {
-	setScale(vec3(scale, scale, scale));
+	setScale(glm::vec3(scale, scale, scale));
 }
 
-void Object::setRotation(float deg, vec3 axis)
+void Object::setRotation(float deg, glm::vec3 axis)
 {
 	this->rotation = deg;
 	this->rotationAxis = axis;
@@ -101,5 +101,5 @@ void Object::setRotation(float deg, vec3 axis)
 
 void Object::setRotation(float deg, float x, float y, float z)
 {
-	setRotation(deg, vec3(x, y, z));
+	setRotation(deg, glm::vec3(x, y, z));
 }

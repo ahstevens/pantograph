@@ -14,13 +14,13 @@
 
 extern float vectorScale;
 
-extern vec3 focalCenter;
+extern glm::vec3 focalCenter;
 
 
 struct Particle {
-    vec3 pos;
-    vec3 vel;
-    vec4 col;
+	glm::vec3 pos;
+	glm::vec3 vel;
+	glm::vec4 col;
     int id;
     float mass;
 };
@@ -33,14 +33,14 @@ class Object
     ~Object();
     void push();
 
-	void setPosition(vec3 pos);
+	void setPosition(glm::vec3 pos);
 	void setPosition(float x = 0.f, float y = 0.f, float z = 0.f);
 
-	void setScale(vec3 scale);
+	void setScale(glm::vec3 scale);
 	void setScale(float x, float y, float z);
 	void setScale(float scale = 1.f);
 
-	void setRotation(float deg, vec3 axis);
+	void setRotation(float deg, glm::vec3 axis);
 	void setRotation(float deg, float x, float y, float z);
 
 	virtual void render() = 0;
@@ -54,7 +54,7 @@ class Object
     GLuint vaoID;
     GLuint bufferID;
 
-	vec3 position, scale, rotationAxis;
+	glm::vec3 position, scale, rotationAxis;
 	float rotation;
 };
 
