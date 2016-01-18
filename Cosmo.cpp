@@ -9,6 +9,7 @@ Cosmo::Cosmo()
 	lensMode = velocityMode = false;
 	particleCount = samples = 0;
 	lensRadius = dimness = maxDimension = 0.f;
+	lensRadiusOuterDimFactor = 0.f;
 }
 
 #define POSVEL_T    float
@@ -236,6 +237,11 @@ void Cosmo::setLensSize(float radius)
 	lensRadius = radius;
 }
 
+void Cosmo::setLensOuterDimFactor(float factor)
+{
+	this->lensRadiusOuterDimFactor = factor;
+}
+
 void Cosmo::setDimness(float dimness)
 {
 	this->dimness = dimness;
@@ -276,16 +282,25 @@ void Cosmo::renderPointsWithin()
 {
 	std::vector<Particle>::iterator it;
 
+	float hitDistance = lensRadius * (1.f + lensRadiusOuterDimFactor);
+	
 	glBegin(GL_POINTS);
 	for (it = vSample.begin(); it != vSample.end(); ++it)
 	{
-		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
-			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
-			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
-			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		// check the hitbox first to quick-fail ad save some cycles
+		if (it->pos.x <= (lensPos.x + hitDistance) && it->pos.x >= (lensPos.x - hitDistance) &&
+			it->pos.y <= (lensPos.y + hitDistance) && it->pos.y >= (lensPos.y - hitDistance) &&
+			it->pos.z <= (lensPos.z + hitDistance) && it->pos.z >= (lensPos.z - hitDistance))
 		{
-			//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
-			glColor4f(1.f, 1.f, 1.f, 0.55f);
+			float dist = sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2));
+		
+			// if within lens fade range
+			if(dist <= (lensRadius * (1.f + lensRadiusOuterDimFactor)) && dist >= lensRadius)
+				glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - lensRadius) / (lensRadiusOuterDimFactor * lensRadius)));
+			else if (dist <= lensRadius) // within lens itself
+				glColor4f(1.f, 1.f, 1.f, 0.55f);
+			else // not within range (corners of hitbox that envelopes lens)
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 		}
 		else
 			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
@@ -295,13 +310,20 @@ void Cosmo::renderPointsWithin()
 
 	for (it = vFocal.begin(); it != vFocal.end(); ++it)
 	{
-		if (it->pos.x <= (lensPos.x + lensRadius) && it->pos.x >= (lensPos.x - lensRadius) &&
-			it->pos.y <= (lensPos.y + lensRadius) && it->pos.y >= (lensPos.y - lensRadius) &&
-			it->pos.z <= (lensPos.z + lensRadius) && it->pos.z >= (lensPos.z - lensRadius) &&
-			sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= lensRadius)
+		// check the hitbox first to quick-fail ad save some cycles
+		if (it->pos.x <= (lensPos.x + hitDistance) && it->pos.x >= (lensPos.x - hitDistance) &&
+			it->pos.y <= (lensPos.y + hitDistance) && it->pos.y >= (lensPos.y - hitDistance) &&
+			it->pos.z <= (lensPos.z + hitDistance) && it->pos.z >= (lensPos.z - hitDistance))
 		{
-			//glColor4f(it->col.r, it->col.g, it->col.b, 0.85f);
-			glColor4f(1.f, 1.f, 1.f, 0.55f);
+			float dist = sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2));
+
+			// if within lens fade range
+			if (dist <= (lensRadius * (1.f + lensRadiusOuterDimFactor)) && dist >= lensRadius)
+				glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - lensRadius) / (lensRadiusOuterDimFactor * lensRadius)));
+			else if (dist <= lensRadius) // within lens itself
+				glColor4f(1.f, 1.f, 1.f, 0.55f);
+			else // not within range (corners of hitbox that envelopes lens)
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 		}
 		else
 			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));

@@ -16,9 +16,9 @@ class Cosmo: public Object
 		void setLensPosition(glm::vec3 pos);
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
+		void setLensOuterDimFactor(float factor);
 		void setDimness(float dimness);
 
-		void setMovableRotation(float angle, glm::vec3 axis, glm::vec3 center);
 		void setMovableRotationAxis(glm::vec3 axis);
 		void setMovableRotationAxis(float x, float y, float z);
 		void setMovableRotationCenter(glm::vec3 ctr);
@@ -48,7 +48,7 @@ class Cosmo: public Object
 		float movableRotationAngle;
 
 		glm::vec3 lensPos;
-		float lensRadius, dimness;
+		float lensRadius, lensRadiusOuterDimFactor, dimness;
 
 		float maxDimension;
 

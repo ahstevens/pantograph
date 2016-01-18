@@ -234,7 +234,6 @@ void processPendingInteractions()
 
 		// activate lens mode
 		cosmo->setLensMode(true);
-		cosmo->setVelocityMode(true);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
@@ -878,6 +877,8 @@ int main(int argc, char *argv[])
 	cosmo->setScale(0.2f);
 	cosmo->setLensSize(5.f);
 	cosmo->setMovableRotationAngle(1.f);
+	cosmo->setLensOuterDimFactor(0.5f);
+	cosmo->setVelocityMode(false);
 
 	vCosmo.push_back(cosmo);
 
