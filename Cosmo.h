@@ -1,6 +1,7 @@
 #ifndef COSMO_H_
 #define COSMO_H_
 #include <algorithm>
+#include <deque>
 #include "Object.h"
 
 
@@ -23,6 +24,7 @@ class Cosmo: public Object
 		void setMovableRotationAxis(float x, float y, float z);
 		void setMovableRotationCenter(glm::vec3 ctr);
 		void setMovableRotationCenter(float x, float y, float z);
+		glm::vec3 getMovableRotationCenter();
 		void setMovableRotationAngle(float angle);
 
 		void setLensMode(bool yesno);
@@ -31,6 +33,8 @@ class Cosmo: public Object
 		void getMV(double *mv);
 
 		void render();
+
+		deque<glm::vec3> centerPoints;
 
     protected:
 		void renderPoints();
@@ -42,7 +46,7 @@ class Cosmo: public Object
         int particleCount;
         int samples;        // # of random samples points
 
-		bool lensMode, velocityMode;
+		bool lensMode, velocityMode, showTrails;
 
 		glm::vec3 movableRotationAxis, movableRotationCenter;
 		float movableRotationAngle;

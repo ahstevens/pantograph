@@ -1,4 +1,5 @@
 #include "TouchManager.h"
+#include <iostream>
 
 
 
@@ -294,7 +295,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					//check if swap needed:
 					if (pantograph->swapNeeded())
 					{
-						printf("SWAPPING");
+						//printf("SWAPPING\n");
 						secondFingerID = firstFingerID;
 						secondFingerX = firstFingerX;
 						secondFingerY = firstFingerY;
@@ -358,7 +359,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				//check if on accept/select/deselect button
 				if (pantograph->isOnAcceptBubble(x,y))
 				{
-					printf("SELECT BUTTON PRESSED");
+					//printf("SELECT BUTTON PRESSED\n");
 					//make selection
 					settings->toProcessCode.push_back(ADD_PRECISE_DYEPOT);
 					//pantograph->recalcSelection();
@@ -367,19 +368,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					settings->toProcessX.push_back(settings->currentlySelectedPoint[0]);
 					settings->toProcessY.push_back(settings->currentlySelectedPoint[1]);
 					settings->toProcessZ.push_back(settings->currentlySelectedPoint[2]);
-
-
-					// update rotational axis
-					settings->rotationAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
-						settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
-						settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
-
-					settings->rotationPoint = glm::vec3(settings->currentlySelectedPoint[0], 
-						settings->currentlySelectedPoint[1], 
-						settings->currentlySelectedPoint[2]);
-
-					settings->transitionRequested = true;
-							
+					
 					//settings->toProcessX.push_back(settings->positioningModelCoords[0]);
 					//settings->toProcessY.push_back(settings->positioningModelCoords[1]);
 					//settings->toProcessZ.push_back(settings->positioningModelCoords[2] * sDepth);
@@ -428,6 +417,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				settings->positioningXYFingerLocation[0] = -1;
 				settings->positioningXYFingerLocation[1] = -1;
 				settings->positioningDyePotPantograph = false;
+				settings->transitionRequested = true;
 				break;
 			}
 			else if (tp.id == secondFingerID)

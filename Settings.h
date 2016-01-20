@@ -79,8 +79,6 @@ public:
 	int dimTimer;
 
 	bool transitionRequested;
-	glm::vec3 rotationAxis, rotationPoint;
-
 
 private:
 

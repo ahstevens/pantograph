@@ -28,7 +28,7 @@ float cowZ          = 30.f;
 #define COW_Z 		30.0f
 #define FAR 		100.0f 
 using namespace std;
-#define OSC_ANGLE 2.f
+#define OSC_ANGLE 10.f
 #define REFRESH 60
 Stopwatch *aclock;
 
@@ -39,9 +39,12 @@ TouchManager* touchManager;
 float rx,ry;
 //float rw, rh;
 float mXscreen = 0.0f ,mYscreen = 0.0f;  // mouse x in screen coords.
-float holdCowX = 0.0f, holdCowY = 0.0f, holdCowZ = 0.0f; // saves CoW for transitioning
-float cowX = 0.0f,cowY= 0.0f, cowZ= 0.0f; // the CoW relativ to the data spaces
+//float holdCowX = 0.0f, holdCowY = 0.0f, holdCowZ = 0.0f; // saves CoW for transitioning
+glm::vec3 holdCow;
+//float cowX = 0.0f,cowY= 0.0f, cowZ= 0.0f; // the CoW relativ to the data spaces
+glm::vec3 cow;
 float xeye = 0.0f, yeye= 0.0f, zeye = 0.0f; // the offsets calculated for a move on mouse down
+glm::vec3 transitionVector = glm::vec3(0.f, 0.f, 0.f);
 
 float rotX,rotY; // change the rotation about the cow
 float holdMx, holdMy;
@@ -109,37 +112,40 @@ float dimness = 0.f;
 
 void transition()  // used to translate smoothly
 {	
-	float p = float(transTimer)/TRANS_FRAMES;
+	// get interpolated parametric value based off of transition timer
+	float t = 1.f - float(transTimer)/TRANS_FRAMES;
 
 	if (transTimer >= 0)
-	{
-		cowX = holdCowX + xeye*(1.f-p);
-		cowY = holdCowY + yeye*(1.f-p);
-		cowZ = holdCowZ + zeye*(1.f-p);
-		--transTimer;
-	}
-	if(transTimer == 0)
-	{
-		cout << "transition done" << endl;
-		holdCowX = cowX;
-		holdCowY = cowY;
-		holdCowZ = cowZ;
-		xeye = yeye = zeye = 0;
-	}
+		cosmo->setPosition(holdCow + transitionVector * t);
 
+	transTimer--;
 }
 
 void calculateTransition(float x, float y)
 {
-	xeye = settings->currentlySelectedPoint[0];
-	yeye = settings->currentlySelectedPoint[1];
-	zeye = settings->currentlySelectedPoint[2];
+	// get data object's model-view matrix and invert it
+	double mv[16];
+	cosmo->getMV(mv);
+	glm::mat4 MVinv = glm::inverse(glm::make_mat4(mv));
 
-	holdCowX = 0.f;
-	holdCowY = 0.f;
-	holdCowZ = 0.f;
+	// get cursor location wrt cosmo model origin
+	glm::vec3 newCow = glm::vec3( MVinv * glm::vec4(settings->currentlySelectedPoint[0],
+		settings->currentlySelectedPoint[1],
+		settings->currentlySelectedPoint[2],
+		1.f) );
 
+	// translation position needed to put cursor at focal center
+	glm::vec3 newCowTrans = -newCow * scale;
+	holdCow = -cow * scale;
+
+	// calc the translation vector for the transition
+	transitionVector = newCowTrans - holdCow;
+	
+	// start transition timer
 	transTimer = TRANS_FRAMES;
+
+	// update the CoW
+	cow = newCow;
 
 	settings->transitionRequested = false;
 }
@@ -234,6 +240,15 @@ void processPendingInteractions()
 
 		// activate lens mode
 		cosmo->setLensMode(true);
+
+
+
+		// draw axes
+		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+			settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
+
+		cosmo->setMovableRotationAxis(yAxis);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
@@ -287,17 +302,16 @@ void updateLens()
 	cosmo->getMV(mv);
 	glm::mat4 MVinv = glm::inverse( glm::make_mat4( mv ) );
 
-	// get current world-space pantograph point coord
-	glm::vec4 pt = glm::vec4(settings->currentlySelectedPoint[0],
+	// get model-space coordinate for pantograph point and set it
+	glm::vec4 newpt = MVinv * glm::vec4(settings->currentlySelectedPoint[0],
 		settings->currentlySelectedPoint[1],
 		settings->currentlySelectedPoint[2],
 		1.f);
-
-	// get model-space coordinate for pantograph point and set it
-	glm::vec4 newpt = MVinv * pt;
-
+	
 	cosmo->setLensPosition(newpt.x, newpt.y, newpt.z);
 	cosmo->setMovableRotationCenter(newpt.x, newpt.y, newpt.z);
+
+	cout << "lensPos = (" << newpt.x << ", " << newpt.y << ", " << newpt.z << ")" << endl;
 }
 
 void perRenderUpdates()
@@ -305,7 +319,8 @@ void perRenderUpdates()
 	//mouse zooming
 	//zoom();
 
-	if (settings->transitionRequested) calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
+	if (settings->transitionRequested) 
+		calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
 
 	transition();
 
@@ -313,22 +328,17 @@ void perRenderUpdates()
 
 	rt = timer % 120; // 60 Hz on 60 Hz machine
 
-	focalCenter = glm::vec3(cowX*VP_LEFT, cowY*VP_BOTTOM, -cowZ*(NEAR_CP - 10));
+	focalCenter = glm::vec3(cow.x*VP_LEFT, cow.y*VP_BOTTOM, -cow.z*(NEAR_CP - 10));
 
-	if (startStop)
-	{
-		cosmo->setMovableRotationAngle(rotation[rt] + rotY + dragX);
-		cosmo->setMovableRotationAxis(settings->rotationAxis);
-	}
-	else cosmo->setRotation(rotY + dragX, settings->rotationAxis);
-
-	cosmo->setPosition(cowX, cowY, cowZ);
-
+	if (startStop) cosmo->setMovableRotationAngle(rotation[rt]);
+	else cosmo->setRotationAngle(rotY + dragX);
+	
 	touchManager->perRenderUpdate();
 
 	processPendingInteractions();
 
-	updateLens();
+	if (settings->positioningXYFingerLocation[0] != -1 && settings->positioningZFingerLocation[2] != -1)
+		updateLens();
 }
 
 void drawScene(int eye) //0=left or mono, 1=right
@@ -349,6 +359,8 @@ void drawScene(int eye) //0=left or mono, 1=right
 	//	glVertex3f(0.0,  -1.0, 0.0);
 	//	glVertex3f(0.0, -20.0, 0.0);
 	//glEnd();
+
+	//drawAxes(1.f);
 
 	// render cosmos point cloud
 	cosmo->render();
@@ -372,26 +384,26 @@ void drawScene(int eye) //0=left or mono, 1=right
 		glEnd();
 		
 		// draw axes
-		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
-			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
-			settings->finger2modelCoords[2] - settings->finger1modelCoords[2]) );
+		//glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+		//	settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+		//	settings->finger2modelCoords[2] - settings->finger1modelCoords[2]) );
 
-		settings->rotationAxis = yAxis;
+		//settings->rotationAxis = yAxis;
 
-		glm::vec3 xAxis = normalize( glm::cross(yAxis, glm::vec3(0.f, 0.f, 1.f)) );
+		//glm::vec3 xAxis = normalize( glm::cross(yAxis, glm::vec3(0.f, 0.f, 1.f)) );
 
-		glLineWidth(1);
-		glBegin(GL_LINES);
-			glColor4f(1.f, 0.f, 0.f, 1.f);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glVertex3f(settings->positioningModelCoords[0] + xAxis.x, settings->positioningModelCoords[1] + xAxis.y, settings->currentlySelectedPoint[2] + xAxis.z);
-			glColor4f(0.f, 1.f, 0.f, 1.f);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glVertex3f(settings->positioningModelCoords[0] + yAxis.x, settings->positioningModelCoords[1] + yAxis.y, settings->currentlySelectedPoint[2] + yAxis.z);
-			glColor4f(0.f, 0.f, 1.f, 1.f);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
-		glEnd();
+		//glLineWidth(1);
+		//glBegin(GL_LINES);
+		//	glColor4f(1.f, 0.f, 0.f, 1.f);
+		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		//	glVertex3f(settings->positioningModelCoords[0] + xAxis.x, settings->positioningModelCoords[1] + xAxis.y, settings->currentlySelectedPoint[2] + xAxis.z);
+		//	glColor4f(0.f, 1.f, 0.f, 1.f);
+		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		//	glVertex3f(settings->positioningModelCoords[0] + yAxis.x, settings->positioningModelCoords[1] + yAxis.y, settings->currentlySelectedPoint[2] + yAxis.z);
+		//	glColor4f(0.f, 0.f, 1.f, 1.f);
+		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
+		//glEnd();
 	}
 
 	touchManager->draw3D();
@@ -566,17 +578,17 @@ static int mouseButton(int button, int state, int x, int y)
        //printf("Scroll %s At %d %d\n", (button == 3) ? "Up" : "Down", x, y);
 	   if(button == 3)
 	   {
-		   cowZ = cowZ - 0.5f*dz/scale; 
-		   cowX = cowX - 0.5f*dx/scale; 
+		   cow.z -= 0.5f*dz/scale; 
+		   cow.x -= 0.5f*dx/scale; 
 	   }
 	   else 
 	   {
-			cowZ = cowZ + 0.5f*dz/scale; 
-			cowX = cowX + 0.5f*dx/scale; 
+			cow.z += 0.5f*dz/scale; 
+			cow.x += 0.5f*dx/scale; 
 	   }
 
-	   holdCowZ = cowZ;
-	   holdCowX = cowX;
+	   holdCow.z = cow.z;
+	   holdCow.x = cow.x;
    }
 }
 
@@ -600,15 +612,16 @@ static int motion(int x, int y)
 void reset_values()
 {
 	timer = 0;
-	holdCowX = holdCowY = holdCowZ = 0.0;
+	holdCow = glm::vec3(0.f);
 	xeye = 0.0f;
-	cowX = cowY = cowZ = 0.0;
+	cow = glm::vec3(0.f);
 	rotX = rotY = 0.0;
+	transitionVector = glm::vec3(0.f, 0.f, 0.f);
 
 	startStop = true;
 	transTimer = -1;
 	//winWidth = 1024; winHeight = 1024;
-	scale = 1.f;
+	scale = 0.2f;
 	vectorScale = 1.0f;
 }
 
@@ -635,13 +648,13 @@ static int keyboard( unsigned char key, int x, int y )
 		//if( ((int) (scale * 100)) %10 == 0) cosmo->resample(100000);
 	}
 
-	if(key == '[') cowZ += 0.1f*scale;
-	if(key == ']') cowZ -= 0.1f*scale;
+	if(key == '[') cow.z += 0.1f*scale;
+	if(key == ']') cow.z -= 0.1f*scale;
 
 	float dx = -sin(rotY*3.141592f/180.0f);
 	float dz = cos(rotY*3.141592f/180.0f);
-	if(key == 'a') { cowZ += 0.5f*dz/scale; cowX += 0.5f*dx/scale;};
-	if(key == 'z') { cowZ -= 0.5f*dz/scale; cowX -= 0.5f*dx/scale;};
+	if(key == 'a') { cow.z += 0.5f*dz/scale; cow.x += 0.5f*dx/scale;};
+	if(key == 'z') { cow.z -= 0.5f*dz/scale; cow.x -= 0.5f*dx/scale;};
 
 	if(key == '0') startStop = !startStop;
 
@@ -874,8 +887,11 @@ int main(int argc, char *argv[])
     cosmo = new Cosmo();
 	cosmo->read( inputFiles[0] );
 	cosmo->resample(100000);
-	cosmo->setScale(0.2f);
+	cosmo->setScale(scale);
 	cosmo->setLensSize(5.f);
+	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);
+	cosmo->centerPoints.push_back(glm::vec3(0.f, 0.f, 0.f));
+	cosmo->setMovableRotationAxis(0.f, 1.f, 0.f);
 	cosmo->setMovableRotationAngle(1.f);
 	cosmo->setLensOuterDimFactor(0.5f);
 	cosmo->setVelocityMode(false);

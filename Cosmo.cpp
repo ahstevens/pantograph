@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
 {
-	lensMode = velocityMode = false;
+	lensMode = velocityMode = showTrails = false;
 	particleCount = samples = 0;
 	lensRadius = dimness = maxDimension = 0.f;
 	lensRadiusOuterDimFactor = 0.f;
@@ -209,12 +209,22 @@ void Cosmo::setMovableRotationAxis(float x, float y, float z)
 
 void Cosmo::setMovableRotationCenter(glm::vec3 ctr)
 {
+	if (centerPoints.size() > 500)
+		centerPoints.pop_front();
+
+	centerPoints.push_back(ctr);
+
 	this->movableRotationCenter = ctr;
 }
 
 void Cosmo::setMovableRotationCenter(float x, float y, float z)
 {
 	setMovableRotationCenter(glm::vec3(x, y, z));
+}
+
+glm::vec3 Cosmo::getMovableRotationCenter()
+{
+	return movableRotationCenter;
 }
 
 void Cosmo::setMovableRotationAngle(float angle)
@@ -447,11 +457,36 @@ void Cosmo::render()
 		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);
 		glScalef(scale.x, scale.y, scale.z);
 
-		glTranslatef(movableRotationCenter.x, movableRotationCenter.y, movableRotationCenter.z);
-		glRotatef(movableRotationAngle, movableRotationAxis.x, movableRotationAxis.y, movableRotationAxis.z);
-		glTranslatef(-movableRotationCenter.x, -movableRotationCenter.y, -movableRotationCenter.z);
+		// oscillation
+		if (glm::length(movableRotationAxis) > 0.001)
+		{
+			glTranslatef(movableRotationCenter.x, movableRotationCenter.y, movableRotationCenter.z);
 
-		drawAxes(10.f);
+			// draw oscillation pole
+			glColor4f(0.75f, 0.f, 0.75f, 1.f);
+			glBegin(GL_LINES);
+				glVertex3f(20.f*movableRotationAxis.x, 20.f*movableRotationAxis.y, 20.f*movableRotationAxis.z);
+				glVertex3f(1.f*movableRotationAxis.x, 1.f*movableRotationAxis.y, 1.f*movableRotationAxis.z);
+				glVertex3f(-1.f*movableRotationAxis.x, -1.f*movableRotationAxis.y, -1.f*movableRotationAxis.z);
+				glVertex3f(-20.f*movableRotationAxis.x, -20.f*movableRotationAxis.y, -20.f*movableRotationAxis.z);
+			glEnd();
+
+			glRotatef(movableRotationAngle, movableRotationAxis.x, movableRotationAxis.y, movableRotationAxis.z);
+			glTranslatef(-movableRotationCenter.x, -movableRotationCenter.y, -movableRotationCenter.z);
+		}
+
+		if(showTrails)
+		{ 
+			glPointSize(4.f);
+			glBegin(GL_POINTS);
+				for (int i = 0; i < centerPoints.size(); ++i)
+				{
+					float t = (float)i / ((float)centerPoints.size() - 1.f);
+					glColor4f(1.f, 0.f, 1.f, 1.f * t);
+					glVertex3f(centerPoints.at(i).x, centerPoints.at(i).y, centerPoints.at(i).z);
+				}
+			glEnd();
+		}
 
 		glPointSize(2.f);
 		glColor4f(1.f, 1.f, 1.f, 0.2f);

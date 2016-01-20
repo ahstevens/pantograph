@@ -103,3 +103,8 @@ void Object::setRotation(float deg, float x, float y, float z)
 {
 	setRotation(deg, glm::vec3(x, y, z));
 }
+
+void Object::setRotationAngle(float deg)
+{
+	this->rotation = deg;
+}

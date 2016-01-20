@@ -42,6 +42,4 @@ void Settings::resetToDefaults()
 	dimTimer = -1;
 
 	transitionRequested = false;
-	rotationAxis = glm::vec3(0.f, 1.f, 0.f);
-	rotationPoint = glm::vec3(0.f, 0.f, 0.f);
 }

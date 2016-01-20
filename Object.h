@@ -42,6 +42,7 @@ class Object
 
 	void setRotation(float deg, glm::vec3 axis);
 	void setRotation(float deg, float x, float y, float z);
+	void setRotationAngle(float deg);
 
 	virtual void render() = 0;
 
