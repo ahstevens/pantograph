@@ -239,7 +239,8 @@ void processPendingInteractions()
 		settings->finger2modelCoords[2] = p1z;
 
 		// activate lens mode
-		cosmo->setLensMode(true);
+		//cosmo->setLensMode(true);
+		cosmo->setAxisMode(true);
 
 
 
@@ -287,7 +288,8 @@ void processPendingInteractions()
 		settings->positioningModelCoords[2] = -1;
 
 		// turn off lens mode
-		cosmo->setLensMode(false);
+		//cosmo->setLensMode(false);
+		cosmo->setAxisMode(false);
 		cosmo->setVelocityMode(false);
 	}
 	
@@ -310,8 +312,6 @@ void updateLens()
 	
 	cosmo->setLensPosition(newpt.x, newpt.y, newpt.z);
 	cosmo->setMovableRotationCenter(newpt.x, newpt.y, newpt.z);
-
-	cout << "lensPos = (" << newpt.x << ", " << newpt.y << ", " << newpt.z << ")" << endl;
 }
 
 void perRenderUpdates()
@@ -670,6 +670,9 @@ static int keyboard( unsigned char key, int x, int y )
 	}
 
 	if(key == ' ') { reset_values(); cosmo->resample(100000); }
+
+	if (key == '/') { cosmo->toggleTrailsMode(); }
+	if (key == '\'') { cosmo->toggleShowOscillationAxis(); }
 /*
 	if(key == '1') cosmo = vCosmo.at(0);
 	if(key == '2') cosmo = vCosmo.at(1);
@@ -726,6 +729,19 @@ void reshape(int w, int h)
 // Special key event callbacks
 int specialFunction(int glutKey, int mouseX, int mouseY) 
 {
+	if (glutKey == GLUT_KEY_PAGE_UP)
+	{
+		cout << "Increasing movable axis scale from " << cosmo->getMovableRotationAxisScale() << " to ";
+		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
+		cout << cosmo->getMovableRotationAxisScale() << endl;
+	}
+	if (glutKey == GLUT_KEY_PAGE_DOWN)
+	{
+		cout << "Decreasing movable axis scale from " << cosmo->getMovableRotationAxisScale() << " to ";
+		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 0.9f);
+		cout << cosmo->getMovableRotationAxisScale() << endl;
+	}
+
     TwSetCurrentWindow(glutGetWindow());
     return TwEventSpecialGLUT(glutKey,mouseX,mouseY);   
 }
@@ -891,11 +907,13 @@ int main(int argc, char *argv[])
 	cosmo->resample(100000);
 	cosmo->setScale(scale);
 	cosmo->setLensSize(5.f);
+	cosmo->setLensOuterDimFactor(0.5f);
+	cosmo->setAxisLensSize(5.f);
+	cosmo->setAxisLensOuterDimFactor(0.5f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);
-	cosmo->centerPoints.push_back(glm::vec3(0.f, 0.f, 0.f));
 	cosmo->setMovableRotationAxis(0.f, 1.f, 0.f);
 	cosmo->setMovableRotationAngle(1.f);
-	cosmo->setLensOuterDimFactor(0.5f);
+	cosmo->setMovableRotationAxisScale(20.f);
 	cosmo->setVelocityMode(false);
 
 	vCosmo.push_back(cosmo);

@@ -26,9 +26,18 @@ class Cosmo: public Object
 		void setMovableRotationCenter(float x, float y, float z);
 		glm::vec3 getMovableRotationCenter();
 		void setMovableRotationAngle(float angle);
+		void setMovableRotationAxisScale(float scale);
+		void setAxisLensSize(float radius);
+		void setAxisLensOuterDimFactor(float factor);
+
+		float getMovableRotationAxisScale();
 
 		void setLensMode(bool yesno);
+		void setAxisMode(bool yesno);
 		void setVelocityMode(bool yesno);
+
+		void toggleTrailsMode();
+		void toggleShowOscillationAxis();
 
 		void getMV(double *mv);
 
@@ -38,21 +47,24 @@ class Cosmo: public Object
 
     protected:
 		void renderPoints();
-		void renderPointsWithin();
+		void renderPointsWithinSphere();
+		void renderPointsWithinAxisCylinder();
 		void renderStreaksWithin();
 		void renderVelocities();
+
+		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testpt);
 
         std::vector<Particle> vParticles;       
         int particleCount;
         int samples;        // # of random samples points
 
-		bool lensMode, velocityMode, showTrails;
+		bool lensMode, axisMode, velocityMode, showTrails, showOscillationAxis;
 
 		glm::vec3 movableRotationAxis, movableRotationCenter;
-		float movableRotationAngle;
+		float movableRotationAngle, movableAxisScale;
 
 		glm::vec3 lensPos;
-		float lensRadius, lensRadiusOuterDimFactor, dimness;
+		float lensRadius, lensRadiusOuterDimFactor, axisRadius, axisRadiusOuterDimFactor, dimness;
 
 		float maxDimension;
 

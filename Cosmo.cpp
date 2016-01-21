@@ -6,10 +6,13 @@
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
 {
-	lensMode = velocityMode = showTrails = false;
+	lensMode = velocityMode = showTrails = showOscillationAxis = false;
+	axisMode = true;
 	particleCount = samples = 0;
-	lensRadius = dimness = maxDimension = 0.f;
+	lensRadius = axisRadius = dimness = maxDimension = 0.f;
 	lensRadiusOuterDimFactor = 0.f;
+	axisRadiusOuterDimFactor = 0.f;
+	movableAxisScale = 1.f;
 }
 
 #define POSVEL_T    float
@@ -234,9 +237,14 @@ void Cosmo::setMovableRotationAngle(float angle)
 	this->movableRotationAngle = angle;
 }
 
+void Cosmo::setMovableRotationAxisScale(float scale)
+{
+	this->movableAxisScale = scale;
+}
+
 void Cosmo::setLensPosition(glm::vec3 pos)
 {
-	lensPos = pos;
+	this->lensPos = pos;
 }
 
 void Cosmo::setLensPosition(float x, float y, float z)
@@ -246,7 +254,7 @@ void Cosmo::setLensPosition(float x, float y, float z)
 
 void Cosmo::setLensSize(float radius)
 {
-	lensRadius = radius;
+	this->lensRadius = radius;
 }
 
 void Cosmo::setLensOuterDimFactor(float factor)
@@ -259,14 +267,44 @@ void Cosmo::setDimness(float dimness)
 	this->dimness = dimness;
 }
 
+void Cosmo::setAxisLensSize(float radius)
+{
+	this->axisRadius = radius;
+}
+
+void Cosmo::setAxisLensOuterDimFactor(float factor)
+{
+	this->axisRadiusOuterDimFactor = factor;
+}
+
+float Cosmo::getMovableRotationAxisScale()
+{
+	return movableAxisScale;
+}
+
 void Cosmo::setLensMode(bool yesno)
 {
 	lensMode = yesno;
 }
 
+void Cosmo::setAxisMode(bool yesno)
+{
+	axisMode = yesno;
+}
+
 void Cosmo::setVelocityMode(bool yesno)
 {
 	velocityMode = yesno;
+}
+
+void Cosmo::toggleTrailsMode()
+{
+	this->showTrails = !this->showTrails;
+}
+
+void Cosmo::toggleShowOscillationAxis()
+{
+	this->showOscillationAxis = !this->showOscillationAxis;
 }
 
 void Cosmo::getMV(double *mv)
@@ -290,7 +328,7 @@ void Cosmo::renderPoints()
 	glBindVertexArray(0);
 }
 
-void Cosmo::renderPointsWithin()
+void Cosmo::renderPointsWithinSphere()
 {
 	std::vector<Particle>::iterator it;
 
@@ -337,6 +375,98 @@ void Cosmo::renderPointsWithin()
 			else // not within range (corners of hitbox that envelopes lens)
 				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 		}
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+	glEnd();
+}
+
+// this function is adapted from http://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml by Greg James @ NVIDIA
+float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testpt)
+{
+	float dx, dy, dz;	// vector d  from line segment point 1 to point 2
+	float pdx, pdy, pdz;	// vector pd from point 1 to test point
+	float dot, dsq;
+
+	dx = pt2.x - pt1.x;	// translate so pt1 is origin.  Make vector from
+	dy = pt2.y - pt1.y;     // pt1 to pt2.  Need for this is easily eliminated
+	dz = pt2.z - pt1.z;
+
+	pdx = testpt.x - pt1.x;		// vector from pt1 to test point.
+	pdy = testpt.y - pt1.y;
+	pdz = testpt.z - pt1.z;
+
+	// Dot the d and pd vectors to see if point lies behind the 
+	// cylinder cap at pt1.x, pt1.y, pt1.z
+
+	dot = pdx * dx + pdy * dy + pdz * dz;
+
+	// If dot is less than zero the point is behind the pt1 cap.
+	// If greater than the cylinder axis line segment length squared
+	// then the point is outside the other end cap at pt2.
+
+	if (dot < 0.0f || dot > length_sq)
+	{
+		return(-1.0f);
+	}
+	else
+	{
+		// Point lies within the parallel caps, so find
+		// distance squared from point to line, using the fact that sin^2 + cos^2 = 1
+		// the dot = cos() * |d||pd|, and cross*cross = sin^2 * |d|^2 * |pd|^2
+		// Carefull: '*' means mult for scalars and dotproduct for vectors
+		// In short, where dist is pt distance to cyl axis: 
+		// dist = sin( pd to d ) * |pd|
+		// distsq = dsq = (1 - cos^2( pd to d)) * |pd|^2
+		// dsq = ( 1 - (pd * d)^2 / (|pd|^2 * |d|^2) ) * |pd|^2
+		// dsq = pd * pd - dot * dot / lengthsq
+		//  where lengthsq is d*d or |d|^2 that is passed into this function 
+
+		// distance squared to the cylinder axis:
+
+		dsq = (pdx*pdx + pdy*pdy + pdz*pdz) - dot*dot / length_sq;
+
+		if (dsq > radius_sq)
+		{
+			return(-1.0f);
+		}
+		else
+		{
+			return(dsq);		// return distance squared to axis
+		}
+	}
+}
+
+void Cosmo::renderPointsWithinAxisCylinder()
+{
+	std::vector<Particle>::iterator it;
+
+	float hitDistance = lensRadius * (1.f + lensRadiusOuterDimFactor);
+
+	glm::vec3 axisTop = movableRotationCenter + movableRotationAxis * movableAxisScale;
+	glm::vec3 axisBottom = movableRotationCenter - movableRotationAxis * movableAxisScale;
+	float length_sq = powf((axisTop - axisBottom).x, 2) + powf((axisTop - axisBottom).y, 2) + powf((axisTop - axisBottom).z, 2);
+	float radius_sq = axisRadius * axisRadius;
+
+	glBegin(GL_POINTS);
+	for (it = vSample.begin(); it != vSample.end(); ++it)
+	{
+		float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
+		if(dist >= 0.f)
+			glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
+		else
+			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+
+		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+	}
+
+	for (it = vFocal.begin(); it != vFocal.end(); ++it)
+	{
+		float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
+		if (dist >= 0.f)
+			glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
 		else
 			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 
@@ -465,13 +595,18 @@ void Cosmo::render()
 			glTranslatef(movableRotationCenter.x, movableRotationCenter.y, movableRotationCenter.z);
 
 			// draw oscillation pole
-			glColor4f(0.75f, 0.f, 0.75f, 1.f);
-			glBegin(GL_LINES);
-				glVertex3f(20.f*movableRotationAxis.x, 20.f*movableRotationAxis.y, 20.f*movableRotationAxis.z);
-				glVertex3f(1.f*movableRotationAxis.x, 1.f*movableRotationAxis.y, 1.f*movableRotationAxis.z);
-				glVertex3f(-1.f*movableRotationAxis.x, -1.f*movableRotationAxis.y, -1.f*movableRotationAxis.z);
-				glVertex3f(-20.f*movableRotationAxis.x, -20.f*movableRotationAxis.y, -20.f*movableRotationAxis.z);
-			glEnd();
+			if(showOscillationAxis)
+			{
+				glm::vec3 scaledAxis = movableRotationAxis * movableAxisScale;
+
+				glColor4f(0.75f, 0.f, 0.75f, 1.f);
+				glBegin(GL_LINES);
+					glVertex3f(scaledAxis.x, scaledAxis.y, scaledAxis.z);
+					glVertex3f(movableRotationAxis.x, movableRotationAxis.y, movableRotationAxis.z);
+					glVertex3f(-movableRotationAxis.x, -movableRotationAxis.y, -movableRotationAxis.z);
+					glVertex3f(-scaledAxis.x, -scaledAxis.y, -scaledAxis.z);
+				glEnd();
+			}
 
 			glRotatef(movableRotationAngle, movableRotationAxis.x, movableRotationAxis.y, movableRotationAxis.z);
 			glTranslatef(-movableRotationCenter.x, -movableRotationCenter.y, -movableRotationCenter.z);
@@ -497,7 +632,12 @@ void Cosmo::render()
 			if (velocityMode)
 				renderStreaksWithin();
 			else
-				renderPointsWithin();
+				renderPointsWithinSphere();
+		else if (axisMode)
+			if (velocityMode)
+				renderStreaksWithin();
+			else
+				renderPointsWithinAxisCylinder();
 		else
 			if (velocityMode)
 				renderVelocities();
