@@ -172,18 +172,20 @@ void Cosmo::read( std::string fileName )
                         (max.y - min.y) / 2,
                         (max.z - min.z) / 2);
 
-
+	maxDimension = 0.f;
     // make centered
     for (int i = 0; i < n; ++i) {
         vParticles.at(i).pos -= center;
         vParticles.at(i).vel -= center;
+		float temp = glm::length(vParticles.at(i).pos);
+		if (temp > maxDimension) maxDimension = temp;
     }
     
     //free unnecessary space
     file.close();
     delete[] buffer;
 
-	maxDimension = sqrtf(max.x * max.x + max.y * max.y + max.z * max.z) / 2.f;
+	//maxDimension = sqrtf(max.x * max.x + max.y * max.y + max.z * max.z) / 2.f;
 
     particleCount = vParticles.size();
     std::cout << "done! " << std::endl;

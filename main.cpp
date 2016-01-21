@@ -333,6 +333,9 @@ void perRenderUpdates()
 	if (startStop) cosmo->setMovableRotationAngle(rotation[rt]);
 	else cosmo->setRotationAngle(rotY + dragX);
 	
+	// adjust panto depth so that back of dataset always accessible
+	settings->pantoWorldDepths[0] = (-cosmo->getMaxDimension() - cow.z)*scale;
+
 	touchManager->perRenderUpdate();
 
 	processPendingInteractions();
@@ -351,6 +354,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
+	settings->pantoWorldDepths[1] = 10.f - 0.001f;
 	
 	// Draw world-space y-axis
 	//glBegin(GL_LINES);
@@ -371,10 +375,8 @@ void drawScene(int eye) //0=left or mono, 1=right
 		glLineWidth(2);
 		glColor4f(0.8, 0.8, 0.95, 1.0);
 		glBegin(GL_LINES);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], 10);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], -10);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->pantoWorldDepths[1]);
+			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->pantoWorldDepths[0]);
 		glEnd();
 
 		glColor4f(1.0, 1.0, 0.25, 1.0);

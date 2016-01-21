@@ -35,6 +35,9 @@ void Settings::resetToDefaults()
 	currentlySelectedPoint[0] = -1;
 	currentlySelectedPoint[1] = -1;
 	currentlySelectedPoint[2] = -1;
+
+	pantoWorldDepths[0] = -1;
+	pantoWorldDepths[1] = -1;
 	
 	drawTemps = false;
 

@@ -61,6 +61,9 @@ public:
 	float positioningModelCoords[4]; //x,y,maxDepth,actualDepth,selectedDepth
 	float currentlySelectedPoint[3];//x,y,depth
 
+	// panto maxDepth is the furthest world-space coords of panto cursor from screen
+	float pantoWorldDepths[2];//maxDepth,minDepth
+
 	float finger1sX, finger1sY, finger2sX, finger2sY; //finger 1 and 2 screen coords
 	float finger1modelCoords[3];
 	float finger2modelCoords[3];

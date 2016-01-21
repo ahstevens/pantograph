@@ -845,7 +845,7 @@ void TouchManager::perRenderUpdate()
 			settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
 			settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
 			//settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2] * pantoDepth;
-			settings->currentlySelectedPoint[2] = -10.f + 20.f * pantoDepth;
+			settings->currentlySelectedPoint[2] = settings->pantoWorldDepths[0] + (settings->pantoWorldDepths[1] - settings->pantoWorldDepths[0]) * pantoDepth;
 		}
 
 	}//end if valid selection
