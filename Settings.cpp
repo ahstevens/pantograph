@@ -19,7 +19,7 @@ void Settings::resetToDefaults()
 	speedToNextWaypoint = 3;
 
 
-	positioningDyePotPantograph = false;
+	pantographMode = false;
 
 	positioningDyePot = false;
 	positioningXYFingerLocation[0] = -1;

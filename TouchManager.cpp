@@ -291,6 +291,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					secondFingerY = y;
 					pantograph->setFinger2(x,y);
 					pantograph->setDrawReticle(true);
+					settings->pantographMode = true;
 					
 					//check if swap needed:
 					if (pantograph->swapNeeded())
@@ -337,7 +338,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 							//settings->toProcessY.push_back(settings->positioningModelCoords[1]);
 							//settings->toProcessZ.push_back(settings->positioningModelCoords[2] * sDepth);
 							//reset
-							settings->positioningDyePotPantograph = false;
+							settings->pantographMode = false;
 							firstFingerID = -1;
 							firstFingerX = -1;
 							firstFingerY = -1;
@@ -416,8 +417,8 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				pantograph->resetFingers();
 				settings->positioningXYFingerLocation[0] = -1;
 				settings->positioningXYFingerLocation[1] = -1;
-				settings->positioningDyePotPantograph = false;
-				settings->transitionRequested = true;
+				if(settings->pantographMode) settings->transitionRequested = true;
+				settings->pantographMode = false;
 				break;
 			}
 			else if (tp.id == secondFingerID)
@@ -435,7 +436,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 }
 void TouchManager:: OnTouchGesture(const TouchGesture & tg)
 {
-	if (ignoreGestures || settings->positioningDyePot || settings->positioningDyePotPantograph)
+	if (ignoreGestures || settings->positioningDyePot || settings->pantographMode)
 		return;
 
 	//printf("C");

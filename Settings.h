@@ -47,7 +47,7 @@ public:
 
 
 	bool positioningDyePot;
-	bool positioningDyePotPantograph;
+	bool pantographMode;
 
 	bool positioningAUVWaypoint;
 	int positioningAUVGrid; //0=not in mode, 1=select depth mode, 2=select extents
