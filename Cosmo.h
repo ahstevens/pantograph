@@ -4,6 +4,7 @@
 #include <deque>
 #include "Object.h"
 
+#define DIM_FRAMES 40
 
 class Cosmo: public Object
 {
@@ -22,6 +23,7 @@ class Cosmo: public Object
 
 		void setMovableRotationAxis(glm::vec3 axis);
 		void setMovableRotationAxis(float x, float y, float z);
+		glm::vec3 getMovableRotationAxis();
 		void setMovableRotationCenter(glm::vec3 ctr);
 		void setMovableRotationCenter(float x, float y, float z);
 		glm::vec3 getMovableRotationCenter();
@@ -41,6 +43,8 @@ class Cosmo: public Object
 
 		void getMV(double *mv);
 
+		void requestDimming();
+
 		void render();
 
 		deque<glm::vec3> centerPoints;
@@ -51,6 +55,7 @@ class Cosmo: public Object
 		void renderPointsWithinAxisCylinder();
 		void renderStreaksWithin();
 		void renderVelocities();
+		void dim();
 
 		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testpt);
 
@@ -65,6 +70,8 @@ class Cosmo: public Object
 
 		glm::vec3 lensPos;
 		float lensRadius, lensRadiusOuterDimFactor, axisRadius, axisRadiusOuterDimFactor, dimness;
+
+		int dimTimer;
 
 		float maxDimension;
 

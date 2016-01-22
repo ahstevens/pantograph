@@ -38,7 +38,7 @@ TouchManager* touchManager;
 
 float rx,ry;
 //float rw, rh;
-float mXscreen = 0.0f ,mYscreen = 0.0f;  // mouse x in screen coords.
+float mXscreen = 0.0f, mYscreen = 0.0f, mZ = 0.f;  // mouse x in screen coords.
 //float holdCowX = 0.0f, holdCowY = 0.0f, holdCowZ = 0.0f; // saves CoW for transitioning
 glm::vec3 holdCow;
 //float cowX = 0.0f,cowY= 0.0f, cowZ= 0.0f; // the CoW relativ to the data spaces
@@ -49,8 +49,10 @@ glm::vec3 transitionVector = glm::vec3(0.f, 0.f, 0.f);
 float rotX,rotY; // change the rotation about the cow
 float holdMx, holdMy;
 
-bool leftMouseDown;
-bool rightMouseDown;
+glm::vec3 holdRotationAxis;
+
+bool leftMouseDown, rightMouseDown, middleMouseDown;
+
 float dragX, dragY; // used for rotating the universe
 float rotation[500];
 int timer;
@@ -106,9 +108,6 @@ std::vector<Cosmo*> vCosmo;
 #define TRANS_FRAMES 40
 int transTimer;
 
-#define DIM_FRAMES 40
-float dimness = 0.f;
-
 
 void transition()  // used to translate smoothly
 {	
@@ -119,6 +118,9 @@ void transition()  // used to translate smoothly
 		cosmo->setPosition(holdCow + transitionVector * t);
 
 	transTimer--;
+
+	// reset mouse coords
+	if (transTimer == 0) mXscreen = mYscreen = mZ = 0.f;
 }
 
 void calculateTransition(float x, float y)
@@ -150,34 +152,7 @@ void calculateTransition(float x, float y)
 	settings->transitionRequested = false;
 }
 
-void dim()
-{
-	float t = (float)settings->dimTimer / (float) DIM_FRAMES;
 
-	if (settings->dimTimer >= 0 && settings->dimTimer <= DIM_FRAMES)
-	{
-		dimness = 1.f - t;
-
-		if (settings->dimming)
-			--settings->dimTimer;
-		else
-			++settings->dimTimer;
-	}
-
-	if (settings->dimTimer < 0 && settings->dimming)
-	{
-		dimness = 1.f;
-		settings->dimming = false;
-	}
-
-	if (settings->dimTimer > DIM_FRAMES)
-	{
-		dimness = 0.f;
-		settings->dimTimer = -1;
-	}
-
-	cosmo->setDimness(dimness);
-}
 
 //-------------------------------------------------------------------------------
 void generate_theta()
@@ -242,8 +217,6 @@ void processPendingInteractions()
 		//cosmo->setLensMode(true);
 		cosmo->setAxisMode(true);
 
-
-
 		// draw axes
 		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
 			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
@@ -266,19 +239,6 @@ void processPendingInteractions()
 		settings->positioningModelCoords[0] = p1x;
 		settings->positioningModelCoords[1] = p1y;
 
-		//float depthHere = dataset->getDepthAt(p1x, p1y);
-		float depthHere = cosmo->getMaxDimension();
-		if (depthHere != 0)
-		{
-			//store model depth
-			settings->positioningModelCoords[2] = -depthHere;
-			settings->positioningModelCoords[3] = depthHere;
-		}
-		else
-		{
-			settings->positioningModelCoords[2] = -1;
-			settings->positioningModelCoords[3] = -1;
-		}
 	}//if need to update active positioning
 	else
 	{
@@ -289,8 +249,7 @@ void processPendingInteractions()
 
 		// turn off lens mode
 		//cosmo->setLensMode(false);
-		cosmo->setAxisMode(false);
-		cosmo->setVelocityMode(false);
+		if(!settings->mouseMode) cosmo->setAxisMode(false);
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -322,25 +281,34 @@ void perRenderUpdates()
 	if (settings->transitionRequested) 
 		calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
 
+	if (settings->dimmingRequested)
+	{
+		cosmo->requestDimming();
+		settings->dimmingRequested = false;
+	}
+
 	transition();
 
-	dim();
-
 	rt = timer % 120; // 60 Hz on 60 Hz machine
-
-	focalCenter = glm::vec3(cow.x*VP_LEFT, cow.y*VP_BOTTOM, -cow.z*(NEAR_CP - 10));
 
 	if (startStop) cosmo->setMovableRotationAngle(rotation[rt]);
 	else cosmo->setRotationAngle(rotY + dragX);
 	
 	// adjust panto depth so that back of dataset always accessible
-	settings->pantoWorldDepths[0] = (-cosmo->getMaxDimension() - cow.z)*scale;
+	settings->worldDepths[0] = (-cosmo->getMaxDimension() - cow.z)*scale;
 
 	touchManager->perRenderUpdate();
 
 	processPendingInteractions();
 
-	if (settings->positioningXYFingerLocation[0] != -1 && settings->positioningZFingerLocation[2] != -1)
+	if (settings->mouseMode)
+	{
+		settings->currentlySelectedPoint[0] = mXscreen;
+		settings->currentlySelectedPoint[1] = mYscreen;
+		settings->currentlySelectedPoint[2] = mZ;
+	}
+
+	if (settings->pantographMode || settings->mouseMode)
 		updateLens();
 }
 
@@ -354,58 +322,27 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
-	settings->pantoWorldDepths[1] = 10.f - 0.001f;
-	
-	// Draw world-space y-axis
-	//glBegin(GL_LINES);
-	//	glVertex3f(0.0,  20.0, 0.0);
-	//	glVertex3f(0.0,   1.0, 0.0);
-	//	glVertex3f(0.0,  -1.0, 0.0);
-	//	glVertex3f(0.0, -20.0, 0.0);
-	//glEnd();
-
-	//drawAxes(1.f);
+	settings->worldDepths[1] = 10.f - 0.001f;
 
 	// render cosmos point cloud
 	cosmo->render();
 		
 	//draw active positioning pole:
-	if (settings->positioningModelCoords[2] != -1)
+	//if (settings->positioningModelCoords[2] != -1)
+	if (settings->pantographMode || settings->mouseMode)
 	{
 		glLineWidth(2);
 		glColor4f(0.8, 0.8, 0.95, 1.0);
 		glBegin(GL_LINES);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->pantoWorldDepths[1]);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->pantoWorldDepths[0]);
+			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->worldDepths[1]);
+			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->worldDepths[0]);
 		glEnd();
 
 		glColor4f(1.0, 1.0, 0.25, 1.0);
 		glPointSize(6);
 		glBegin(GL_POINTS);
-			glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
+			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
 		glEnd();
-		
-		// draw axes
-		//glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
-		//	settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
-		//	settings->finger2modelCoords[2] - settings->finger1modelCoords[2]) );
-
-		//settings->rotationAxis = yAxis;
-
-		//glm::vec3 xAxis = normalize( glm::cross(yAxis, glm::vec3(0.f, 0.f, 1.f)) );
-
-		//glLineWidth(1);
-		//glBegin(GL_LINES);
-		//	glColor4f(1.f, 0.f, 0.f, 1.f);
-		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-		//	glVertex3f(settings->positioningModelCoords[0] + xAxis.x, settings->positioningModelCoords[1] + xAxis.y, settings->currentlySelectedPoint[2] + xAxis.z);
-		//	glColor4f(0.f, 1.f, 0.f, 1.f);
-		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-		//	glVertex3f(settings->positioningModelCoords[0] + yAxis.x, settings->positioningModelCoords[1] + yAxis.y, settings->currentlySelectedPoint[2] + yAxis.z);
-		//	glColor4f(0.f, 0.f, 1.f, 1.f);
-		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2]);
-		//	glVertex3f(settings->positioningModelCoords[0], settings->positioningModelCoords[1], settings->currentlySelectedPoint[2] + 1.f);
-		//glEnd();
 	}
 
 	touchManager->draw3D();
@@ -516,47 +453,43 @@ static int mouseButton(int button, int state, int x, int y)
 
 	rx = float(x); 
 	ry = float(winHeight - y);
+
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
+		leftMouseDown = true;
 		holdMy = float(y);
 
-		mXscreen = (VP_RIGHT - VP_LEFT) * (float(x) / winWidth - 0.5f);
-		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (float(y) / winHeight - 0.5f);
+		if (settings->mouseMode)
+		{
+			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
+			mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
+		}		
+	}
 
-		float roty = atan2(mXscreen, 20.0f);
-		float rotx = atan2(mYscreen, 20.0f);
-
-		cout << "(x,y)               = ( " << x << ", " << y << " )" << endl;
-		cout << "(mXscreen,mYscreen) = ( " << mXscreen << ", " << mYscreen << " )" << endl;
-		cout << "(rotx,roty)         = ( " << rotx << ", " << roty << " )" << endl;
-		cout << endl;
-		cout << endl;
-
-		// calculate the translation 
-		xeye = -COW_Z *   sin(roty) / scale;
-		zeye = COW_Z * (cos(roty) - 1.f) / scale;
-		yeye = COW_Z *   sin(rotx) / scale;
-
-		// now rotate by the current view direction
-		float dz = sin(rotY * M_PI / 180.0f);
-		float dx = cos(rotY * M_PI / 180.0f);
-
-		xeye = dx * xeye - dz * zeye;
-		zeye = dz * xeye + dx * zeye;
-
-		transTimer = TRANS_FRAMES;
-		// update the view angle for off center targets
-		rotY += roty * 180.0f / M_PI;
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		leftMouseDown = false;
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
-
 		rightMouseDown = true;
 		holdMx = rx;
 		holdMy = ry;
-		
-		cerr << "Rot Y Down " << rotY << "\n";
+
+		settings->mouseMode = !settings->mouseMode;
+
+		if (settings->mouseMode)
+		{
+			settings->dimmingRequested = true;
+			cosmo->setAxisMode(true);
+		}
+		else
+		{
+			settings->dimmingRequested = false;
+			cosmo->setAxisMode(false);
+			settings->transitionRequested = true;
+		}
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
@@ -568,29 +501,41 @@ static int mouseButton(int button, int state, int x, int y)
 		dragX = dragY = 0.0;
 
 	}
-	if ((button == 3) || (button == 4)) // It's a wheel event
+
+	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
+	{
+		if (!leftMouseDown)
+		{
+			holdRotationAxis = cosmo->getMovableRotationAxis();
+			holdMx = rx;
+			holdMy = ry;
+		}
+		middleMouseDown = true;
+	}
+
+	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_UP)
+	{
+		middleMouseDown = false;
+	}
+
+	// MOUSE WHEEL EVENT
+	// Each wheel event behaves like a mouse click (GLUT_DOWN and GLUT_UP)
+	// so discard one of the events
+	if ( ( (button == 3) || (button == 4) ) && state == GLUT_DOWN ) // It's a wheel event
    {
-
-	   // find rotations given current universe Rotation
-	   float dx, dz;
-	   dx = -sin(rotY * M_PI / 180.0f);
-	   dz = cos(rotY * M_PI / 180.0f);
-       // Each wheel event reports like a button click, GLUT_DOWN then GLUT_UP
-       if (state == GLUT_UP) return 0; // Disregard redundant GLUT_UP events
-       //printf("Scroll %s At %d %d\n", (button == 3) ? "Up" : "Down", x, y);
-	   if(button == 3)
+	   if (settings->mouseMode)
 	   {
-		   cow.z -= 0.5f*dz/scale; 
-		   cow.x -= 0.5f*dx/scale; 
+		   if (button == 3) // wheel up
+		   {
+			   if (mZ - 1.f < settings->worldDepths[0]) mZ = settings->worldDepths[0];
+			   else mZ -= 0.5f;
+		   }
+		   else // wheel down
+		   {
+			   if (mZ + 1.f > settings->worldDepths[1]) mZ = settings->worldDepths[1];
+			   else mZ += 0.5f;
+		   }
 	   }
-	   else 
-	   {
-			cow.z += 0.5f*dz/scale; 
-			cow.x += 0.5f*dx/scale; 
-	   }
-
-	   holdCow.z = cow.z;
-	   holdCow.x = cow.x;
    }
 }
 
@@ -604,10 +549,20 @@ static int motion(int x, int y)
 
 	rx = float(x); ry = float(winHeight - y);
 
-	if(rightMouseDown)// used for rotating with the right mouse button
+	// LEFT MOUSE DOWN
+	if (settings->mouseMode && leftMouseDown)
 	{
-		dragX = (rx - holdMx)*0.1f;
-		//cerr << "Rot Y Drag " << dragX << " " << rotY + dragX << "\n";
+		mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
+		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
+	}
+
+	if (settings->mouseMode && middleMouseDown && !leftMouseDown)
+	{
+		float displacement = (float) (holdMx - rx) / 10.f;
+
+		glm::vec3 newAxis = glm::vec3( glm::rotate(glm::radians(displacement), glm::vec3(0.f, 0.f, 1.f)) * glm::vec4(holdRotationAxis, 0.f));
+
+		cosmo->setMovableRotationAxis(newAxis);
 	}
 }
 

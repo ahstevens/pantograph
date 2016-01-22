@@ -13,6 +13,7 @@ Cosmo::Cosmo()
 	lensRadiusOuterDimFactor = 0.f;
 	axisRadiusOuterDimFactor = 0.f;
 	movableAxisScale = 1.f;
+	dimness = 0.f;
 }
 
 #define POSVEL_T    float
@@ -38,10 +39,6 @@ bool in_focal_area(glm::vec3 point, float r, glm::vec3 center )
     return ( d.x*d.x + d.y*d.y + d.z*d.z <= r*r );
 }
 
-bool compare_vec3(glm::vec3 v1, glm::vec3 v2)
-{
-    return (v1 == v2);
-}
 void Cosmo::resample( int n )
 {
     if (n > particleCount) {n = particleCount;} 
@@ -212,6 +209,11 @@ void Cosmo::setMovableRotationAxis(float x, float y, float z)
 	setMovableRotationAxis(glm::vec3(x, y, z));
 }
 
+glm::vec3 Cosmo::getMovableRotationAxis()
+{
+	return movableRotationAxis;
+}
+
 void Cosmo::setMovableRotationCenter(glm::vec3 ctr)
 {
 	if (centerPoints.size() > 500)
@@ -317,6 +319,22 @@ void Cosmo::getMV(double *mv)
 
 		glGetDoublev(GL_MODELVIEW_MATRIX, mv);
 	glPopMatrix();
+}
+
+void Cosmo::dim()
+{
+	float t = (float)dimTimer / (float)DIM_FRAMES;
+
+	if (dimTimer >= 0)
+	{
+		dimness = 1.f - t;
+		--dimTimer;
+	}
+}
+
+void Cosmo::requestDimming()
+{
+	dimTimer = DIM_FRAMES;
 }
 
 //-------------------------------------------------------------------------------
@@ -441,37 +459,34 @@ float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_
 
 void Cosmo::renderPointsWithinAxisCylinder()
 {
-	std::vector<Particle>::iterator it;
-
-	float hitDistance = lensRadius * (1.f + lensRadiusOuterDimFactor);
-
 	glm::vec3 axisTop = movableRotationCenter + movableRotationAxis * movableAxisScale;
 	glm::vec3 axisBottom = movableRotationCenter - movableRotationAxis * movableAxisScale;
 	float length_sq = powf((axisTop - axisBottom).x, 2) + powf((axisTop - axisBottom).y, 2) + powf((axisTop - axisBottom).z, 2);
 	float radius_sq = axisRadius * axisRadius;
 
+	std::vector<Particle>::iterator it;
 	glBegin(GL_POINTS);
-	for (it = vSample.begin(); it != vSample.end(); ++it)
-	{
-		float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
-		if(dist >= 0.f)
-			glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
-		else
-			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+		for (it = vSample.begin(); it != vSample.end(); ++it)
+		{
+			float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
+			if(dist >= 0.f)
+				glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
+			else
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 
-		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
-	}
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+		}
 
-	for (it = vFocal.begin(); it != vFocal.end(); ++it)
-	{
-		float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
-		if (dist >= 0.f)
-			glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
-		else
-			glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
+		for (it = vFocal.begin(); it != vFocal.end(); ++it)
+		{
+			float dist = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
+			if (dist >= 0.f)
+				glColor4f(1.f, 1.f, 1.f, 0.55f * (1.f - (dist - axisRadius) / (axisRadius)));
+			else
+				glColor4f(1.f, 1.f, 1.f, 0.025f + (0.875f * (1.f - dimness)));
 
-		glVertex3f(it->pos.x, it->pos.y, it->pos.z);
-	}
+			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+		}
 	glEnd();
 }
 
@@ -584,6 +599,8 @@ void Cosmo::renderVelocities()
 
 void Cosmo::render()
 {
+	dim();
+
 	glPushMatrix();
 		glTranslatef(position.x, position.y, position.z);
 		glRotatef(rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z);

@@ -279,7 +279,6 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				firstFingerX = x;
 				firstFingerY = y;
 				pantograph->setFinger1(x,y);
-				if(settings->dimming) settings->dimming = false;
 				break;
 			}
 			else if (secondFingerID == -1)
@@ -305,8 +304,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 						firstFingerY = y;
 					}
 
-					settings->dimming = true;
-					if (settings->dimTimer == -1) settings->dimTimer = 40;
+					settings->dimmingRequested = true;
 					break;
 				}
 				else //second finger was set previously
@@ -844,8 +842,7 @@ void TouchManager::perRenderUpdate()
 		{
 			settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
 			settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
-			//settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2] * pantoDepth;
-			settings->currentlySelectedPoint[2] = settings->pantoWorldDepths[0] + (settings->pantoWorldDepths[1] - settings->pantoWorldDepths[0]) * pantoDepth;
+			settings->currentlySelectedPoint[2] = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * pantoDepth;
 		}
 
 	}//end if valid selection

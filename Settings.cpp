@@ -20,6 +20,7 @@ void Settings::resetToDefaults()
 
 
 	pantographMode = false;
+	mouseMode = false;
 
 	positioningDyePot = false;
 	positioningXYFingerLocation[0] = -1;
@@ -36,13 +37,12 @@ void Settings::resetToDefaults()
 	currentlySelectedPoint[1] = -1;
 	currentlySelectedPoint[2] = -1;
 
-	pantoWorldDepths[0] = -1;
-	pantoWorldDepths[1] = -1;
+	worldDepths[0] = -1;
+	worldDepths[1] = -1;
 	
 	drawTemps = false;
 
-	dimming = false;
-	dimTimer = -1;
+	dimmingRequested = false;
 
 	transitionRequested = false;
 }

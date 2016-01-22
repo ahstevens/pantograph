@@ -47,7 +47,7 @@ public:
 
 
 	bool positioningDyePot;
-	bool pantographMode;
+	bool pantographMode, mouseMode;
 
 	bool positioningAUVWaypoint;
 	int positioningAUVGrid; //0=not in mode, 1=select depth mode, 2=select extents
@@ -61,8 +61,8 @@ public:
 	float positioningModelCoords[4]; //x,y,maxDepth,actualDepth,selectedDepth
 	float currentlySelectedPoint[3];//x,y,depth
 
-	// panto maxDepth is the furthest world-space coords of panto cursor from screen
-	float pantoWorldDepths[2];//maxDepth,minDepth
+	//  maxDepth is the furthest world-space coords of cursor from screen
+	float worldDepths[2];//maxDepth,minDepth
 
 	float finger1sX, finger1sY, finger2sX, finger2sY; //finger 1 and 2 screen coords
 	float finger1modelCoords[3];
@@ -78,10 +78,7 @@ public:
 
 	bool drawTemps;
 
-	bool dimming;
-	int dimTimer;
-
-	bool transitionRequested;
+	bool dimmingRequested, transitionRequested;
 
 private:
 
