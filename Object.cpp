@@ -24,7 +24,7 @@ void Object::push()
     glGenVertexArrays( 1, &vaoID );
     glBindVertexArray( vaoID );
 
-    numberOfPoints = vSample.size() + vFocal.size();
+    numberOfPoints = vSample.size();
     const int floatPerVertex = 3;    // 4 for points, 4 for colors
     unsigned int bufferSize = floatPerVertex * numberOfPoints;
     unsigned int bufferBytes = sizeof(GLfloat) * numberOfPoints * floatPerVertex;
@@ -40,13 +40,6 @@ void Object::push()
         p = vSample.at(i).pos;  // vertex coordinates
         vertices[v++] = p.x; vertices[v++] = p.y; vertices[v++] = p.z; //vertices[v++] = 1.0;    
     }
-
-    for (int i = 0; i < (int) vFocal.size(); ++i)
-    {
-        p = vFocal.at(i).pos;  // vertex coordinates
-        vertices[v++] = p.x; vertices[v++] = p.y; vertices[v++] = p.z; //vertices[v++] = 1.0;    
-    }
-
 
     // Create a vertex buffer for point cloud
     glGenBuffers(1, &bufferID);

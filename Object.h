@@ -14,9 +14,6 @@
 
 extern float vectorScale;
 
-extern glm::vec3 focalCenter;
-
-
 struct Particle {
 	glm::vec3 pos;
 	glm::vec3 vel;
@@ -24,7 +21,6 @@ struct Particle {
     int id;
     float mass;
 };
-
 
 class Object
 {
@@ -48,7 +44,6 @@ class Object
 
   protected:
     std::vector<Particle> vSample;
-    std::vector<Particle> vFocal;
     
     int numberOfPoints;
     

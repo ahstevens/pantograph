@@ -214,8 +214,8 @@ void processPendingInteractions()
 		settings->finger2modelCoords[2] = p1z;
 
 		// activate lens mode
-		//cosmo->setLensMode(true);
-		cosmo->setAxisMode(true);
+		cosmo->setLensMode(true);
+		//cosmo->setAxisMode(true);
 
 		// draw axes
 		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
@@ -248,8 +248,8 @@ void processPendingInteractions()
 		settings->positioningModelCoords[2] = -1;
 
 		// turn off lens mode
-		//cosmo->setLensMode(false);
-		if(!settings->mouseMode) cosmo->setAxisMode(false);
+		if (!settings->mouseMode) cosmo->setLensMode(false);
+		//if(!settings->mouseMode) cosmo->setAxisMode(false);
 	}
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -295,7 +295,7 @@ void perRenderUpdates()
 	else cosmo->setRotationAngle(rotY + dragX);
 	
 	// adjust panto depth so that back of dataset always accessible
-	settings->worldDepths[0] = (-cosmo->getMaxDimension() - cow.z)*scale;
+	settings->worldDepths[0] = (-cosmo->getMaxDistance() - cow.z)*scale;
 
 	touchManager->perRenderUpdate();
 
@@ -482,12 +482,14 @@ static int mouseButton(int button, int state, int x, int y)
 		if (settings->mouseMode)
 		{
 			settings->dimmingRequested = true;
-			cosmo->setAxisMode(true);
+			//cosmo->setAxisMode(true);
+			cosmo->setLensMode(true);
 		}
 		else
 		{
 			settings->dimmingRequested = false;
-			cosmo->setAxisMode(false);
+			//cosmo->setAxisMode(false);
+			cosmo->setLensMode(false);
 			settings->transitionRequested = true;
 		}
 	}
@@ -558,9 +560,10 @@ static int motion(int x, int y)
 
 	if (settings->mouseMode && middleMouseDown && !leftMouseDown)
 	{
-		float displacement = (float) (holdMx - rx) / 10.f;
+		float h_displacement = (float) (holdMx - rx) / 10.f;
+		float v_displacement = (float)(holdMy - ry) / 10.f;
 
-		glm::vec3 newAxis = glm::vec3( glm::rotate(glm::radians(displacement), glm::vec3(0.f, 0.f, 1.f)) * glm::vec4(holdRotationAxis, 0.f));
+		glm::vec3 newAxis = glm::vec3( glm::rotate(glm::radians(h_displacement), glm::vec3(0.f, 0.f, 1.f)) * glm::vec4(holdRotationAxis, 0.f));
 
 		cosmo->setMovableRotationAxis(newAxis);
 	}
@@ -859,12 +862,11 @@ int main(int argc, char *argv[])
 
     cosmo = new Cosmo();
 	cosmo->read( inputFiles[0] );
-	cosmo->resample(100000);
+	cosmo->resample(500000);
 	cosmo->setScale(scale);
+	cosmo->setBrightnessRange(0.025f, 0.9f);
 	cosmo->setLensSize(5.f);
-	cosmo->setLensOuterDimFactor(0.5f);
 	cosmo->setAxisLensSize(5.f);
-	cosmo->setAxisLensOuterDimFactor(0.5f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);
 	cosmo->setMovableRotationAxis(0.f, 1.f, 0.f);
 	cosmo->setMovableRotationAngle(1.f);

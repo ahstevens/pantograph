@@ -13,13 +13,13 @@ class Cosmo: public Object
         void read(std::string fileName);
         void resample( int samples );
         //void getSamples(int n, float radius, vec3 center);
-		float getMaxDimension();
+		float getMaxDistance();
 
 		void setLensPosition(glm::vec3 pos);
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
-		void setLensOuterDimFactor(float factor);
-		void setDimness(float dimness);
+
+		void setBrightnessRange(float min, float max);
 
 		void setMovableRotationAxis(glm::vec3 axis);
 		void setMovableRotationAxis(float x, float y, float z);
@@ -30,7 +30,6 @@ class Cosmo: public Object
 		void setMovableRotationAngle(float angle);
 		void setMovableRotationAxisScale(float scale);
 		void setAxisLensSize(float radius);
-		void setAxisLensOuterDimFactor(float factor);
 
 		float getMovableRotationAxisScale();
 
@@ -50,30 +49,38 @@ class Cosmo: public Object
 		deque<glm::vec3> centerPoints;
 
     protected:
+		struct MovableRotationAxis {
+			glm::vec3 axis;
+			glm::vec3 center;
+			float angle;
+			float scale;
+			bool show;
+		} oscAxis;
+
 		void renderPoints();
 		void renderPointsWithinSphere();
 		void renderPointsWithinAxisCylinder();
 		void renderStreaksWithin();
 		void renderVelocities();
 		void dim();
+		float brightnessRange();
 
-		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testpt);
+		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
+		float sphereTest(float radius_sq, const glm::vec3 & testPt);
 
         std::vector<Particle> vParticles;       
         int particleCount;
         int samples;        // # of random samples points
 
-		bool lensMode, axisMode, velocityMode, showTrails, showOscillationAxis;
-
-		glm::vec3 movableRotationAxis, movableRotationCenter;
-		float movableRotationAngle, movableAxisScale;
+		bool lensMode, axisMode, velocityMode, showTrails;
 
 		glm::vec3 lensPos;
-		float lensRadius, lensRadiusOuterDimFactor, axisRadius, axisRadiusOuterDimFactor, dimness;
+		float sphereLensRadius, axisLensRadius;
 
+		float maxBrightness, minBrightness, brightness;
 		int dimTimer;
 
-		float maxDimension;
+		float maxDistance;
 
         std::vector<int> vSampleIDs;
 };
