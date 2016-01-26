@@ -6,14 +6,16 @@
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
 {
-	lensMode = axisMode = velocityMode = showTrails = false;
+	lensMode = velocityMode = showTrails = false;
+	curLens = SPHERE_POINTS;
 	particleCount = samples = 0;
 	sphereLensRadius = axisLensRadius = maxDistance = 0.f;
 	oscAxis.scale = 1.f;
 	oscAxis.show = false;
-	maxBrightness = 1.f;
-	minBrightness = 0.f;
-	brightness = maxBrightness;
+	lensInnerBrightness = 1.f;
+	lensOuterBrightness = 0.f;
+	normalBrightness = 1.f;
+	brightnessRatio = lensInnerBrightness;
 }
 
 #define POSVEL_T    float
@@ -31,14 +33,6 @@ struct cosmoData {
 };
 
 //----------------------------------------------------------------------------
-bool in_focal_area(glm::vec3 point, float r, glm::vec3 center )
-{
-    //vec3 center = vec3(0.0f, 0.0f, 0.0f);
-    if (r <= 0.0f) r = 0.0001f;
-	glm::vec3 d = point - center; //delta
-    return ( d.x*d.x + d.y*d.y + d.z*d.z <= r*r );
-}
-
 void Cosmo::resample( int n )
 {
     if (n > particleCount) {n = particleCount;} 
@@ -234,10 +228,15 @@ void Cosmo::setLensSize(float radius)
 	this->sphereLensRadius = radius;
 }
 
-void Cosmo::setBrightnessRange(float min, float max)
+void Cosmo::setBrightness(float brightness)
 {
-	this->minBrightness = min;
-	this->maxBrightness = max;
+	this->normalBrightness = brightness;
+}
+
+void Cosmo::setLensBrightnessRange(float inner, float outer)
+{
+	this->lensInnerBrightness = inner;
+	this->lensOuterBrightness = outer;
 }
 
 void Cosmo::setAxisLensSize(float radius)
@@ -255,9 +254,14 @@ void Cosmo::setLensMode(bool yesno)
 	lensMode = yesno;
 }
 
-void Cosmo::setAxisMode(bool yesno)
+void Cosmo::setLensType(Cosmo::Lens l)
 {
-	axisMode = yesno;
+	this->curLens = l;
+}
+
+Cosmo::Lens Cosmo::getLensType()
+{
+	return this->curLens;
 }
 
 void Cosmo::setVelocityMode(bool yesno)
@@ -293,7 +297,7 @@ void Cosmo::dim()
 
 	if (dimTimer >= 0)
 	{
-		brightness = t;
+		brightnessRatio = t;
 		--dimTimer;
 	}
 }
@@ -303,52 +307,19 @@ void Cosmo::requestDimming()
 	dimTimer = DIM_FRAMES;
 }
 
-float Cosmo::brightnessRange() { return maxBrightness - minBrightness;  }
+float Cosmo::lensBrightnessRange() { return lensInnerBrightness - lensOuterBrightness;  }
 
 //-------------------------------------------------------------------------------
-void Cosmo::renderPoints()
+
+// returns the SQUARED distance if the point is within the sphere, otherwise return -1
+float Cosmo::sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt)
 {
-	glColor4f(1.f, 1.f, 1.f, 0.2f);
-	glBindVertexArray(vaoID);
-	glDrawArrays(GL_POINTS, 0, numberOfPoints);
-	glBindVertexArray(0);
+	glm::vec3 ptToCtrVector = testPt - sphereCenter;
+	float dist_sq = ptToCtrVector.x * ptToCtrVector.x + ptToCtrVector.y * ptToCtrVector.y + ptToCtrVector.z * ptToCtrVector.z;
+	return dist_sq <= radius_sq ? dist_sq : -1.f;
 }
 
-float Cosmo::sphereTest(float radius_sq, const glm::vec3 & testPt)
-{
-	return 0.f;
-}
-
-void Cosmo::renderPointsWithinSphere()
-{
-	std::vector<Particle>::iterator it;
-
-	glBegin(GL_POINTS);
-		for (it = vSample.begin(); it != vSample.end(); ++it)
-		{
-			// check the hitbox first to quick-fail ad save some cycles
-			if (it->pos.x <= (lensPos.x + sphereLensRadius) && it->pos.x >= (lensPos.x - sphereLensRadius) &&
-				it->pos.y <= (lensPos.y + sphereLensRadius) && it->pos.y >= (lensPos.y - sphereLensRadius) &&
-				it->pos.z <= (lensPos.z + sphereLensRadius) && it->pos.z >= (lensPos.z - sphereLensRadius))
-			{
-				float dist = sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2));
-		
-				// if within lens fade range
-				if(dist <= sphereLensRadius && dist >= sphereLensRadius)
-					glColor4f(1.f, 1.f, 1.f, maxBrightness * (1.f - (dist - sphereLensRadius) / sphereLensRadius));
-				else if (dist <= sphereLensRadius) // within lens itself
-					glColor4f(1.f, 1.f, 1.f, maxBrightness);
-				else // not within range (corners of hitbox that envelopes lens)
-					glColor4f(1.f, 1.f, 1.f, minBrightness + ( brightnessRange() * brightness ));
-			}
-			else
-				glColor4f(1.f, 1.f, 1.f, minBrightness + ( brightnessRange() * brightness ));
-
-			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
-		}
-	glEnd();
-}
-
+// returns the SQUARED distance from the center axis if the point is within the cylinder, otherwise return -1
 // this function is adapted from http://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml by Greg James @ NVIDIA
 float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt)
 {
@@ -396,58 +367,103 @@ float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_
 	}
 }
 
-void Cosmo::renderPointsWithinAxisCylinder()
+void Cosmo::renderCursorTrails()
 {
-	glm::vec3 axisTop = oscAxis.center + oscAxis.axis * oscAxis.scale;
-	glm::vec3 axisBottom = oscAxis.center - oscAxis.axis * oscAxis.scale;
-	float length_sq = powf((axisTop - axisBottom).x, 2) + powf((axisTop - axisBottom).y, 2) + powf((axisTop - axisBottom).z, 2);
-	float radius_sq = axisLensRadius * axisLensRadius;
-
-	std::vector<Particle>::iterator it;
+	glPointSize(4.f);
 	glBegin(GL_POINTS);
-		for (it = vSample.begin(); it != vSample.end(); ++it)
+		for (int i = 0; i < centerPoints.size(); ++i)
 		{
-			float dist_sq = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
-			if(dist_sq >= 0.f)
-				glColor4f(1.f, 1.f, 1.f, maxBrightness * (1.f - sqrtf(dist_sq)/axisLensRadius));
-			else
-				glColor4f(1.f, 1.f, 1.f, minBrightness + ( brightnessRange() * brightness ));
-
-			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+			float t = (float)i / ((float)centerPoints.size() - 1.f);
+			glColor4f(1.f, 0.f, 1.f, 1.f * t);
+			glVertex3f(centerPoints.at(i).x, centerPoints.at(i).y, centerPoints.at(i).z);
 		}
 	glEnd();
 }
 
-void Cosmo::renderStreaksWithin()
+void Cosmo::renderOscillationAxis()
 {
-	std::vector<Particle>::iterator it;
+	glm::vec3 scaledAxis = oscAxis.axis * oscAxis.scale;
 
+	glColor4f(0.75f, 0.f, 0.75f, 1.f);
+	glBegin(GL_LINES);
+		glVertex3f(scaledAxis.x, scaledAxis.y, scaledAxis.z);
+		glVertex3f(oscAxis.axis.x, oscAxis.axis.y, oscAxis.axis.z);
+		glVertex3f(-oscAxis.axis.x, -oscAxis.axis.y, -oscAxis.axis.z);
+		glVertex3f(-scaledAxis.x, -scaledAxis.y, -scaledAxis.z);
+	glEnd();
+}
+
+void Cosmo::renderLens()
+{
+	glm::vec3 axisTop, axisBottom, axis;
+	float length_sq, radius;
+
+	// calc parameters to be passed to the appropriate point-in-volume method
+	switch (curLens) {
+	case SPHERE_POINTS:
+	case SPHERE_VELOCITY:
+		radius = sphereLensRadius;
+		break;
+	case CYLINDER_POINTS:
+	case CYLINDER_VELOCITY:
+		axisTop = oscAxis.center + oscAxis.axis * oscAxis.scale;
+		axisBottom = oscAxis.center - oscAxis.axis * oscAxis.scale;
+		axis = axisTop - axisBottom;
+		length_sq = axis.x * axis.x + axis.y * axis.y + axis.z * axis.z;
+		radius = axisLensRadius;
+		break;
+	}
+
+	float radius_sq = radius * radius;
+
+	// render the data
+	glPointSize(2.f);
 	glBegin(GL_POINTS);
+		std::vector<Particle>::iterator it;
 		for (it = vSample.begin(); it != vSample.end(); ++it)
 		{
-			if (it->pos.x <= (lensPos.x + sphereLensRadius) && it->pos.x >= (lensPos.x - sphereLensRadius) &&
-				it->pos.y <= (lensPos.y + sphereLensRadius) && it->pos.y >= (lensPos.y - sphereLensRadius) &&
-				it->pos.z <= (lensPos.z + sphereLensRadius) && it->pos.z >= (lensPos.z - sphereLensRadius) &&
-				sqrtf(pow(it->pos.x - lensPos.x, 2) + pow(it->pos.y - lensPos.y, 2) + pow(it->pos.z - lensPos.z, 2)) <= sphereLensRadius)
-			{
-				glm::vec3 end = it->pos + it->vel * 0.0025f;
+			float dist_sq;
+			glm::vec3 end;
 
-				glEnd();
-
-				glBegin(GL_LINES);
-					glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
-					glVertex3f(it->pos.x, it->pos.y, it->pos.z);
-
-					glColor4f(it->col.r, it->col.g, it->col.b, 1.0f);
-					glVertex3f(end.x, end.y, end.z);
-				glEnd();
-
-				glBegin(GL_POINTS);
-				continue;
+			// calc a couple more parameters to be passed to the appropriate point-in-volume method
+			switch (curLens) {
+			case SPHERE_VELOCITY:
+				end = it->pos + it->vel * 0.0025f;
+			case SPHERE_POINTS:
+				dist_sq = sphereTest(lensPos, radius_sq, it->pos);
+				break;
+			case CYLINDER_VELOCITY:
+				end = it->pos + it->vel * 0.0025f;
+			case CYLINDER_POINTS:
+				dist_sq = cylTest(axisTop, axisBottom, length_sq, radius_sq, it->pos);
+				break;
 			}
-			else
-				glColor4f(1.f, 1.f, 1.f, minBrightness + ( brightnessRange() * brightness) );
 
+			// if the point is within the sphere
+			if(dist_sq >= 0.f)
+				// if the current lens renders particle velocities
+				if (curLens == SPHERE_VELOCITY || curLens == CYLINDER_VELOCITY)
+				{
+					glEnd(); // end GL_POINTS mode
+
+					// draw particle velocity streak
+					glBegin(GL_LINES);
+						glColor4f(it->col.r, it->col.g, it->col.b, 0.0f);
+						glVertex3f(it->pos.x, it->pos.y, it->pos.z);
+
+						glColor4f(it->col.r, it->col.g, it->col.b, 1.0f * (1.f - sqrtf(dist_sq) / radius));
+						glVertex3f(end.x, end.y, end.z);
+					glEnd();
+
+					glBegin(GL_POINTS); // resume GL_POINTS mode
+					continue; // nothing else to do, so short-circuit to next for loop iteration
+				}
+				else // current lens renders particle points
+					glColor4f(1.f, 1.f, 1.f, lensInnerBrightness * (1.f - sqrtf(dist_sq)/radius));
+			else // point is not in sphere
+				glColor4f(1.f, 1.f, 1.f, lensOuterBrightness + ( lensBrightnessRange() * brightnessRatio ));
+
+			// draw particle
 			glVertex3f(it->pos.x, it->pos.y, it->pos.z);
 		}
 	glEnd();
@@ -480,6 +496,15 @@ void Cosmo::renderVelocities()
 		}
 	glEnd();
 }
+
+void Cosmo::renderPoints()
+{
+	glPointSize(2.f);
+	glColor4f(1.f, 1.f, 1.f, normalBrightness);
+	glBindVertexArray(vaoID);
+	glDrawArrays(GL_POINTS, 0, numberOfPoints);
+	glBindVertexArray(0);
+}
 //----------------------------------------------------------------------------
 
 void Cosmo::render()
@@ -492,54 +517,25 @@ void Cosmo::render()
 		glScalef(scale.x, scale.y, scale.z);
 
 		// oscillation
-		if (glm::length(oscAxis.axis) > 0.001)
+		if (glm::length(oscAxis.axis) > 0.001f)
 		{
 			glTranslatef(oscAxis.center.x, oscAxis.center.y, oscAxis.center.z);
 
 			// draw oscillation pole
-			if(oscAxis.show)
-			{
-				glm::vec3 scaledAxis = oscAxis.axis * oscAxis.scale;
-
-				glColor4f(0.75f, 0.f, 0.75f, 1.f);
-				glBegin(GL_LINES);
-					glVertex3f(scaledAxis.x, scaledAxis.y, scaledAxis.z);
-					glVertex3f(oscAxis.axis.x, oscAxis.axis.y, oscAxis.axis.z);
-					glVertex3f(-oscAxis.axis.x, -oscAxis.axis.y, -oscAxis.axis.z);
-					glVertex3f(-scaledAxis.x, -scaledAxis.y, -scaledAxis.z);
-				glEnd();
-			}
+			if (oscAxis.show)
+				renderOscillationAxis();
 
 			glRotatef(oscAxis.angle, oscAxis.axis.x, oscAxis.axis.y, oscAxis.axis.z);
 			glTranslatef(-oscAxis.center.x, -oscAxis.center.y, -oscAxis.center.z);
 		}
 
-		if(showTrails)
-		{ 
-			glPointSize(4.f);
-			glBegin(GL_POINTS);
-				for (int i = 0; i < centerPoints.size(); ++i)
-				{
-					float t = (float)i / ((float)centerPoints.size() - 1.f);
-					glColor4f(1.f, 0.f, 1.f, 1.f * t);
-					glVertex3f(centerPoints.at(i).x, centerPoints.at(i).y, centerPoints.at(i).z);
-				}
-			glEnd();
-		}
-
-		glPointSize(2.f);
-		glColor4f(1.f, 1.f, 1.f, 0.2f);
-
+		// cursor trails
+		if (showTrails)
+			renderCursorTrails();		
+		
+		// cosmos
 		if (lensMode)
-			if (velocityMode)
-				renderStreaksWithin();
-			else
-				renderPointsWithinSphere();
-		else if (axisMode)
-			if (velocityMode)
-				renderStreaksWithin();
-			else
-				renderPointsWithinAxisCylinder();
+			renderLens();
 		else
 			if (velocityMode)
 				renderVelocities();

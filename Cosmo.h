@@ -10,6 +10,14 @@ class Cosmo: public Object
 {
     public:
         Cosmo();
+
+		enum Lens {
+			SPHERE_POINTS,
+			SPHERE_VELOCITY,
+			CYLINDER_POINTS,
+			CYLINDER_VELOCITY
+		} curLens;
+
         void read(std::string fileName);
         void resample( int samples );
         //void getSamples(int n, float radius, vec3 center);
@@ -19,7 +27,8 @@ class Cosmo: public Object
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
 
-		void setBrightnessRange(float min, float max);
+		void setBrightness(float brightness);
+		void setLensBrightnessRange(float inner, float outer);
 
 		void setMovableRotationAxis(glm::vec3 axis);
 		void setMovableRotationAxis(float x, float y, float z);
@@ -34,7 +43,8 @@ class Cosmo: public Object
 		float getMovableRotationAxisScale();
 
 		void setLensMode(bool yesno);
-		void setAxisMode(bool yesno);
+		void setLensType(Cosmo::Lens l);
+		Cosmo::Lens getLensType();
 		void setVelocityMode(bool yesno);
 
 		void toggleTrailsMode();
@@ -58,26 +68,26 @@ class Cosmo: public Object
 		} oscAxis;
 
 		void renderPoints();
-		void renderPointsWithinSphere();
-		void renderPointsWithinAxisCylinder();
-		void renderStreaksWithin();
 		void renderVelocities();
+		void renderLens();
+		void renderOscillationAxis();
+		void renderCursorTrails();
 		void dim();
-		float brightnessRange();
+		float lensBrightnessRange();
 
 		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
-		float sphereTest(float radius_sq, const glm::vec3 & testPt);
+		float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);
 
         std::vector<Particle> vParticles;       
         int particleCount;
         int samples;        // # of random samples points
 
-		bool lensMode, axisMode, velocityMode, showTrails;
+		bool lensMode, velocityMode, showTrails;
 
 		glm::vec3 lensPos;
 		float sphereLensRadius, axisLensRadius;
 
-		float maxBrightness, minBrightness, brightness;
+		float lensInnerBrightness, lensOuterBrightness, normalBrightness, brightnessRatio;
 		int dimTimer;
 
 		float maxDistance;

@@ -688,16 +688,23 @@ void reshape(int w, int h)
 int specialFunction(int glutKey, int mouseX, int mouseY) 
 {
 	if (glutKey == GLUT_KEY_PAGE_UP)
-	{
-		cout << "Increasing movable axis scale from " << cosmo->getMovableRotationAxisScale() << " to ";
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
-		cout << cosmo->getMovableRotationAxisScale() << endl;
-	}
 	if (glutKey == GLUT_KEY_PAGE_DOWN)
-	{
-		cout << "Decreasing movable axis scale from " << cosmo->getMovableRotationAxisScale() << " to ";
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 0.9f);
-		cout << cosmo->getMovableRotationAxisScale() << endl;
+
+	if (glutKey == GLUT_KEY_RIGHT)
+	{		
+		if (cosmo->getLensType() == Cosmo::Lens::CYLINDER_VELOCITY)
+			cosmo->setLensType(Cosmo::Lens::SPHERE_POINTS);
+		else
+			cosmo->setLensType(static_cast<Cosmo::Lens>( ( (int)cosmo->getLensType() ) + 1) );
+	}
+	if (glutKey == GLUT_KEY_LEFT)
+	{
+		if (cosmo->getLensType() == Cosmo::Lens::SPHERE_POINTS)
+			cosmo->setLensType(Cosmo::Lens::CYLINDER_VELOCITY);
+		else
+			cosmo->setLensType(static_cast<Cosmo::Lens>(((int)cosmo->getLensType()) - 1));
 	}
 
     TwSetCurrentWindow(glutGetWindow());
@@ -864,7 +871,8 @@ int main(int argc, char *argv[])
 	cosmo->read( inputFiles[0] );
 	cosmo->resample(500000);
 	cosmo->setScale(scale);
-	cosmo->setBrightnessRange(0.025f, 0.9f);
+	cosmo->setBrightness(0.2f);
+	cosmo->setLensBrightnessRange(0.9f, 0.025f);
 	cosmo->setLensSize(5.f);
 	cosmo->setAxisLensSize(5.f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);
