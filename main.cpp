@@ -63,24 +63,7 @@ bool startStop;
 bool autoRefresh = false;
 
 //---------------------------------------------------------------------------- 
-///MOVE SPEED NOW A FRACTION OF BBOX LENGTH
-#define DEFAULTMOVESPEED 10
-
-int processMouseClick;
-
-bool takeSnapshot;
-
-bool mouseLeftNav;
-bool mouseRightNav;
-int lastMouseNavX;
-int lastMouseNavY;
-
-bool zoomIn;
-bool zooming;
-
-float moveSpeed;
 //----------------------------------------------------------------------------
-glm::vec3 focalCenter = glm::vec3(0.0f, 0.0f, 0.0f);
 float aspect = 1.0f;
 float scale;
 float vectorScale = 1.0f;
@@ -275,9 +258,6 @@ void updateLens()
 
 void perRenderUpdates()
 {
-	//mouse zooming
-	//zoom();
-
 	if (settings->transitionRequested) 
 		calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
 
@@ -796,32 +776,12 @@ void init(void)
 		printf("ERROR initializing touch manager!\n");
 	}
 
-	//particleSystem = new ParticleSystem(dataset, settings);
-	//panelMan->addParticleSystemPanel(particleSystem);
-	//pathPanel = panelMan->addAUVPathPanel(dataset);
-
-	takeSnapshot = false;
-	processMouseClick = 0;
-
-	lastMouseNavX = 0;
-	lastMouseNavY = 0;
-	mouseLeftNav = false;
-	mouseRightNav = false;
-	zoomIn = true;
-	zooming = false;
-	moveSpeed = DEFAULTMOVESPEED;
-
-
 	glClearColor(MAIN_BACKGROUND_COLOR, 1.0);
-	//glClearDepth(0.0);
-	//glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_NORMALIZE);
-	//glEnable(GL_LIGHTING);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//	glShadeModel(GL_SMOOTH);
 }
 
 int main(int argc, char *argv[])
