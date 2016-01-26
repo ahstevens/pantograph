@@ -565,7 +565,6 @@ void reset_values()
 	vectorScale = 1.0f;
 }
 
-int zoom = 1;
 static int keyboard( unsigned char key, int x, int y )
 {
 	cerr << "Key " << key << " int " << int(key) << "\n";
@@ -573,19 +572,11 @@ static int keyboard( unsigned char key, int x, int y )
 	if(key == 'q') exit(0);
 	if(key == ',') { 
 		scale = scale*0.90f; 
-		if (autoRefresh) {	
-			if(zoom%10 == 0) cosmo->resample(100000); zoom++;
-		}
 		cout << "scale: "<< (int) scale *100 << endl;
-		//if( ((int) (scale * 100)) %10 == 0) cosmo->resample(100000);
 	}
 	if(key == '.') { 
 		scale = scale*1.10f; 
-		if (autoRefresh) {		
-			if(zoom%10 == 0) cosmo->resample(100000); zoom--;
-		}
 		cout << "scale: "<< (int) scale *100 << endl;
-		//if( ((int) (scale * 100)) %10 == 0) cosmo->resample(100000);
 	}
 
 	if(key == '[') cow.z += 0.1f*scale;
