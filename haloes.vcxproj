@@ -17,6 +17,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Pantograph.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SplinePath.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="TouchManager.cpp" />
   </ItemGroup>
@@ -28,6 +29,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pantograph.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="SplinePath.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="TouchManager.h" />
   </ItemGroup>
