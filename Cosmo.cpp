@@ -16,6 +16,16 @@ Cosmo::Cosmo()
 	lensOuterBrightness = 0.f;
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
+
+	spline.addPoint(glm::vec3(-50.f,   0.f, 0.f), 0.01f);
+	spline.addPoint(glm::vec3(-25.f,  25.f, -25.f), 0.01f);
+	spline.addPoint(glm::vec3( 25.f, -25.f, 25.f), 0.01f);
+	spline.addLastPoint(glm::vec3(50.f, 0.f, 0.f));
+
+	while (!spline.isEnd())
+		splinePath.push_back(spline.advanceAlongSpline());
+	
+	splinePath.pop_back();
 }
 
 #define POSVEL_T    float
@@ -367,6 +377,16 @@ float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_
 	}
 }
 
+void Cosmo::renderSpline()
+{
+	std::vector< glm::vec3 >::iterator it;
+	glColor4f(0.75f, 0.75f, 0.f, 1.f);
+	glBegin(GL_LINE_STRIP);
+		for (it = splinePath.begin(); it != splinePath.end(); ++it)
+			glVertex3f(it->x, it->y, it->z);
+	glEnd();
+}
+
 void Cosmo::renderCursorTrails()
 {
 	glPointSize(4.f);
@@ -532,6 +552,8 @@ void Cosmo::render()
 		// cursor trails
 		if (showTrails)
 			renderCursorTrails();		
+
+		renderSpline();
 		
 		// cosmos
 		if (lensMode)

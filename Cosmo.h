@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <deque>
 #include "Object.h"
+#include "SplinePath.h"
 
 #define DIM_FRAMES 40
 
@@ -72,6 +73,7 @@ class Cosmo: public Object
 		void renderLens();
 		void renderOscillationAxis();
 		void renderCursorTrails();
+		void renderSpline();
 		void dim();
 		float lensBrightnessRange();
 
@@ -93,6 +95,9 @@ class Cosmo: public Object
 		float maxDistance;
 
         std::vector<int> vSampleIDs;
+
+		SplinePath spline;
+		std::vector< glm::vec3 > splinePath;
 };
 
 #endif /*COSMO_H_*/

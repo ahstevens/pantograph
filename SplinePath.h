@@ -34,12 +34,11 @@ private:
 
 	glm::vec3 getVectorAlongSpline();	
 
-    std::vector<glm::vec3> point;
+    std::vector<glm::vec3> points;
     std::vector<float> deltas;
 	glm::vec3  cp0, cp1, cp2, cp3;
 	glm::vec3 interpPoint, previousPoint;
     int justPassed;
-    int CONTROLPOINTS;
     float t;//0...1
     bool end_;
     float total_time_;
