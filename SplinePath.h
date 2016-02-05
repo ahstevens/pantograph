@@ -16,6 +16,7 @@ public:
 	~SplinePath();
 
 	int size();
+	float length();
 	bool isEnd();
 	void clear();
 
@@ -38,6 +39,7 @@ private:
     std::vector<float> deltas;
 	glm::vec3  cp0, cp1, cp2, cp3;
 	glm::vec3 interpPoint, previousPoint;
+	float len;
     int justPassed;
     float t;//0...1
     bool end_;

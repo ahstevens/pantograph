@@ -17,15 +17,15 @@ Cosmo::Cosmo()
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
 
-	spline.addPoint(glm::vec3(-50.f,   0.f, 0.f), 0.01f);
-	spline.addPoint(glm::vec3(-25.f,  25.f, -25.f), 0.01f);
-	spline.addPoint(glm::vec3( 25.f, -25.f, 25.f), 0.01f);
+	spline.addPoint(glm::vec3(-50.f,   0.f, 0.f), 0.5f);
+	spline.addPoint(glm::vec3(-25.f,  25.f, -25.f), 0.5f);
+	spline.addPoint(glm::vec3( 25.f, -25.f, 25.f), 0.5f);
 	spline.addLastPoint(glm::vec3(50.f, 0.f, 0.f));
 
 	while (!spline.isEnd())
 		splinePath.push_back(spline.advanceAlongSpline());
 	
-	splinePath.pop_back();
+	//splinePath.pop_back();
 }
 
 #define POSVEL_T    float

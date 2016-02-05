@@ -22,6 +22,11 @@ int SplinePath::size()
 	return points.size();
 }
 
+float SplinePath::length()
+{
+	return len;
+}
+
 bool SplinePath::isEnd()
 {
 	return end_;
@@ -105,16 +110,17 @@ glm::vec3 SplinePath::advanceAlongSpline()
 	previousPoint = interpPoint;
 	interpPoint = interpolate();
 
+	if (justPassed != 0 || t > 0.f) len += (interpPoint - previousPoint).length();
+
 	t += deltas[justPassed];
 
-	if (t >= 1.f) {
+	if (t >= 1.f && justPassed == nCtrlPts - 2 )
+	{
+		end_ = true;
+		//justPassed = 0;
+	}
+	else if (t >= 1.f) {
 		justPassed++;
-
-		if (justPassed == nCtrlPts) {
-			end_ = true;
-			justPassed = 0;
-		}
-
 		t = deltas[justPassed];
 	}
 
