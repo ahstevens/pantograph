@@ -61,7 +61,6 @@ using namespace std;
   //#define GLFW_INCLUDE_GLU
   #include <GL/glew.h>
   //#define _LIB
-  #include <AntTweakBar.h>
   #include <GL/freeglut.h>
   //#include <GL/glui.h>
   #include <GL/wglew.h>

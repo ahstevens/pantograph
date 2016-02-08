@@ -5,7 +5,6 @@
 #include <iostream>
 #include <math.h>
 #include "Stopwatch.h"
-#include <AntTweakBar.h>
 #include "Settings.h"
 #include "ColorsAndSizes.h"
 #include "TouchManager.h"
@@ -67,8 +66,6 @@ bool autoRefresh = false;
 float aspect = 1.0f;
 float scale;
 float vectorScale = 1.0f;
-TwBar *bar;
-bool isBarVisible = false;  // for dragging
 GLint mainWindow;
 bool rotating = true;
 bool alphaBlend = true;
@@ -326,8 +323,6 @@ void drawScene(int eye) //0=left or mono, 1=right
 	}
 
 	touchManager->draw3D();
-
-	if (isBarVisible) { TwSetCurrentWindow(mainWindow); TwDraw(); }
 }
 
 void drawOverlay()
@@ -424,13 +419,8 @@ void redraw_stereo(void)
 	++timer;
 }
 
-static int mouseButton(int button, int state, int x, int y)
+void mouseButton(int button, int state, int x, int y)
 {
-	if(isBarVisible) {
-        TwSetCurrentWindow(glutGetWindow());
-        return TwEventMouseButtonGLUT(button, state, x, y);
-    }
-
 	rx = float(x); 
 	ry = float(winHeight - y);
 
@@ -522,13 +512,8 @@ static int mouseButton(int button, int state, int x, int y)
 }
 
 // called when a mouse is in motion with a button down
-static int motion(int x, int y) 
+void motion(int x, int y) 
 {
-	if(isBarVisible) {
-        TwSetCurrentWindow(glutGetWindow());
-        return TwEventMouseMotionGLUT(x,y);
-    }
-
 	rx = float(x); ry = float(winHeight - y);
 
 	// LEFT MOUSE DOWN
@@ -565,7 +550,7 @@ void reset_values()
 	vectorScale = 1.0f;
 }
 
-static int keyboard( unsigned char key, int x, int y )
+void keyboard( unsigned char key, int x, int y )
 {
 	cerr << "Key " << key << " int " << int(key) << "\n";
 
@@ -623,12 +608,6 @@ static int keyboard( unsigned char key, int x, int y )
 	if(key == 'i') cosmo->radius *= 0.95;
 	if(key == 'o') cosmo->radius *= 1.05;
 */
-    if(key == 'm') isBarVisible = !isBarVisible;
-
-
-
-	TwSetCurrentWindow(glutGetWindow());
-    return TwEventKeyboardGLUT(key, x, y);  
 }
 
 
@@ -647,16 +626,11 @@ void reshape(int w, int h)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity(); 
-
-	// Send the new window size to AntTweakBar
-    TwSetCurrentWindow(mainWindow);
-    TwWindowSize(w, h);
-
 }
 
 //-------------------------------------------------------------------------------
 // Special key event callbacks
-int specialFunction(int glutKey, int mouseX, int mouseY) 
+void specialFunction(int glutKey, int mouseX, int mouseY) 
 {
 	if (glutKey == GLUT_KEY_PAGE_UP)
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
@@ -677,79 +651,7 @@ int specialFunction(int glutKey, int mouseX, int mouseY)
 		else
 			cosmo->setLensType(static_cast<Cosmo::Lens>(((int)cosmo->getLensType()) - 1));
 	}
-
-    TwSetCurrentWindow(glutGetWindow());
-    return TwEventSpecialGLUT(glutKey,mouseX,mouseY);   
 }
-
-//-------------------------------------------------------------------------------
-// tweak methods
-	void TW_CALL set_rotate(const void *value, void *clientData)
-	{ 
-	    rotating = *(const bool *)value;
-	}
-
-	void TW_CALL get_rotate(void *value, void *clientData)
-	{ 
-	    *(bool *)value = rotating;  // for instance
-	}
-
-	void TW_CALL set_velocity(const void *value, void *clientData)
-	{ 
-	    velocity = *(const bool *)value;
-	}
-
-	void TW_CALL get_velocity(void *value, void *clientData)
-	{ 
-	    *(bool *)value = velocity;  // for instance
-	}
-
-	void TW_CALL set_auto_refresh(const void *value, void *clientData)
-	{ 
-		autoRefresh = *(const bool *)value;
-	}
-
-	void TW_CALL get_auto_refresh(void *value, void *clientData)
-	{ 
-	    *(bool *)value = autoRefresh;  // for instance
-	}
-
-	void TW_CALL set_alpha(const void *value, void *clientData)
-	{ 
-	    alphaBlend = *(const bool *)value;
-
-	    if(alphaBlend) {
-	        glEnable(GL_BLEND);
-	        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );     
-	    } 
-	    else { 
-	      glDisable(GL_BLEND);   
-	    }
-	}
-
-	void TW_CALL get_alpha(void *value, void *clientData)
-	{ 
-	    *(bool *)value = alphaBlend;  // for instance
-
-	    if(alphaBlend) {
-	        glEnable(GL_BLEND);
-	        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );     
-	    } 
-	    else { 
-	      glDisable(GL_BLEND);   
-	    } 
-	}
-
-	void TW_CALL set_stereo(const void *value, void *clientData)
-	{ 
-	    stereo = *(const bool *)value;
-	}
-
-	void TW_CALL get_stereo(void *value, void *clientData)
-	{ 
-	    *(bool *)value = stereo;  // for instance
-	}
-//-------------------------------------------------------------------------------
 
 //This is the GLUT initialization function
 void init(void)
@@ -833,66 +735,7 @@ int main(int argc, char *argv[])
 	cosmo->setVelocityMode(false);
 
 	vCosmo.push_back(cosmo);
-
-
-    //---------------------------------------------------------------------------
-    // control panel
-	    // Initialize AntTweakBar
-	    TwInit(TW_OPENGL, NULL);
-	    //TwInit(TW_OPENGL_CORE, NULL); // for core profile
-	    TwSetCurrentWindow(mainWindow);
-
-	    // Create a tweak bar
-	    bar = TwNewBar("ControlPanel");
-	    TwDefine(" GLOBAL help='This application demonstrates Cosmo data.' "); // Message added to the help bar.
-		TwDefine(" GLOBAL iconalign=horizontal "); // icons will be aligned horizontally
-		//TwDefine(" GLOBAL fontscaling=3 "); // double the size of all fonts
-		TwDefine(" TW_HELP visible=false ");  // help bar is hidden
-
-	    TwDefine(" ControlPanel size='400 400' color='96 216 224' "); // change default tweak bar size and color
-		TwDefine(" ControlPanel position='50 50' "); // move bar to position (200, 40)
-		TwDefine(" ControlPanel movable=false "); // mybar cannot be moved
-		TwDefine(" ControlPanel resizable=false "); // mybar cannot be resized
-		TwDefine(" ControlPanel label='Engine properties' ");
-
-
-	    TwAddVarRW(bar, "scale", TW_TYPE_FLOAT, &scale, 
-	    " min=0.0 max=100.0 step=0.1 keyIncr=> keyDecr=< help='Scale the object.' ");
-
-	    // Add callback to toggle auto-rotate mode (callback functions are defined above).
-	    TwAddVarCB(bar, "stereo", TW_TYPE_BOOL32, set_stereo, get_stereo, NULL, 
-	               " label='stereo' key=S help='stereo mode on/off.' ");
-	    // Add callback to toggle auto-rotate mode (callback functions are defined above).
-	    TwAddVarCB(bar, "rotate", TW_TYPE_BOOL32, set_rotate, get_rotate, NULL, 
-	               " label='rotating' key=R help='Toggle auto-rotate mode.' ");
-	    TwAddSeparator(bar, NULL, NULL);
-	    //---------------------------------------------------------------------------
-
-	    // add another control
-	    //TwAddVarRW(bar, "point size", TW_TYPE_FLOAT, &pointSize, 
-	    // " min=1.0 max=5.0 step=0.1 keyIncr=+ keyDecr=- help='Point size the object.' ");
-	    //TwAddSeparator(bar, NULL, NULL);
-
-	    // add another control
-	    TwAddVarRW(bar, "vector length", TW_TYPE_FLOAT, &vectorScale, 
-	     " min=0.1 max=10.0 step=0.1 keyIncr=9 keyDecr=6 help='Point size the object.' ");
-	    TwAddSeparator(bar, NULL, NULL);
-	    //---------------------------------------------------------------------------
-
-	    // Add callback to toggle auto-rotate mode (callback functions are defined above).
-	    TwAddVarCB(bar, "alpha blending", TW_TYPE_BOOL32, set_alpha, get_alpha, NULL, 
-	               " label='alpha blending' key=A help='alpha blending on/off.' ");
-	    TwAddVarCB(bar, "auto refresh", TW_TYPE_BOOL32, set_auto_refresh, get_auto_refresh, NULL, 
-	               " label='auto refresh' key=Z help='alpha blending on/off.' ");
-
-	    TwAddSeparator(bar, NULL, NULL);
-
 	    
-	    //---------------------------------------------------------------------------
-
-	    // Add callback to toggle auto-rotate mode (callback functions are defined above).
-	    TwAddVarCB(bar, "velocity", TW_TYPE_BOOL32, set_velocity, get_velocity, NULL, 
-	               " label='velocity' key=V help='velocity on/off' ");
     //---------------------------------------------------------------------------
     std::cout << " -------------------------------" << std::endl;
     printf(" Vendor: %s\n"           , glGetString(GL_VENDOR));
@@ -903,14 +746,11 @@ int main(int argc, char *argv[])
 
     //---------------------------------------------------------------------------
     // directly redirect GLUT events to AntTweakBar
-    glutMotionFunc((GLUTmousemotionfun) motion);
-    glutKeyboardFunc((GLUTkeyboardfun) keyboard);
-    glutMouseFunc((GLUTmousebuttonfun) mouseButton);
-    glutSpecialFunc((GLUTspecialfun) specialFunction);
+    glutMotionFunc(motion);
+    glutKeyboardFunc(keyboard);
+    glutMouseFunc(mouseButton);
+    glutSpecialFunc(specialFunction);
 	glutReshapeFunc(reshape);
-
-    // send the ''glutGetModifers'' function pointer to AntTweakBar
-    TwGLUTModifiersFunc(glutGetModifiers);
 
 	glutMainLoop();
 	return 0;
