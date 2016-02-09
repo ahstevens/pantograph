@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "ColorsAndSizes.h"
 #include "TouchManager.h"
+#include "Filament.h"
 
 /*
 //--------------------------------------------------
@@ -303,7 +304,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// render cosmos point cloud
 	cosmo->render();
-		
+
 	//draw active positioning pole:
 	//if (settings->positioningModelCoords[2] != -1)
 	if (settings->pantographMode || settings->mouseMode)
@@ -735,7 +736,7 @@ int main(int argc, char *argv[])
 	cosmo->setVelocityMode(false);
 
 	vCosmo.push_back(cosmo);
-	    
+		    
     //---------------------------------------------------------------------------
     std::cout << " -------------------------------" << std::endl;
     printf(" Vendor: %s\n"           , glGetString(GL_VENDOR));

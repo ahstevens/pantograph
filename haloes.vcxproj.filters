@@ -42,6 +42,9 @@
     <ClCompile Include="SplinePath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Filament.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cosmo.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SplinePath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Filament.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

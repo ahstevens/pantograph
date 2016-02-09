@@ -115,10 +115,7 @@ glm::vec3 SplinePath::advanceAlongSpline()
 	t += deltas[justPassed];
 
 	if (t >= 1.f && justPassed == nCtrlPts - 1 )
-	{
-		end_ = true;
-		//justPassed = 0;
-	}
+		end_ = true;	
 	else if (t >= 1.f) {
 		justPassed++;
 		t = 0.f;

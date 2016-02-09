@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Cosmo.cpp" />
     <ClCompile Include="DrawFunctions.cpp" />
+    <ClCompile Include="Filament.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Pantograph.cpp" />
@@ -25,6 +26,7 @@
     <ClInclude Include="ColorsAndSizes.h" />
     <ClInclude Include="Cosmo.h" />
     <ClInclude Include="DrawFunctions.h" />
+    <ClInclude Include="Filament.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pantograph.h" />

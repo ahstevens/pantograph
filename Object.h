@@ -20,6 +20,7 @@ struct Particle {
 	glm::vec4 col;
     int id;
     float mass;
+	bool highlighted;
 };
 
 class Object

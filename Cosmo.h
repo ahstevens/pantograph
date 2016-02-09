@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <deque>
 #include "Object.h"
-#include "SplinePath.h"
+#include "Filament.h"
 
 #define DIM_FRAMES 40
 
@@ -11,6 +11,7 @@ class Cosmo: public Object
 {
     public:
         Cosmo();
+		~Cosmo();
 
 		enum Lens {
 			SPHERE_POINTS,
@@ -21,7 +22,6 @@ class Cosmo: public Object
 
         void read(std::string fileName);
         void resample( int samples );
-        //void getSamples(int n, float radius, vec3 center);
 		float getMaxDistance();
 
 		void setLensPosition(glm::vec3 pos);
@@ -73,7 +73,6 @@ class Cosmo: public Object
 		void renderLens();
 		void renderOscillationAxis();
 		void renderCursorTrails();
-		void renderSpline();
 		void dim();
 		float lensBrightnessRange();
 
@@ -96,8 +95,7 @@ class Cosmo: public Object
 
         std::vector<int> vSampleIDs;
 
-		SplinePath spline;
-		std::vector< glm::vec3 > splinePath;
+		Filament* filament;
 };
 
 #endif /*COSMO_H_*/
