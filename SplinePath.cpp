@@ -110,18 +110,18 @@ glm::vec3 SplinePath::advanceAlongSpline()
 	previousPoint = interpPoint;
 	interpPoint = interpolate();
 
-	if (justPassed != 0 || t > 0.f) len += (interpPoint - previousPoint).length();
+	if (justPassed != 0 || t > 0.f) len += glm::length(interpPoint - previousPoint);
 
 	t += deltas[justPassed];
 
-	if (t >= 1.f && justPassed == nCtrlPts - 2 )
+	if (t >= 1.f && justPassed == nCtrlPts - 1 )
 	{
 		end_ = true;
 		//justPassed = 0;
 	}
 	else if (t >= 1.f) {
 		justPassed++;
-		t = deltas[justPassed];
+		t = 0.f;
 	}
 
 	return interpPoint;
