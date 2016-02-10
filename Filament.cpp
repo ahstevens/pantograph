@@ -32,7 +32,7 @@ void Filament::generate(unsigned int nPoints)
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;	
 
-	for (std::vector<glm::vec3>::iterator it = splinePath.begin(); it != splinePath.end(); ++it)
+	for (std::vector<glm::vec3>::iterator it = splinePath.begin(); it != (splinePath.end() - 1); ++it)
 	{
 		glm::vec3 curVec = *(it + 1) - *it;
 		float curVecLen = glm::length(curVec);
@@ -56,8 +56,7 @@ void Filament::generate(unsigned int nPoints)
 			offset = pointSpacing - leftover;
 		}
 		else
-			leftover += curVecLen;
-		
+			leftover += curVecLen;		
 	}
 }
 
