@@ -4,20 +4,20 @@
 
 Filament::Filament()
 {
-	showPath = true;
+	showPath = false;
 
 	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 
-	spline.addPoint(glm::vec3(-50.f, 0.f, 0.f), 1.f);
-	spline.addPoint(glm::vec3(-25.f, 25.f, -25.f), 1.f);
-	spline.addPoint(glm::vec3(25.f, -25.f, 25.f), 1.f);
+	spline.addPoint(glm::vec3(-50.f, 0.f, 0.f), 0.1f);
+	spline.addPoint(glm::vec3(-25.f, 25.f, -25.f), 0.1f);
+	spline.addPoint(glm::vec3(25.f, -25.f, 25.f), 0.1f);
 	spline.addLastPoint(glm::vec3(50.f, 0.f, 0.f));
 
 	while (!spline.isEnd())
 		splinePath.push_back(spline.advanceAlongSpline());
 
-	generate(10);
+	generate(1000, 5.f);
 }
 
 
@@ -26,27 +26,40 @@ Filament::~Filament()
 
 }
 
-void Filament::generate(unsigned int nPoints)
+void Filament::highlight(float lensPos, float radius_sq)
 {
-	float pointSpacing = spline.length() / nPoints;
+
+}
+
+void Filament::generate(unsigned int nPoints, float spreadFactor)
+{
+	float pointSpacing = spline.length() / ( nPoints - 1 );
 	float leftover, offset, traversedLength;
-	leftover = offset = traversedLength = 0.f;	
+	leftover = offset = traversedLength = 0.f;
+
+	// generate set of random numbers
+	std::random_device rd;
+	std::mt19937 generator(rd());
+	std::uniform_real_distribution <float> distribution(-pointSpacing * spreadFactor, pointSpacing * spreadFactor);
 
 	for (std::vector<glm::vec3>::iterator it = splinePath.begin(); it != (splinePath.end() - 1); ++it)
 	{
 		glm::vec3 curVec = *(it + 1) - *it;
 		float curVecLen = glm::length(curVec);
-		leftover = fmodf(curVecLen, pointSpacing);
+		leftover = fmod(curVecLen - offset, pointSpacing);
+		int nSteps = (curVecLen - offset) / pointSpacing + 1;
 		int i;
 
-		if (((it==splinePath.begin()?0:leftover) + curVecLen) >= pointSpacing)
+		if (nSteps > 0)
 		{
-			int nSteps = int(((it == splinePath.begin() ? 0 : leftover) + curVecLen) / pointSpacing);
-			for (i = 0; i <= nSteps; ++i)
+			for (i = 0; i < nSteps; ++i)
 			{
-				float progress = (float)i / (float)nSteps;
+				float progress = (offset + (float)i * pointSpacing) / curVecLen;
 				Particle p;
-				p.pos = *it + progress * (curVec - offset);
+				p.pos = *it + progress * curVec;
+				p.pos.x += distribution( generator );
+				p.pos.y += distribution( generator );
+				p.pos.z += distribution( generator );
 				p.col = color;
 				p.highlighted = false;
 				vSample.push_back(p);
@@ -79,7 +92,7 @@ void Filament::render()
 
 		if(showPath) renderPath();
 
-		glPointSize(6.f);
+		glPointSize(2.f);
 		glBegin(GL_POINTS);
 			for (std::vector<Particle>::iterator it = vSample.begin(); it != vSample.end(); ++it)
 			{

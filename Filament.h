@@ -1,6 +1,7 @@
 #pragma once
 #include "Object.h"
 #include "SplinePath.h"
+#include "DrawFunctions.h"
 
 class Filament :
 	public Object
@@ -9,10 +10,11 @@ public:
 	Filament();
 	~Filament();
 
+	void highlight(float lensPos, float radius_sq);
 	void render();
 
 private:
-	void generate(unsigned int nPoints);
+	void generate(unsigned int nPoints, float spreadFactor);
 	void renderPath();
 
 	SplinePath spline;

@@ -79,7 +79,7 @@ class Cosmo: public Object
 		float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
 		float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);
 
-        std::vector<Particle> vParticles;       
+        std::vector<Particle> vParticles;
         int particleCount;
         int samples;        // # of random samples points
 

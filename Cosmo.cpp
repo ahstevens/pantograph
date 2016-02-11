@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stack>
+#include "DrawFunctions.h"
 
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
@@ -318,61 +319,7 @@ float Cosmo::lensBrightnessRange() { return lensInnerBrightness - lensOuterBrigh
 
 //-------------------------------------------------------------------------------
 
-// returns the SQUARED distance if the point is within the sphere, otherwise return -1
-float Cosmo::sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt)
-{
-	glm::vec3 ptToCtrVector = testPt - sphereCenter;
-	float dist_sq = ptToCtrVector.x * ptToCtrVector.x + ptToCtrVector.y * ptToCtrVector.y + ptToCtrVector.z * ptToCtrVector.z;
-	return dist_sq <= radius_sq ? dist_sq : -1.f;
-}
 
-// returns the SQUARED distance from the center axis if the point is within the cylinder, otherwise return -1
-// this function is adapted from http://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml by Greg James @ NVIDIA
-float Cosmo::cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt)
-{
-	float dx, dy, dz;	    // vector d  from line segment point 1 to point 2
-	float pdx, pdy, pdz;    // vector pd from point 1 to test point
-	float dot, dsq;
-
-	dx = pt2.x - pt1.x;	    // translate so pt1 is origin.  Make vector from
-	dy = pt2.y - pt1.y;	    // pt1 to pt2.  Need for this is easily eliminated
-	dz = pt2.z - pt1.z;
-
-	pdx = testPt.x - pt1.x;	// vector from pt1 to test point.
-	pdy = testPt.y - pt1.y;
-	pdz = testPt.z - pt1.z;
-
-	// Dot the d and pd vectors to see if point lies behind the 
-	// cylinder cap at pt1.x, pt1.y, pt1.z
-	dot = pdx * dx + pdy * dy + pdz * dz;
-
-	// If dot is less than zero the point is behind the pt1 cap.
-	// If greater than the cylinder axis line segment length squared
-	// then the point is outside the other end cap at pt2.
-	if (dot < 0.f || dot > length_sq)
-		return(-1.f);
-	else
-	{
-		// Point lies within the parallel caps, so find
-		// distance squared from point to line, using the fact that sin^2 + cos^2 = 1
-		// the dot = cos() * |d||pd|, and cross*cross = sin^2 * |d|^2 * |pd|^2
-		// Carefull: '*' means mult for scalars and dotproduct for vectors
-		// In short, where dist is pt distance to cyl axis: 
-		// dist = sin( pd to d ) * |pd|
-		// distsq = dsq = (1 - cos^2( pd to d)) * |pd|^2
-		// dsq = ( 1 - (pd * d)^2 / (|pd|^2 * |d|^2) ) * |pd|^2
-		// dsq = pd * pd - dot * dot / lengthsq
-		//  where lengthsq is d*d or |d|^2 that is passed into this function 
-
-		// distance squared to the cylinder axis:
-		dsq = (pdx*pdx + pdy*pdy + pdz*pdz) - dot*dot / length_sq;
-
-		if (dsq > radius_sq) 
-			return(-1.f);		
-		else 
-			return(dsq);		// return distance squared to axis		
-	}
-}
 
 void Cosmo::renderCursorTrails()
 {
@@ -422,6 +369,8 @@ void Cosmo::renderLens()
 	}
 
 	float radius_sq = radius * radius;
+
+	filament->highlight(lensPos, radius_sq);
 
 	// render the data
 	glPointSize(2.f);
