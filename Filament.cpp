@@ -26,9 +26,20 @@ Filament::~Filament()
 
 }
 
-void Filament::highlight(float lensPos, float radius_sq)
+void Filament::highlight(glm::vec3 lensPos, float radius_sq)
 {
+	std::vector<Particle>::iterator it;
+	for (it = vSample.begin(); it != vSample.end(); ++it)
+	{
+		float dist_sq;
+		glm::vec3 end;
 
+		dist_sq = sphereTest(lensPos, radius_sq, it->pos);
+
+		// if the point is within the sphere
+		if (dist_sq >= 0.f)
+			it->col = glm::vec4(1.f, 1.f, 0.f, 1.f);
+	}
 }
 
 void Filament::generate(unsigned int nPoints, float spreadFactor)

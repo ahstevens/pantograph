@@ -50,9 +50,6 @@ void drawArcScale(float centerX, float centerY, float radius, float startAngle, 
 void drawVolumeCursor(float x, float y, float z, float radius);
 
 void drawAxes(float scale);
-// returns the SQUARED distance if the point is within the sphere, otherwise return -1
-float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);
 
-// returns the SQUARED distance from the center axis if the point is within the cylinder, otherwise return -1
-// this function is adapted from http://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml by Greg James @ NVIDIA
 float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
+float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);

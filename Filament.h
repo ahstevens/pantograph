@@ -10,7 +10,7 @@ public:
 	Filament();
 	~Filament();
 
-	void highlight(float lensPos, float radius_sq);
+	void highlight(glm::vec3 lensPos, float radius_sq);
 	void render();
 
 private:
