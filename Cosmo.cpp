@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <stack>
-#include "DrawFunctions.h"
 
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()

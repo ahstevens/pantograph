@@ -50,6 +50,3 @@ void drawArcScale(float centerX, float centerY, float radius, float startAngle, 
 void drawVolumeCursor(float x, float y, float z, float radius);
 
 void drawAxes(float scale);
-
-float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
-float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);

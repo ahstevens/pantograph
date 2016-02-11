@@ -44,6 +44,9 @@ class Object
 	virtual void render() = 0;
 
   protected:
+	float cylTest(const glm::vec3 & pt1, const glm::vec3 & pt2, float length_sq, float radius_sq, const glm::vec3 & testPt);
+	float sphereTest(const glm::vec3 sphereCenter, const float radius_sq, const glm::vec3 & testPt);
+
     std::vector<Particle> vSample;
     
     int numberOfPoints;

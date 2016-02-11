@@ -1,7 +1,6 @@
 #pragma once
 #include "Object.h"
 #include "SplinePath.h"
-#include "DrawFunctions.h"
 
 class Filament :
 	public Object
@@ -10,7 +9,7 @@ public:
 	Filament();
 	~Filament();
 
-	void highlight(glm::vec3 lensPos, float radius_sq);
+	int highlight(glm::vec3 lensPos, float radius_sq);
 	void render();
 
 private:
@@ -21,8 +20,10 @@ private:
 	std::vector< glm::vec3 > splinePath;
 	float len;
 
-	glm::vec4 color, highlightColor;
+	glm::vec4 color, highlightColor, completeColor;
 
-	bool showPath;
+	bool showPath, done;
+
+	unsigned int nHighlighted;
 };
 

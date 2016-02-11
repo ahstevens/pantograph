@@ -4,10 +4,14 @@
 
 Filament::Filament()
 {
-	showPath = false;
+	showPath = true;
+	done = false;
+
+	nHighlighted = 0;
 
 	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
+	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
 
 	spline.addPoint(glm::vec3(-50.f, 0.f, 0.f), 0.1f);
 	spline.addPoint(glm::vec3(-25.f, 25.f, -25.f), 0.1f);
@@ -17,7 +21,7 @@ Filament::Filament()
 	while (!spline.isEnd())
 		splinePath.push_back(spline.advanceAlongSpline());
 
-	generate(1000, 5.f);
+	generate(1000, 10.f);
 }
 
 
@@ -28,17 +32,32 @@ Filament::~Filament()
 
 void Filament::highlight(glm::vec3 lensPos, float radius_sq)
 {
-	std::vector<Particle>::iterator it;
-	for (it = vSample.begin(); it != vSample.end(); ++it)
+	if (done) return;
+	
+	if (nHighlighted == vSample.size() && !done)
+	{
+		for (auto& p : vSample)
+			p.col = completeColor;
+
+		done = true;
+		return;
+	}
+
+	for (auto& p : vSample)
 	{
 		float dist_sq;
 		glm::vec3 end;
 
-		dist_sq = sphereTest(lensPos, radius_sq, it->pos);
+		dist_sq = sphereTest(lensPos, radius_sq, p.pos);
 
 		// if the point is within the sphere
-		if (dist_sq >= 0.f)
-			it->col = glm::vec4(1.f, 1.f, 0.f, 1.f);
+		if (dist_sq >= 0.f && !p.highlighted)
+		{
+			p.col = highlightColor;
+			p.highlighted = true;
+			nHighlighted++;
+			std::cout << "Highlighted " << nHighlighted << " of " << vSample.size() << " target particles (" << ((float)nHighlighted/(float)vSample.size()) * 100.f << "%)" << std::endl;
+		}
 	}
 }
 
@@ -48,7 +67,7 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;
 
-	// generate set of random numbers
+	// generate set of random numbers for displacing points along filament spline
 	std::random_device rd;
 	std::mt19937 generator(rd());
 	std::uniform_real_distribution <float> distribution(-pointSpacing * spreadFactor, pointSpacing * spreadFactor);
@@ -105,10 +124,10 @@ void Filament::render()
 
 		glPointSize(2.f);
 		glBegin(GL_POINTS);
-			for (std::vector<Particle>::iterator it = vSample.begin(); it != vSample.end(); ++it)
+			for (auto p : vSample)
 			{
-				glColor4fv(glm::value_ptr(it->col));
-				glVertex3fv(glm::value_ptr(it->pos));
+				glColor4fv(glm::value_ptr(p.col));
+				glVertex3fv(glm::value_ptr(p.pos));
 			}
 		glEnd();
 	//--------------------------------------------------
