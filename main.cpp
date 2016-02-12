@@ -28,8 +28,8 @@ float cowZ          = 30.f;
 #define COW_Z 		30.0f
 #define FAR 		100.0f 
 using namespace std;
-#define OSC_ANGLE 2.f
-#define REFRESH 60
+#define OSC_ANGLE 1.f
+#define REFRESH 5
 Stopwatch *aclock;
 
 Settings* settings;
@@ -267,7 +267,7 @@ void perRenderUpdates()
 
 	transition();
 
-	rt = timer % 120; // 60 Hz on 60 Hz machine
+	rt = timer % (REFRESH * 2); // 60 Hz on 60 Hz machine
 
 	if (startStop) cosmo->setMovableRotationAngle(rotation[rt]);
 	else cosmo->setRotationAngle(rotY + dragX);
