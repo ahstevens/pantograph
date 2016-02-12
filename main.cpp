@@ -726,10 +726,10 @@ int main(int argc, char *argv[])
 
     cosmo = new Cosmo();
 	cosmo->read( inputFiles[0] );
-	cosmo->resample(500000);
+	cosmo->resample(50000);
 	cosmo->setScale(scale);
 	cosmo->setBrightness(0.2f);
-	cosmo->setLensBrightnessRange(0.9f, 0.025f);
+	cosmo->setLensBrightnessRange(0.9f, 0.1f);
 	cosmo->setLensSize(5.f);
 	cosmo->setAxisLensSize(5.f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);
