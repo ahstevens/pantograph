@@ -29,7 +29,7 @@ Filament::Filament()
 
 Filament::Filament(float length)
 {
-	showPath = true;
+	showPath = showControlPoints = true;
 	done = false;
 
 	deltas = 0.1f;
@@ -169,15 +169,12 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 
 void Filament::renderControlPoints()
 {
-	glPointSize(4.f);
-	glColor4f(0.4f, 0.2f, 0.8f, 1.f);
+	glPointSize(6.f);
+	glColor4f(0.4f, 0.2f, 1.f, 1.f);
 
 	glBegin(GL_POINTS);
-	for (int i = 0; i < 4; ++i)
-	{
-		glm::vec3 cp = splinePath.getPoint(i);
-		glVertex3f(cp.x, cp.y, cp.z);
-	}
+		for (int i = 0; i < 4; ++i)
+			glVertex3fv(glm::value_ptr(splinePath.getPoint(i)));
 	glEnd();
 }
 
