@@ -44,8 +44,10 @@ Filament::Filament(float length)
 	std::mt19937 generator(rd());
 	std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
 	std::uniform_real_distribution<float> signed_unit_distribution(-1.f, 1.f);
-	std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
+	//std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
+	std::uniform_real_distribution<float> circle(0.f, 2.f * (float)M_PI);
 
+		
 	glm::vec3 cp0, cp1, cp2, cp3;
 	cp0.x = unit_distribution(generator);
 	cp0.y = unit_distribution(generator);
@@ -55,26 +57,29 @@ Filament::Filament(float length)
 
 	glm::vec3 vecAB = cp3 - cp0;
 
-	//glm::vec3 cp1LinePos = cp0 + midCP( generator ) * vecAB;
-	//glm::vec3 cp2LinePos = cp0 + ( midCP( generator ) + 0.5f ) * vecAB;
+	glm::vec3 unitVecAB = glm::normalize(vecAB);
 
-	glm::vec3 cp1LinePos = cp0 + 0.3333333333f * vecAB;
-	glm::vec3 cp2LinePos = cp0 + 0.6666666666f * vecAB;
+	glm::vec3 v = glm::normalize(glm::cross(glm::vec3(0.f, 1.f, 0.f), unitVecAB));
 
-	glm::vec3 randVec1;
-	randVec1.x = signed_unit_distribution(generator);
-	randVec1.y = signed_unit_distribution(generator);
-	randVec1.z = signed_unit_distribution(generator);
-	randVec1 = glm::normalize(randVec1);
+	if(glm::length(v) < 0.00001f)
+		v = glm::normalize(glm::cross(glm::vec3(1.f, 0.f, 0.f), unitVecAB));
 
-	glm::vec3 randVec2;
-	randVec2.x = signed_unit_distribution(generator);
-	randVec2.y = signed_unit_distribution(generator);
-	randVec2.z = signed_unit_distribution(generator);
-	randVec2 = glm::normalize(randVec2);
+	glm::vec3 u = glm::normalize(cross(v, unitVecAB));
 
-	cp1 = cp1LinePos + (length / 6.f) * randVec1;
-	cp2 = cp2LinePos + (length / 6.f) * randVec2;
+	float radius = length / 4.f;
+
+	glm::mat4 coordFrame = glm::mat4(glm::vec4(u, .0f) * radius,
+		glm::vec4(v, 0.f) * radius,
+		glm::vec4(unitVecAB, 0.f) * radius,
+		glm::vec4(cp0, 1.f));
+	
+	float cp1CirclePt = circle(generator);
+	float cp2CirclePt = circle(generator);
+	glm::vec3 cp1OffsetRingPt = glm::vec3(cosf(cp1CirclePt), sinf(cp1CirclePt), 0.f);
+	glm::vec3 cp2OffsetRingPt = glm::vec3(cosf(cp2CirclePt), sinf(cp2CirclePt), 0.f);
+
+	cp1 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp1OffsetRingPt, 1.f))) + 0.3333333333f * vecAB;
+	cp2 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp2OffsetRingPt, 1.f))) + 0.6666666666f * vecAB;
 
 	splinePath.addPoint(cp0, deltas);
 	splinePath.addPoint(cp1, deltas);

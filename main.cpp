@@ -29,7 +29,7 @@ float cowZ          = 30.f;
 #define FAR 		100.0f 
 using namespace std;
 #define OSC_ANGLE 1.f
-#define REFRESH 5
+#define REFRESH 10
 Stopwatch *aclock;
 
 Settings* settings;
