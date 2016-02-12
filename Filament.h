@@ -16,14 +16,15 @@ public:
 private:
 	void generate(unsigned int nPoints, float spreadFactor);
 	void renderPath();
+	void renderControlPoints();
 
-	SplinePath spline;
-	std::vector< glm::vec3 > splinePath;
+	SplinePath splinePath;
+	std::vector< glm::vec3 > path;
 	float len, deltas;
 
 	glm::vec4 color, highlightColor, completeColor;
 
-	bool showPath, done;
+	bool showPath, showControlPoints, done;
 
 	unsigned int nHighlighted;
 };

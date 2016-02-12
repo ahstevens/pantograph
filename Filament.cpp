@@ -4,7 +4,7 @@
 
 Filament::Filament()
 {
-	showPath = true;
+	showPath = showControlPoints = true;
 	done = false;
 
 	deltas = 0.1f;
@@ -15,16 +15,15 @@ Filament::Filament()
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
 
-	spline.addPoint(glm::vec3(-50.f, 0.f, 0.f), deltas);
-	spline.addPoint(glm::vec3(-25.f, 25.f, -25.f), deltas);
-	spline.addPoint(glm::vec3(25.f, -25.f, 25.f), deltas);
-	spline.addLastPoint(glm::vec3(50.f, 0.f, 0.f));
+	splinePath.addPoint(glm::vec3(-50.f, 0.f, 0.f), deltas);
+	splinePath.addPoint(glm::vec3(-25.f, 25.f, -25.f), deltas);
+	splinePath.addPoint(glm::vec3(25.f, -25.f, 25.f), deltas);
+	splinePath.addLastPoint(glm::vec3(50.f, 0.f, 0.f));
 
-	while (!spline.isEnd())
-		splinePath.push_back(spline.advanceAlongSpline());
+	while (!splinePath.isEnd())
+		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(2000, 20.f);
-	generate(splinePath.size() - 1, 0.f);
+	generate(500, 10.f);
 }
 
 
@@ -77,16 +76,15 @@ Filament::Filament(float length)
 	cp1 = cp1LinePos + (length / 6.f) * randVec1;
 	cp2 = cp2LinePos + (length / 6.f) * randVec2;
 
-	spline.addPoint(cp0, deltas);
-	spline.addPoint(cp1, deltas);
-	spline.addPoint(cp2, deltas);
-	spline.addLastPoint(cp3);
+	splinePath.addPoint(cp0, deltas);
+	splinePath.addPoint(cp1, deltas);
+	splinePath.addPoint(cp2, deltas);
+	splinePath.addLastPoint(cp3);
 
-	while (!spline.isEnd())
-		splinePath.push_back(spline.advanceAlongSpline());
+	while (!splinePath.isEnd())
+		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(2000, 20.f);
-	generate(splinePath.size() - 1, 0.f);
+	generate(500, 10.f);
 }
 
 Filament::~Filament()
@@ -129,7 +127,7 @@ bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 
 void Filament::generate(unsigned int nPoints, float spreadFactor)
 {
-	float pointSpacing = spline.length() / ( nPoints - 1 );
+	float pointSpacing = splinePath.length() / ( nPoints - 1 );
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;
 
@@ -138,7 +136,7 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	std::mt19937 generator(rd());
 	std::uniform_real_distribution <float> distribution(-pointSpacing * spreadFactor, pointSpacing * spreadFactor);
 
-	for (std::vector<glm::vec3>::iterator it = splinePath.begin(); it != (splinePath.end() - 1); ++it)
+	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
 	{
 		glm::vec3 curVec = *(it + 1) - *it;
 		float curVecLen = glm::length(curVec);
@@ -169,12 +167,26 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	}
 }
 
+void Filament::renderControlPoints()
+{
+	glPointSize(4.f);
+	glColor4f(0.4f, 0.2f, 0.8f, 1.f);
+
+	glBegin(GL_POINTS);
+	for (int i = 0; i < 4; ++i)
+	{
+		glm::vec3 cp = splinePath.getPoint(i);
+		glVertex3f(cp.x, cp.y, cp.z);
+	}
+	glEnd();
+}
+
 void Filament::renderPath()
 {
 	std::vector< glm::vec3 >::iterator it;
 	glColor4f(0.f, 0.75f, 0.75f, 1.f);
 	glBegin(GL_LINE_STRIP);
-		for (it = splinePath.begin(); it != splinePath.end(); ++it)
+		for (it = path.begin(); it != path.end(); ++it)
 			glVertex3f(it->x, it->y, it->z);
 	glEnd();
 }
@@ -188,9 +200,11 @@ void Filament::render()
 
 		if(showPath) renderPath();
 
-		glPointSize(2.f);
+		if (showControlPoints) renderControlPoints();
+
+		glPointSize(done?3.f:2.f);
 		glBegin(GL_POINTS);
-			for (auto p : vSample)
+			for (auto& p : vSample)
 			{
 				glColor4fv(glm::value_ptr(p.col));
 				glVertex3fv(glm::value_ptr(p.pos));

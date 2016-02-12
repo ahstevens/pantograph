@@ -605,6 +605,9 @@ void keyboard( unsigned char key, int x, int y )
 	if(key == 'r') { cosmo->resample(1000000); }
 	if(key == 't') { cosmo->resample(1500000); }
 	if(key == 'y') { cosmo->resample(2500000); }
+
+	if (key == 'f') { cosmo->generateFilament(); }
+
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
 	if(key == 'o') cosmo->radius *= 1.05;

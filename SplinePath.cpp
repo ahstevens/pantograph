@@ -6,6 +6,7 @@ SplinePath::SplinePath()
 	interpPoint = glm::vec3(0.f, 0.f, 0.f);
 	previousPoint = glm::vec3(0.f, 0.f, 0.f);
 	justPassed = 0;
+	len = 0.f;
 	t = 0;
 	total_time_ = 0.f;
 	end_ = false;
@@ -38,6 +39,7 @@ void SplinePath::clear()
 	deltas.clear();
 	interpPoint = glm::vec3(0.f, 0.f, 0.f);
 	previousPoint = glm::vec3(0.f, 0.f, 0.f);
+	len = 0.f;
 	justPassed = 0;
 	t = 0;
 	total_time_ = 0.f;

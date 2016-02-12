@@ -17,12 +17,11 @@ Cosmo::Cosmo()
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
 
-	filament = new Filament();
+	filament = nullptr;
 }
 
 Cosmo::~Cosmo()
 {
-	delete filament;
 }
 
 #define POSVEL_T    float
@@ -175,9 +174,10 @@ void Cosmo::read( std::string fileName )
 
 void Cosmo::generateFilament()
 {
-	filament = new Filament(maxDistance*2.f);
+	filament = new Filament(maxDistance * 2.f * 0.666666667f);
 }
 
+// returns distance between origin and farthest (Eucl. distance) particle
 float Cosmo::getMaxDistance(){ return maxDistance; }
 
 void Cosmo::setMovableRotationAxis(glm::vec3 axis)
