@@ -7,9 +7,10 @@ class Filament :
 {
 public:
 	Filament();
+	Filament(float length);
 	~Filament();
 
-	int highlight(glm::vec3 lensPos, float radius_sq);
+	bool highlight(glm::vec3 lensPos, float radius_sq);
 	void render();
 
 private:
@@ -18,7 +19,7 @@ private:
 
 	SplinePath spline;
 	std::vector< glm::vec3 > splinePath;
-	float len;
+	float len, deltas;
 
 	glm::vec4 color, highlightColor, completeColor;
 

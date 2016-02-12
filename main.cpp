@@ -734,6 +734,7 @@ int main(int argc, char *argv[])
 	cosmo->setMovableRotationAngle(1.f);
 	cosmo->setMovableRotationAxisScale(20.f);
 	cosmo->setVelocityMode(false);
+	cosmo->generateFilament();
 
 	vCosmo.push_back(cosmo);
 		    

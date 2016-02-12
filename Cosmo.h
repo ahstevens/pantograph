@@ -55,6 +55,8 @@ class Cosmo: public Object
 
 		void requestDimming();
 
+		void generateFilament();
+
 		void render();
 
 		deque<glm::vec3> centerPoints;

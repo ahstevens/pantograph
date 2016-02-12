@@ -173,6 +173,11 @@ void Cosmo::read( std::string fileName )
 
 }
 
+void Cosmo::generateFilament()
+{
+	filament = new Filament(maxDistance*2.f);
+}
+
 float Cosmo::getMaxDistance(){ return maxDistance; }
 
 void Cosmo::setMovableRotationAxis(glm::vec3 axis)
