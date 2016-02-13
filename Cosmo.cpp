@@ -175,6 +175,7 @@ void Cosmo::read( std::string fileName )
 void Cosmo::generateFilament()
 {
 	filament = new Filament(maxDistance * 2.f * 0.666666667f);
+	setLensSize(filament->getRadius() * 2.f);
 }
 
 // returns distance between origin and farthest (Eucl. distance) particle

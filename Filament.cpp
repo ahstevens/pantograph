@@ -123,10 +123,12 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;
 
+	radius = sqrt(pow(pointSpacing * spreadFactor, 2) * 3);
+	
 	// generate set of random numbers for displacing points along filament spline
 	std::random_device rd;
 	std::mt19937 generator(rd());
-	std::uniform_real_distribution <float> distribution(-pointSpacing * spreadFactor, pointSpacing * spreadFactor);
+	std::uniform_real_distribution <float> distribution(-radius, radius);
 
 	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
 	{
@@ -161,12 +163,17 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 
 float Filament::getLength()
 {
-	float len = 0.f;
+	len = 0.f;
 
 	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
 		len += glm::length(*(it + 1) - *it);
 	
 	return len;
+}
+
+float Filament::getRadius()
+{
+	return radius;
 }
 
 bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
