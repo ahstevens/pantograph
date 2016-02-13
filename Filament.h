@@ -11,6 +11,7 @@ public:
 	~Filament();
 
 	bool highlight(glm::vec3 lensPos, float radius_sq);
+	float getLength();
 	void render();
 
 private:
@@ -22,7 +23,7 @@ private:
 	std::vector< glm::vec3 > path;
 	float len, deltas;
 
-	glm::vec4 color, highlightColor, completeColor;
+	glm::vec4 color, highlightColor, completeColor, primaryTargetColor;
 
 	bool showPath, showControlPoints, done;
 

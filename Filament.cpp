@@ -13,6 +13,7 @@ Filament::Filament()
 
 	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
+	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
 	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
 
 	splinePath.addPoint(glm::vec3(-50.f, 0.f, 0.f), deltas);
@@ -29,7 +30,8 @@ Filament::Filament()
 
 Filament::Filament(float length)
 {
-	showPath = showControlPoints = true;
+	showPath = false;
+	showControlPoints = false;
 	done = false;
 
 	deltas = 0.1f;
@@ -38,6 +40,7 @@ Filament::Filament(float length)
 
 	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
+	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
 	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
 
 	std::random_device rd;
@@ -66,7 +69,7 @@ Filament::Filament(float length)
 
 	glm::vec3 u = glm::normalize(cross(v, unitVecAB));
 
-	float radius = length / 4.f;
+	float radius = length / 10.f;
 
 	glm::mat4 coordFrame = glm::mat4(glm::vec4(u, .0f) * radius,
 		glm::vec4(v, 0.f) * radius,
@@ -89,7 +92,8 @@ Filament::Filament(float length)
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(500, 10.f);
+	generate(500, 5.f);
+	generate(path.size(), 0.f);
 }
 
 Filament::~Filament()
@@ -97,42 +101,25 @@ Filament::~Filament()
 
 }
 
-bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
-{
-	if (!done)
-	{
-		if (nHighlighted == vSample.size() && !done)
-		{
-			for (auto& p : vSample)
-				p.col = completeColor;
-
-			done = true;
-		}
-		else
-			for (auto& p : vSample)
-			{
-				float dist_sq;
-				glm::vec3 end;
-
-				dist_sq = sphereTest(lensPos, radius_sq, p.pos);
-
-				// if the point is within the sphere
-				if (dist_sq >= 0.f && !p.highlighted)
-				{
-					p.col = highlightColor;
-					p.highlighted = true;
-					nHighlighted++;
-					std::cout << "Highlighted " << nHighlighted << " of " << vSample.size() << " target particles (" << ((float)nHighlighted / (float)vSample.size()) * 100.f << "%)" << std::endl;
-				}
-			}
-	}
-
-	return done;
-}
-
 void Filament::generate(unsigned int nPoints, float spreadFactor)
 {
-	float pointSpacing = splinePath.length() / ( nPoints - 1 );
+	// hack to just place points along path vertices
+	if (spreadFactor < 0.0001f)
+	{
+		Particle tempPart;
+		tempPart.col = primaryTargetColor;
+		tempPart.highlighted = false;
+
+		for (auto& p : path)
+		{
+			tempPart.pos = p;
+			vSample.push_back(tempPart);
+		}
+
+		return;
+	}
+
+	float pointSpacing = getLength() / ( nPoints - 1 );
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;
 
@@ -172,6 +159,49 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	}
 }
 
+float Filament::getLength()
+{
+	float len = 0.f;
+
+	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
+		len += glm::length(*(it + 1) - *it);
+	
+	return len;
+}
+
+bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
+{
+	if (!done)
+	{
+		if (nHighlighted == vSample.size() && !done)
+		{
+			for (auto& p : vSample)
+				p.col = completeColor;
+
+			done = true;
+		}
+		else
+			for (auto& p : vSample)
+			{
+				float dist_sq;
+				glm::vec3 end;
+
+				dist_sq = sphereTest(lensPos, radius_sq, p.pos);
+
+				// if the point is within the sphere
+				if (dist_sq >= 0.f && !p.highlighted)
+				{
+					p.col = highlightColor;
+					p.highlighted = true;
+					nHighlighted++;
+					std::cout << "Highlighted " << nHighlighted << " of " << vSample.size() << " target particles (" << ((float)nHighlighted / (float)vSample.size()) * 100.f << "%)" << std::endl;
+				}
+			}
+	}
+
+	return done;
+}
+
 void Filament::renderControlPoints()
 {
 	glPointSize(6.f);
@@ -186,7 +216,7 @@ void Filament::renderControlPoints()
 void Filament::renderPath()
 {
 	std::vector< glm::vec3 >::iterator it;
-	glColor4f(0.f, 0.75f, 0.75f, 1.f);
+	glColor4f(0.f, 0.75f, 0.75f, 0.7f);
 	glBegin(GL_LINE_STRIP);
 		for (it = path.begin(); it != path.end(); ++it)
 			glVertex3f(it->x, it->y, it->z);
