@@ -455,6 +455,9 @@ void mouseButton(int button, int state, int x, int y)
 			settings->dimmingRequested = true;
 			//cosmo->setAxisMode(true);
 			cosmo->setLensMode(true);
+
+			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
+			mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
 		}
 		else
 		{
