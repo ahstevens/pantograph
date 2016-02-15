@@ -246,6 +246,11 @@ void Cosmo::setLensSize(float radius)
 	this->sphereLensRadius = radius;
 }
 
+float Cosmo::getLensSize()
+{
+	return this->sphereLensRadius * scale.x;
+}
+
 void Cosmo::setBrightness(float brightness)
 {
 	this->normalBrightness = brightness;
@@ -503,7 +508,7 @@ void Cosmo::render()
 		if (lensMode)
 		{
 			renderLens();
-			filament->setBrightness(lensOuterBrightness + (lensBrightnessRange() * brightnessRatio));
+			filament->setBrightness((lensOuterBrightness + (lensBrightnessRange() * brightnessRatio))*2.f);
 		}
 		else
 		{
@@ -512,7 +517,7 @@ void Cosmo::render()
 			else
 				renderPoints();
 
-			filament->setBrightness(normalBrightness);
+			filament->setBrightness(normalBrightness*2.f);
 		}
 		
 			filament->render();

@@ -27,6 +27,7 @@ class Cosmo: public Object
 		void setLensPosition(glm::vec3 pos);
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
+		float getLensSize();
 
 		void setBrightness(float brightness);
 		void setLensBrightnessRange(float inner, float outer);

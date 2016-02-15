@@ -26,7 +26,7 @@ Filament::Filament()
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(500, 10.f);
+	generate(1000, 5.f);
 }
 
 
@@ -97,7 +97,7 @@ Filament::Filament(float length)
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(500, 5.f);
+	generate(1000, 5.f);
 	//generate(path.size(), 0.f);
 }
 

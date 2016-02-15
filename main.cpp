@@ -321,6 +321,8 @@ void drawScene(int eye) //0=left or mono, 1=right
 		glBegin(GL_POINTS);
 			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
 		glEnd();
+
+		drawVolumeCursor(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2], cosmo->getLensSize());
 	}
 
 	touchManager->draw3D();

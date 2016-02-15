@@ -324,17 +324,9 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 						if (pantograph->isOnAcceptBubble(x,y))
 						{
 							//make selection
-							settings->toProcessCode.push_back(ADD_PRECISE_DYEPOT);
-							//pantograph->recalcSelection();
 							float sDepth;
 							pantograph->getDepthFactor(&sDepth);
-							//pantograph->getSelection(&sX,&sY,&sZ);
-							settings->toProcessX.push_back(settings->currentlySelectedPoint[0]);
-							settings->toProcessY.push_back(settings->currentlySelectedPoint[1]);
-							settings->toProcessZ.push_back(settings->currentlySelectedPoint[2]);
-							//settings->toProcessX.push_back(settings->positioningModelCoords[0]);
-							//settings->toProcessY.push_back(settings->positioningModelCoords[1]);
-							//settings->toProcessZ.push_back(settings->positioningModelCoords[2] * sDepth);
+
 							//reset
 							settings->pantographMode = false;
 							firstFingerID = -1;
