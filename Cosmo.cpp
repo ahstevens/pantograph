@@ -178,6 +178,11 @@ void Cosmo::generateFilament()
 	setLensSize(filament->getRadius() * 2.f);
 }
 
+unsigned int Cosmo::getRemainingTargets()
+{
+	return filament->getTargetCount() - filament->getHighlightedCount();
+}
+
 // returns distance between origin and farthest (Eucl. distance) particle
 float Cosmo::getMaxDistance(){ return maxDistance; }
 
@@ -493,17 +498,24 @@ void Cosmo::render()
 		// cursor trails
 		if (showTrails)
 			renderCursorTrails();
-		
-		filament->render();
 				
 		// cosmos
 		if (lensMode)
+		{
 			renderLens();
+			filament->setBrightness(lensOuterBrightness + (lensBrightnessRange() * brightnessRatio));
+		}
 		else
+		{
 			if (velocityMode)
 				renderVelocities();
 			else
 				renderPoints();
+
+			filament->setBrightness(normalBrightness);
+		}
+		
+			filament->render();
 		//--------------------------------------------------
 	glPopMatrix();
 }

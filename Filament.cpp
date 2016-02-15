@@ -9,9 +9,11 @@ Filament::Filament()
 
 	deltas = 0.1f;
 
+	brightness = 1.f;
+
 	nHighlighted = 0;
 
-	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
+	color = glm::vec4(1.f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
 	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
@@ -36,9 +38,11 @@ Filament::Filament(float length)
 
 	deltas = 0.1f;
 
+	brightness = 1.f;
+
 	nHighlighted = 0;
 
-	color = glm::vec4(0.8f, 0.1f, 0.1f, 1.f);
+	color = glm::vec4(1.f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
 	completeColor = glm::vec4(0.f, 1.f, 0.f, 1.f);
@@ -47,8 +51,9 @@ Filament::Filament(float length)
 	std::mt19937 generator(rd());
 	std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
 	std::uniform_real_distribution<float> signed_unit_distribution(-1.f, 1.f);
-	//std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
+	std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
 	std::uniform_real_distribution<float> circle(0.f, 2.f * (float)M_PI);
+	std::uniform_real_distribution<float> splineFactor(3.f, 10.f);
 
 		
 	glm::vec3 cp0, cp1, cp2, cp3;
@@ -69,7 +74,7 @@ Filament::Filament(float length)
 
 	glm::vec3 u = glm::normalize(cross(v, unitVecAB));
 
-	float radius = length / 10.f;
+	float radius = length / splineFactor(generator);
 
 	glm::mat4 coordFrame = glm::mat4(glm::vec4(u, .0f) * radius,
 		glm::vec4(v, 0.f) * radius,
@@ -81,8 +86,8 @@ Filament::Filament(float length)
 	glm::vec3 cp1OffsetRingPt = glm::vec3(cosf(cp1CirclePt), sinf(cp1CirclePt), 0.f);
 	glm::vec3 cp2OffsetRingPt = glm::vec3(cosf(cp2CirclePt), sinf(cp2CirclePt), 0.f);
 
-	cp1 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp1OffsetRingPt, 1.f))) + 0.3333333333f * vecAB;
-	cp2 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp2OffsetRingPt, 1.f))) + 0.6666666666f * vecAB;
+	cp1 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp1OffsetRingPt, 1.f))) + (midCP(generator)) * vecAB;
+	cp2 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp2OffsetRingPt, 1.f))) + (0.5f + midCP(generator)) * vecAB;
 
 	splinePath.addPoint(cp0, deltas);
 	splinePath.addPoint(cp1, deltas);
@@ -93,7 +98,7 @@ Filament::Filament(float length)
 		path.push_back(splinePath.advanceAlongSpline());
 
 	generate(500, 5.f);
-	generate(path.size(), 0.f);
+	//generate(path.size(), 0.f);
 }
 
 Filament::~Filament()
@@ -176,6 +181,22 @@ float Filament::getRadius()
 	return radius;
 }
 
+void Filament::setBrightness(float brightness)
+{
+	this->brightness = brightness;
+}
+
+
+unsigned int Filament::getHighlightedCount()
+{
+	return nHighlighted;
+}
+
+unsigned int Filament::getTargetCount()
+{
+	return vSample.size();
+}
+
 bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 {
 	if (!done)
@@ -245,7 +266,8 @@ void Filament::render()
 		glBegin(GL_POINTS);
 			for (auto& p : vSample)
 			{
-				glColor4fv(glm::value_ptr(p.col));
+				glm::vec4 col = p.highlighted ? p.col : glm::vec4(glm::vec3(p.col), brightness);
+				glColor4f(col.r, col.g, col.b, col.a);
 				glVertex3fv(glm::value_ptr(p.pos));
 			}
 		glEnd();

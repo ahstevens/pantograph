@@ -357,14 +357,11 @@ void drawOverlay()
 		fps = 0;
 		lastTime = currentTime;
 	}
-	sprintf(buffer, "FPS: %d", lastfps);
+	
+	sprintf(buffer, "Targets Remaining: %u", cosmo->getRemainingTargets());
 	glColor3f(1, 1, 1);
-	glLineWidth(1);
-	drawStrokeLabel3D(glutGet(GLUT_WINDOW_WIDTH) - 50, 2, 0, 0.075, buffer);
-
-	glColor3f(1, 1, 1);
-	glLineWidth(1);
-	drawStrokeLabel3D(glutGet(GLUT_WINDOW_WIDTH) - 150, 2, 0, 0.075, buffer);
+	glLineWidth(10);
+	drawStrokeLabel3D(20, 20, 0, 0.5, buffer);
 	
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
@@ -732,7 +729,7 @@ int main(int argc, char *argv[])
 	cosmo->resample(50000);
 	cosmo->setScale(scale);
 	cosmo->setBrightness(0.2f);
-	cosmo->setLensBrightnessRange(0.9f, 0.1f);
+	cosmo->setLensBrightnessRange(0.9f, 0.05f);
 	cosmo->setLensSize(5.f);
 	cosmo->setAxisLensSize(5.f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);

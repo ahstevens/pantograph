@@ -57,6 +57,8 @@ class Cosmo: public Object
 
 		void generateFilament();
 
+		unsigned int getRemainingTargets();
+
 		void render();
 
 		deque<glm::vec3> centerPoints;

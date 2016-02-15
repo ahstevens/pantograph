@@ -13,6 +13,9 @@ public:
 	bool highlight(glm::vec3 lensPos, float radius_sq);
 	float getLength();
 	float getRadius();
+	void setBrightness(float brightness);
+	unsigned int getHighlightedCount();
+	unsigned int getTargetCount();
 	void render();
 
 private:
@@ -22,7 +25,7 @@ private:
 
 	SplinePath splinePath;
 	std::vector< glm::vec3 > path;
-	float len, radius, deltas;
+	float len, radius, deltas, brightness;
 
 	glm::vec4 color, highlightColor, completeColor, primaryTargetColor;
 
