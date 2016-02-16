@@ -63,19 +63,11 @@ void drawBox( float x, float y, float sizeX, float sizeY, bool solid )
 	}
 	else
 	{
-		glBegin( GL_LINES );
-			//top right to top left
+		glBegin( GL_LINE_LOOP );
+			glVertex2f(x, y);
 			glVertex2f( x, y + sizeY );
 			glVertex2f( x + sizeX, y + sizeY );
-			//top left to bottom left
-			glVertex2f( x + sizeX, y + sizeY );
-			glVertex2f( x + sizeX, y );
-			//bottom left to bottom right
-			glVertex2f( x + sizeX, y );
-			glVertex2f( x, y );
-			//bottom right to top left
-			glVertex2f( x, y );
-			glVertex2f( x, y + sizeY );			
+			glVertex2f( x + sizeX, y );			
 		glEnd();
 	}
 }//end drawBox

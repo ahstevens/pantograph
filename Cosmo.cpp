@@ -386,8 +386,6 @@ void Cosmo::renderLens()
 
 	filament->highlight(lensPos, radius_sq);
 
-	cout << "Cursor is " << filament->getDistFromClosestVertexTo(lensPos) << " units away form filament" << endl;
-
 	// render the data
 	glPointSize(2.f);
 	glBegin(GL_POINTS);
@@ -518,7 +516,6 @@ void Cosmo::render()
 			else
 				renderPoints();
 
-			if (filament->getHighlightedCount() == filament->getTargetCount()) generateFilament();
 			filament->setBrightness(normalBrightness*2.f);
 		}
 		

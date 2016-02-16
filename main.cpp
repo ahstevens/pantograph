@@ -89,6 +89,9 @@ std::vector<Cosmo*> vCosmo;
 #define TRANS_FRAMES 40
 int transTimer;
 
+glm::vec2 advanceButtonPosMouse = glm::vec2(0.f, 0.f);
+glm::vec2 advanceButtonDimMouse = glm::vec2(500.f, 250.f);
+
 
 void transition()  // used to translate smoothly
 {	
@@ -345,6 +348,9 @@ void drawOverlay()
 	glDisable(GL_LIGHTING);
 
 	touchManager->draw2D();
+
+	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode)
+		drawBox(glutGet(GLUT_WINDOW_WIDTH)/2.f - advanceButtonDimMouse.x/2.f, glutGet(GLUT_WINDOW_HEIGHT)/2.f - advanceButtonDimMouse.y/2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
 
 	static float fps = 0.0f;
 	static float lastTime = 0.0f;
