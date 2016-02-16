@@ -45,4 +45,6 @@ void Settings::resetToDefaults()
 	dimmingRequested = false;
 
 	transitionRequested = false;
+
+	transitionOnLensExit = true;
 }

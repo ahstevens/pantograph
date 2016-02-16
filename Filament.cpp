@@ -230,6 +230,53 @@ bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 	return done;
 }
 
+float Filament::getDistFromClosestVertexTo(glm::vec3 p)
+{
+	glm::vec3 minVec = path[0] - p;
+	float min = minVec.x * minVec.x + minVec.y * minVec.y + minVec.z * minVec.z;
+	unsigned int minIndex = 0;
+
+	for (unsigned int i = 0; i < path.size(); ++i)
+	{
+		glm::vec3 tempVec = path.at(i) - p;
+		float temp = tempVec.x * tempVec.x + tempVec.y * tempVec.y + tempVec.z * tempVec.z;
+		if (temp < min)
+		{
+			min = temp;
+			minVec = tempVec;
+			minIndex = i;
+		}
+	}
+
+	float dist = -1.f;
+
+	if (minIndex > 0)
+	{
+		glm::vec3 ptToPrev = p - path.at(minIndex - 1);
+		glm::vec3 ptToClosest = p - path.at(minIndex);
+		glm::vec3 lineVec = path.at(minIndex) - path.at(minIndex - 1);
+
+		dist = glm::length(glm::cross(ptToPrev, ptToClosest)) / glm::length(lineVec);
+	}
+	
+	if (minIndex < path.size() - 1)
+	{
+		glm::vec3 ptToNext = p - path.at(minIndex + 1);
+		glm::vec3 ptToClosest = p - path.at(minIndex);
+		glm::vec3 lineVec = path.at(minIndex) - path.at(minIndex + 1);
+
+		if(dist < 0.f)
+			dist = glm::length(glm::cross(ptToClosest, ptToNext)) / glm::length(lineVec);
+		else
+		{
+			float tempDist = glm::length(glm::cross(ptToClosest, ptToNext)) / glm::length(lineVec);
+			if (tempDist < dist) dist = tempDist;
+		}
+	}
+
+	return dist;
+}
+
 void Filament::renderControlPoints()
 {
 	glPointSize(6.f);

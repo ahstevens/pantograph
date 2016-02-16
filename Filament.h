@@ -11,6 +11,7 @@ public:
 	~Filament();
 
 	bool highlight(glm::vec3 lensPos, float radius_sq);
+	float getDistFromClosestVertexTo(glm::vec3 p);
 	float getLength();
 	float getRadius();
 	void setBrightness(float brightness);

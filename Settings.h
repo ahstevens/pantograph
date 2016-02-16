@@ -80,6 +80,8 @@ public:
 
 	bool dimmingRequested, transitionRequested;
 
+	bool transitionOnLensExit;
+
 private:
 
 };

@@ -265,7 +265,7 @@ void perRenderUpdates()
 		settings->dimmingRequested = false;
 	}
 
-	transition();
+	if(settings->transitionOnLensExit) transition();
 
 	rt = timer % (REFRESH * 2); // 60 Hz on 60 Hz machine
 
@@ -447,23 +447,26 @@ void mouseButton(int button, int state, int x, int y)
 		holdMx = rx;
 		holdMy = ry;
 
-		settings->mouseMode = !settings->mouseMode;
-
-		if (settings->mouseMode)
+		if(!settings->pantographMode)
 		{
-			settings->dimmingRequested = true;
-			//cosmo->setAxisMode(true);
-			cosmo->setLensMode(true);
+			settings->mouseMode = !settings->mouseMode;
 
-			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
-			mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
-		}
-		else
-		{
-			settings->dimmingRequested = false;
-			//cosmo->setAxisMode(false);
-			cosmo->setLensMode(false);
-			settings->transitionRequested = true;
+			if (settings->mouseMode)
+			{
+				settings->dimmingRequested = true;
+				//cosmo->setAxisMode(true);
+				cosmo->setLensMode(true);
+
+				mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
+				mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
+			}
+			else
+			{
+				settings->dimmingRequested = false;
+				//cosmo->setAxisMode(false);
+				cosmo->setLensMode(false);
+				settings->transitionRequested = true;
+			}
 		}
 	}
 
@@ -555,7 +558,7 @@ void reset_values()
 
 void keyboard( unsigned char key, int x, int y )
 {
-	cerr << "Key " << key << " int " << int(key) << "\n";
+	//cerr << "Key " << key << " int " << int(key) << "\n";
 
 	if(key == 'q') exit(0);
 	if(key == ',') { 
@@ -605,12 +608,12 @@ void keyboard( unsigned char key, int x, int y )
 	if(key == 'w') { cosmo->resample(100000); }
 	if(key == 'e') { cosmo->resample(100000); }
 	if(key == 'r') { cosmo->resample(1000000); }
-	if(key == 't') { cosmo->resample(1500000); }
+	if (key == 't') { settings->transitionOnLensExit = !settings->transitionOnLensExit; cout << "Transition on lens exit set to " << settings->transitionOnLensExit << endl; }
 	if(key == 'y') { cosmo->resample(2500000); }
 
 	if (key == 'f') { cosmo->generateFilament(); }
-	if (key == '-') { if (eyeOffset - 0.1f >= 0.f) eyeOffset -= 0.1f; else eyeOffset = 0.f; cout << "eyeOffset = " << eyeOffset << endl; }
-	if (key == '=') { eyeOffset+=0.1f; cout << "eyeOffset = " << eyeOffset << endl; }
+	if (key == '-') { if (eyeOffset - 0.01f >= 0.f) eyeOffset -= 0.01f; else eyeOffset = 0.f; cout << "eyeOffset = " << eyeOffset << endl; }
+	if (key == '=') { eyeOffset+=0.01f; cout << "eyeOffset = " << eyeOffset << endl; }
 
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
