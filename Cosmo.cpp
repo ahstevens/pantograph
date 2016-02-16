@@ -516,6 +516,7 @@ void Cosmo::render()
 			else
 				renderPoints();
 
+			if (filament->getHighlightedCount() == filament->getTargetCount()) generateFilament();
 			filament->setBrightness(normalBrightness*2.f);
 		}
 		

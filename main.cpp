@@ -74,7 +74,7 @@ bool stereo = true;
 
 #define QUAD_BUFFER true
 //float eyeOffset     = 3.25f * 10.0f/16.8f;
-const float eyeOffset     = 0.25f;
+float eyeOffset     = 0.25f;
 
 //---------------------------------------------------------------------------- 
 
@@ -609,6 +609,8 @@ void keyboard( unsigned char key, int x, int y )
 	if(key == 'y') { cosmo->resample(2500000); }
 
 	if (key == 'f') { cosmo->generateFilament(); }
+	if (key == '-') { if (eyeOffset - 0.1f >= 0.f) eyeOffset -= 0.1f; else eyeOffset = 0.f; cout << "eyeOffset = " << eyeOffset << endl; }
+	if (key == '=') { eyeOffset+=0.1f; cout << "eyeOffset = " << eyeOffset << endl; }
 
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
@@ -731,7 +733,7 @@ int main(int argc, char *argv[])
 	cosmo->resample(50000);
 	cosmo->setScale(scale);
 	cosmo->setBrightness(0.2f);
-	cosmo->setLensBrightnessRange(0.9f, 0.2f);
+	cosmo->setLensBrightnessRange(0.9f, 0.1f);
 	cosmo->setLensSize(5.f);
 	cosmo->setAxisLensSize(5.f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);

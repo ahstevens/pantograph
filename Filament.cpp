@@ -109,7 +109,7 @@ Filament::~Filament()
 void Filament::generate(unsigned int nPoints, float spreadFactor)
 {
 	// hack to just place points along path vertices
-	if (spreadFactor < 0.0001f)
+	if (spreadFactor < 0.001f)
 	{
 		Particle tempPart;
 		tempPart.col = primaryTargetColor;
@@ -128,7 +128,7 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	float leftover, offset, traversedLength;
 	leftover = offset = traversedLength = 0.f;
 
-	radius = sqrt(pow(pointSpacing * spreadFactor, 2) * 3);
+	radius = sqrt(pow(spreadFactor/10.f, 2) * 3);
 	
 	// generate set of random numbers for displacing points along filament spline
 	std::random_device rd;
