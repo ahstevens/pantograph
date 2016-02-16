@@ -26,7 +26,7 @@ Filament::Filament()
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(1000, 5.f);
+	//generate(500, 5.f);
 }
 
 
@@ -53,7 +53,7 @@ Filament::Filament(float length)
 	std::uniform_real_distribution<float> signed_unit_distribution(-1.f, 1.f);
 	std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
 	std::uniform_real_distribution<float> circle(0.f, 2.f * (float)M_PI);
-	std::uniform_real_distribution<float> splineFactor(3.f, 10.f);
+	std::uniform_real_distribution<float> splineFactor(2.f, 10.f);
 
 		
 	glm::vec3 cp0, cp1, cp2, cp3;
@@ -97,7 +97,7 @@ Filament::Filament(float length)
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(1000, 5.f);
+	generate(500, 5.f);
 	//generate(path.size(), 0.f);
 }
 

@@ -74,7 +74,7 @@ bool stereo = true;
 
 #define QUAD_BUFFER true
 //float eyeOffset     = 3.25f * 10.0f/16.8f;
-const float eyeOffset     = 0.5f;
+const float eyeOffset     = 0.25f;
 
 //---------------------------------------------------------------------------- 
 
@@ -310,14 +310,14 @@ void drawScene(int eye) //0=left or mono, 1=right
 	if (settings->pantographMode || settings->mouseMode)
 	{
 		glLineWidth(2);
-		glColor4f(0.8, 0.8, 0.95, 1.0);
+		glColor4f(0.8, 0.8, 0.95, 0.25);
 		glBegin(GL_LINES);
 			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->worldDepths[1]);
 			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->worldDepths[0]);
 		glEnd();
 
 		glColor4f(1.0, 1.0, 0.25, 1.0);
-		glPointSize(6);
+		glPointSize(4);
 		glBegin(GL_POINTS);
 			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
 		glEnd();
@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
 	cosmo->resample(50000);
 	cosmo->setScale(scale);
 	cosmo->setBrightness(0.2f);
-	cosmo->setLensBrightnessRange(0.9f, 0.05f);
+	cosmo->setLensBrightnessRange(0.9f, 0.2f);
 	cosmo->setLensSize(5.f);
 	cosmo->setAxisLensSize(5.f);
 	cosmo->setMovableRotationCenter(0.f, 0.f, 0.f);

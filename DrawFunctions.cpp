@@ -697,9 +697,11 @@ void drawVolumeCursor(float x, float y, float z, float radius)
 	gluQuadricTexture(sphere, GL_TRUE);
 	gluQuadricOrientation(sphere, GLU_OUTSIDE);
 
+	boolean blendAlreadyOn;
+	glGetBooleanv(GL_BLEND, &blendAlreadyOn);
 
 	//draw 3d volumetric cursor
-	glEnable(GL_BLEND);
+	if(!blendAlreadyOn) glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPushMatrix();
 		glTranslatef(x, y, z);
@@ -738,7 +740,7 @@ void drawVolumeCursor(float x, float y, float z, float radius)
 		glEnd();
 
 	glPopMatrix();
-	glDisable(GL_BLEND);
+	if(!blendAlreadyOn) glDisable(GL_BLEND);
 }
 
 void drawAxes(float scale)

@@ -174,7 +174,7 @@ void Cosmo::read( std::string fileName )
 
 void Cosmo::generateFilament()
 {
-	filament = new Filament(maxDistance * 2.f * 0.666666667f);
+	filament = new Filament(maxDistance / 2.f);
 	setLensSize(filament->getRadius() * 2.f);
 }
 
@@ -316,10 +316,9 @@ void Cosmo::getMV(double *mv)
 
 void Cosmo::dim()
 {
-	float t = (float)dimTimer / (float)DIM_FRAMES;
-
 	if (dimTimer >= 0)
 	{
+		float t = (float)dimTimer / (float)DIM_FRAMES;
 		brightnessRatio = t;
 		--dimTimer;
 	}
@@ -430,7 +429,7 @@ void Cosmo::renderLens()
 					continue; // nothing else to do, so short-circuit to next for loop iteration
 				}
 				else // current lens renders particle points
-					glColor4f(1.f, 1.f, 1.f, lensInnerBrightness * (1.f - sqrtf(dist_sq)/radius));
+					glColor4f(1.f, 1.f, 1.f, lensInnerBrightness * (1.f - sqrtf(dist_sq) / radius));
 			else // point is not in sphere
 				glColor4f(1.f, 1.f, 1.f, lensOuterBrightness + ( lensBrightnessRange() * brightnessRatio ));
 
@@ -471,8 +470,8 @@ void Cosmo::renderVelocities()
 void Cosmo::renderPoints()
 {
 	glPointSize(2.f);
-	glColor4f(1.f, 1.f, 1.f, normalBrightness);
 	glBindVertexArray(vaoID);
+	glColor4f(1.f, 1.f, 1.f, normalBrightness);
 	glDrawArrays(GL_POINTS, 0, numberOfPoints);
 	glBindVertexArray(0);
 }
