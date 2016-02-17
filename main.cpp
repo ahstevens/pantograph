@@ -89,8 +89,10 @@ std::vector<Cosmo*> vCosmo;
 #define TRANS_FRAMES 40
 int transTimer;
 
-glm::vec2 advanceButtonPosMouse = glm::vec2(0.f, 0.f);
-glm::vec2 advanceButtonDimMouse = glm::vec2(500.f, 250.f);
+const glm::vec4 advanceButtonColor = glm::vec4(0.f, 6.f, 3.f, 0.5f);
+glm::vec2 advanceButtonPos;
+glm::vec2 advanceButtonDim = glm::vec2(200.f, 100.f);
+bool buttonActive = false;
 
 
 void transition()  // used to translate smoothly
@@ -349,8 +351,12 @@ void drawOverlay()
 
 	touchManager->draw2D();
 
-	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode)
-		drawBox(glutGet(GLUT_WINDOW_WIDTH)/2.f - advanceButtonDimMouse.x/2.f, glutGet(GLUT_WINDOW_HEIGHT)/2.f - advanceButtonDimMouse.y/2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
+	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
+	{
+		glColor4fv(glm::value_ptr(advanceButtonColor));
+		//drawBox(glutGet(GLUT_WINDOW_WIDTH) / 2.f - advanceButtonDimMouse.x / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f - advanceButtonDimMouse.y / 2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
+		drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
+	}
 
 	static float fps = 0.0f;
 	static float lastTime = 0.0f;
@@ -546,6 +552,18 @@ void motion(int x, int y)
 	}
 }
 
+// called when a mouse is in motion with a button down
+void passiveMotion(int x, int y)
+{
+	rx = float(x); ry = float(winHeight - y);
+
+	if (rx <= advanceButtonPos.x + advanceButtonDim.x / 2.f && rx >= advanceButtonPos.x - advanceButtonDim.x / 2.f &&
+		ry <= advanceButtonPos.y + advanceButtonDim.y / 2.f && ry >= advanceButtonPos.y - advanceButtonDim.y / 2.f)
+		buttonActive = true;
+	else
+		buttonActive = false;
+}
+
 void reset_values()
 {
 	timer = 0;
@@ -635,6 +653,9 @@ void reshape(int w, int h)
 	//std::cout << "aspect: " << aspect << std::endl;
 
 	winWidth = w, winHeight = h;
+	
+	advanceButtonPos = glm::vec2(winWidth / 2.f, winHeight / 2.f);
+
 	glViewport(0,0,winWidth,winHeight);
 
 	glMatrixMode(GL_PROJECTION);
@@ -675,6 +696,9 @@ void init(void)
 {
 	leftMouseDown = false;
 	rightMouseDown = false;
+
+	// trial advance buttons in center of screen
+	advanceButtonPos = glm::vec2(glutGet(GLUT_WINDOW_WIDTH) / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f);
 
 	srand(time(NULL));
 	settings = new Settings();
@@ -765,6 +789,7 @@ int main(int argc, char *argv[])
     //---------------------------------------------------------------------------
     // directly redirect GLUT events to AntTweakBar
     glutMotionFunc(motion);
+	glutPassiveMotionFunc(passiveMotion);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouseButton);
     glutSpecialFunc(specialFunction);

@@ -325,23 +325,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 						//check if on accept/select/deselect button
 						if (pantograph->isOnAcceptBubble(x,y))
 						{
-							//make selection
-							float sDepth;
-							pantograph->getDepthFactor(&sDepth);
-
-							//reset
-							settings->pantographMode = false;
-							firstFingerID = -1;
-							firstFingerX = -1;
-							firstFingerY = -1;
-							secondFingerID = -1;
-							secondFingerX = -1;
-							secondFingerY = -1;
-							pantograph->resetFingers();
-							settings->positioningXYFingerLocation[0] = -1;
-							settings->positioningXYFingerLocation[1] = -1;
-							return;
-							
+							return;						
 						}//end if on accept button
 					}
 				}//end if second finger set previously
@@ -351,31 +335,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 			{
 				//check if on accept/select/deselect button
 				if (pantograph->isOnAcceptBubble(x,y))
-				{
-					//printf("SELECT BUTTON PRESSED\n");
-					//make selection
-					settings->toProcessCode.push_back(ADD_PRECISE_DYEPOT);
-					//pantograph->recalcSelection();
-					float sDepth;
-					pantograph->getDepthFactor(&sDepth);
-					settings->toProcessX.push_back(settings->currentlySelectedPoint[0]);
-					settings->toProcessY.push_back(settings->currentlySelectedPoint[1]);
-					settings->toProcessZ.push_back(settings->currentlySelectedPoint[2]);
-					
-					//settings->toProcessX.push_back(settings->positioningModelCoords[0]);
-					//settings->toProcessY.push_back(settings->positioningModelCoords[1]);
-					//settings->toProcessZ.push_back(settings->positioningModelCoords[2] * sDepth);
-					//reset
-					//settings->positioningDyePotPantograph = false;
-					//firstFingerID = -1;
-					//firstFingerX = -1;
-					//firstFingerY = -1;
-					//secondFingerID = -1;
-					//secondFingerX = -1;
-					//secondFingerY = -1;
-					//pantograph->resetFingers();
-					//settings->positioningXYFingerLocation[0] = -1;
-					//settings->positioningXYFingerLocation[1] = -1;
+				{					
 					return;
 				}//end if on accept button
 			}//end else if third (or higher) finger
