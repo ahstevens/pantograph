@@ -46,5 +46,5 @@ void Settings::resetToDefaults()
 
 	transitionRequested = false;
 
-	transitionOnLensExit = true;
+	transitionOnLensExit = false;
 }

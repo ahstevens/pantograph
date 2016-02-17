@@ -441,6 +441,9 @@ void mouseButton(int button, int state, int x, int y)
 		leftMouseDown = true;
 		holdMy = float(y);
 
+		if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode && isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
+			cosmo->generateFilament();
+
 		if (settings->mouseMode)
 		{
 			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
@@ -557,11 +560,13 @@ void passiveMotion(int x, int y)
 {
 	rx = float(x); ry = float(winHeight - y);
 
-	if (rx <= advanceButtonPos.x + advanceButtonDim.x / 2.f && rx >= advanceButtonPos.x - advanceButtonDim.x / 2.f &&
-		ry <= advanceButtonPos.y + advanceButtonDim.y / 2.f && ry >= advanceButtonPos.y - advanceButtonDim.y / 2.f)
-		buttonActive = true;
-	else
-		buttonActive = false;
+	//if (rx <= advanceButtonPos.x + advanceButtonDim.x / 2.f && rx >= advanceButtonPos.x - advanceButtonDim.x / 2.f &&
+	//	ry <= advanceButtonPos.y + advanceButtonDim.y / 2.f && ry >= advanceButtonPos.y - advanceButtonDim.y / 2.f)
+	//	buttonActive = true;
+	//else
+	//	buttonActive = false;
+
+	buttonActive = isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true);
 }
 
 void reset_values()

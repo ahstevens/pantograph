@@ -749,3 +749,11 @@ void drawAxes(float scale)
 	glVertex3f(0.f, 0.f, scale);
 	glEnd();
 }
+
+bool isOnButton(float mX, float mY, float bX, float bY, float bW, float bH, bool centered)
+{
+	if(centered)
+		return mX <= bX + bW / 2.f && mX >= bX - bW / 2.f && mY <= bY + bH / 2.f && mY >= bY - bH / 2.f;
+	else
+		return mX >= bX && mX <= bX + bW && mY >= bY && mY <= bY + bH;
+}

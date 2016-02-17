@@ -50,3 +50,5 @@ void drawArcScale(float centerX, float centerY, float radius, float startAngle, 
 void drawVolumeCursor(float x, float y, float z, float radius);
 
 void drawAxes(float scale);
+
+bool isOnButton(float mX, float mY, float bX, float bY, float bW, float bH, bool centered);
