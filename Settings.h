@@ -34,6 +34,10 @@ public:
 	struct Study {
 		enum MODE { MOUSE = 0, PANTO = 1 };
 
+		struct Record {
+			std::string *participant;
+		};
+
 		std::string participant;
 		unsigned int trial;
 		unsigned int block;
@@ -42,13 +46,17 @@ public:
 
 		unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
 
+		std::vector<Record> log;
+
 		void init(unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
 		{
 			trial = block = replicate = 0;
-
+			
 			std::random_device rd;
 			std::mt19937 generator(rd());
-			std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
+			std::uniform_int_distribution<int> boolDist(0, 1);
+
+			currentMode = static_cast<MODE>(boolDist(generator));
 
 			this->nConditions = nConditions;
 			this->nBlocks = nBlocks;
@@ -58,6 +66,7 @@ public:
 
 		void next()
 		{
+			trial++;
 
 		}
 
