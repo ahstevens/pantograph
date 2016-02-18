@@ -174,6 +174,9 @@ void Cosmo::read( std::string fileName )
 
 void Cosmo::generateFilament()
 {
+	if (filament)
+		delete filament;
+
 	filament = new Filament(maxDistance / 2.f);
 	setLensSize(filament->getRadius() * 2.f);
 }

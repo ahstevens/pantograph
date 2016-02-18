@@ -56,8 +56,7 @@ void Object::push()
 
 Object::~Object()
 {
-    glDeleteVertexArraysAPPLE(1, &vaoID);
-    glDeleteBuffersARB(1, &vaoID);
+
 }
 
 
