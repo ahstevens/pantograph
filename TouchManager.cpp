@@ -292,6 +292,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					secondFingerY = y;
 					pantograph->setFinger2(x,y);
 					pantograph->setDrawReticle(true);
+					settings->pantographMode = !settings->pantographMode;
 					
 					//check if swap needed:
 					if (pantograph->swapNeeded())
@@ -335,7 +336,6 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				//check if on accept/select/deselect button
 				if (pantograph->isOnAcceptBubble(x,y))
 				{
-					settings->pantographMode = !settings->pantographMode;
 					return;
 				}//end if on accept button
 			}//end else if third (or higher) finger

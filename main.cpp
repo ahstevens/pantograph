@@ -355,12 +355,13 @@ void drawOverlay()
 
 	touchManager->draw2D();
 
-	//if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
-	//{
-	//	glColor4fv(glm::value_ptr(advanceButtonColor));
-	//	//drawBox(glutGet(GLUT_WINDOW_WIDTH) / 2.f - advanceButtonDimMouse.x / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f - advanceButtonDimMouse.y / 2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
-	//	drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
-	//}
+	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
+	{
+		//glColor4fv(glm::value_ptr(advanceButtonColor));		
+		//drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
+		settings->study->logData("test log", cosmo->getLensPosition(), cosmo->getFilament());
+		cosmo->generateFilament();
+	}
 
 	static float fps = 0.0f;
 	static float lastTime = 0.0f;

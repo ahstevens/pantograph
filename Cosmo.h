@@ -28,6 +28,7 @@ class Cosmo: public Object
 		void setLensPosition(float x, float y, float z);
 		void setLensSize(float radius);
 		float getLensSize();
+		glm::vec3* getLensPosition();
 
 		void setBrightness(float brightness);
 		void setLensBrightnessRange(float inner, float outer);
@@ -57,6 +58,7 @@ class Cosmo: public Object
 		void requestDimming();
 
 		void generateFilament();
+		Filament* getFilament();
 
 		unsigned int getRemainingTargets();
 

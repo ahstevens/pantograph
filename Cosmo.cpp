@@ -184,6 +184,8 @@ void Cosmo::generateFilament()
 	setLensSize(filament->getRadius() * 2.f);
 }
 
+Filament* Cosmo::getFilament() { return filament; }
+
 unsigned int Cosmo::getRemainingTargets()
 {
 	return filament->getTargetCount() - filament->getHighlightedCount();
@@ -246,6 +248,8 @@ void Cosmo::setLensPosition(float x, float y, float z)
 {
 	setLensPosition(glm::vec3(x, y, z));
 }
+
+glm::vec3* Cosmo::getLensPosition() { return &lensPos; }
 
 void Cosmo::setLensSize(float radius)
 {

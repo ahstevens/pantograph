@@ -19,6 +19,8 @@ public:
 	void next();
 	void end();
 
+	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr);
+
 private:
 	StudyManager();
 	~StudyManager();
@@ -28,7 +30,6 @@ private:
 	bool fileExists(const std::string &fname);
 
 	void prepareOutput(std::string name);
-	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr);
 
 	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
