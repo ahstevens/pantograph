@@ -1,4 +1,5 @@
 #include "Object.h"
+
 #include <ctime> 
 #include <cmath> 
 #include <vector>
@@ -6,6 +7,8 @@
 #include <iostream>
 #include <time.h> 
 #include <algorithm>
+
+#include <GL\glew.h>
 
 
 //----------------------------------------------------------------------------

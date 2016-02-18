@@ -8,8 +8,7 @@
 #include <fstream>
 #include <time.h> 
 #include <algorithm>
-
-#include "main.h"
+#include <gl\glew.h>
 #include "DrawFunctions.h"
 
 extern float vectorScale;

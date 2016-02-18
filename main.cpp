@@ -1,14 +1,19 @@
-#include "Cosmo.h"
-//----------------------------------------------------------------------------
+#define _CRT_SECURE_NO_WARNINGS
+#define GL_GLEXT_PROTOTYPES
+#define FREEGLUT_LIB_PRAGMAS 0
+#define GLEW_STATIC
 
-#include <GL/glut.h>
+#include "gl_includes.h"
+
 #include <iostream>
 #include <math.h>
+#include <glm\glm.hpp>
+#include <glm\gtc\type_ptr.hpp> 
+#include <glm\gtx\rotate_vector.hpp>
+#include "Cosmo.h"
 #include "Stopwatch.h"
 #include "Settings.h"
-#include "ColorsAndSizes.h"
 #include "TouchManager.h"
-#include "Filament.h"
 
 /*
 //--------------------------------------------------
@@ -137,7 +142,6 @@ void calculateTransition(float x, float y)
 
 	settings->transitionRequested = false;
 }
-
 
 
 //-------------------------------------------------------------------------------
@@ -351,12 +355,12 @@ void drawOverlay()
 
 	touchManager->draw2D();
 
-	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
-	{
-		glColor4fv(glm::value_ptr(advanceButtonColor));
-		//drawBox(glutGet(GLUT_WINDOW_WIDTH) / 2.f - advanceButtonDimMouse.x / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f - advanceButtonDimMouse.y / 2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
-		drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
-	}
+	//if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
+	//{
+	//	glColor4fv(glm::value_ptr(advanceButtonColor));
+	//	//drawBox(glutGet(GLUT_WINDOW_WIDTH) / 2.f - advanceButtonDimMouse.x / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f - advanceButtonDimMouse.y / 2.f, advanceButtonDimMouse.x, advanceButtonDimMouse.y, true);
+	//	drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
+	//}
 
 	static float fps = 0.0f;
 	static float lastTime = 0.0f;
@@ -441,8 +445,9 @@ void mouseButton(int button, int state, int x, int y)
 		leftMouseDown = true;
 		holdMy = float(y);
 
-		if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode && isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
-			cosmo->generateFilament();
+		//if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode && 
+		//	isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
+		//	cosmo->generateFilament();
 
 		if (settings->mouseMode)
 		{
@@ -697,7 +702,7 @@ void specialFunction(int glutKey, int mouseX, int mouseY)
 }
 
 //This is the GLUT initialization function
-void init(void)
+void init(std::string name, bool isRightHanded)
 {
 	leftMouseDown = false;
 	rightMouseDown = false;
@@ -707,6 +712,8 @@ void init(void)
 
 	srand(time(NULL));
 	settings = new Settings();
+	
+	settings->study->init(name, isRightHanded, 2, 5, 5);
 
 	touchManager = new TouchManager(settings);
 	int err_code = touchManager->Init();
@@ -725,6 +732,17 @@ void init(void)
 
 int main(int argc, char *argv[])
 {
+	std::string name;
+	std::cout << "Enter subject's name: ";
+	std::cin >> name;
+
+	std::string handedness;
+	std::cout << "Enter subject's handedness (L or R): ";
+	while (!(handedness == "L" || handedness == "R"))
+	{
+		std::cin >> std::uppercase >> handedness;
+	}
+
 	generate_theta();
 	
 	glutInit(&argc, argv);
@@ -741,7 +759,7 @@ int main(int argc, char *argv[])
     mainWindow = glutCreateWindow("Pantograph");
     glutSetWindow(mainWindow);
     glutFullScreen();
-	init();
+	init(name, (handedness == "R" ? true : false));
 
 	//---------------------------------------------------------------------------
     // initialize Open GL Extension library

@@ -1,5 +1,5 @@
-#ifndef COSMO_H_
-#define COSMO_H_
+#pragma once
+
 #include <algorithm>
 #include <deque>
 #include "Object.h"
@@ -62,7 +62,7 @@ class Cosmo: public Object
 
 		void render();
 
-		deque<glm::vec3> centerPoints;
+		std::deque<glm::vec3> centerPoints;
 
     protected:
 		struct MovableRotationAxis {
@@ -99,5 +99,3 @@ class Cosmo: public Object
 
 		Filament* filament;
 };
-
-#endif /*COSMO_H_*/

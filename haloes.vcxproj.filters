@@ -45,12 +45,12 @@
     <ClCompile Include="Filament.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StudyManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cosmo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
@@ -78,6 +78,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Filament.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StudyManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

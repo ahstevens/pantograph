@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <map>
 #include "Settings.h"
-#include "GL/glut.h"
+#include "gl_includes.h"
 #include "DrawFunctions.h"
 #include "Pantograph.h"
 

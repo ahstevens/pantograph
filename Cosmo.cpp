@@ -1,7 +1,10 @@
 #include "Cosmo.h"
 
 #include <stdint.h>
+#include <iostream>
+#include <string>
 #include <stack>
+#include <random>
 
 //----------------------------------------------------------------------------
 Cosmo::Cosmo()
@@ -63,9 +66,9 @@ void Cosmo::read( std::string fileName )
     // read entire binary file   
     // get length of the file:
     std::cout << "Reading file " << fileName << "...";
-    streampos size;
+    std::streampos size;
     char *buffer;
-    std::ifstream file (fileName, ios::in|ios::binary|ios::ate ); //binary
+    std::ifstream file (fileName, std::ios::in| std::ios::binary| std::ios::ate ); //binary
     
     // check the file
     if (!file.is_open()) {
@@ -75,7 +78,7 @@ void Cosmo::read( std::string fileName )
     // read file into memory
     size = file.tellg();
     buffer = new char [size];
-    file.seekg (0, ios::beg);
+    file.seekg (0, std::ios::beg);
     file.read (buffer, size);
     file.close();
 

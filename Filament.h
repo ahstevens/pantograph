@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Object.h"
 #include "SplinePath.h"
 
@@ -11,9 +12,10 @@ public:
 	~Filament();
 
 	bool highlight(glm::vec3 lensPos, float radius_sq);
-	float getDistFromClosestVertexTo(glm::vec3 p);
+	float getMinDistTo(glm::vec3 *p);
 	float getLength();
 	float getRadius();
+	glm::vec3 getSplineControlPoint(int i);
 	void setBrightness(float brightness);
 	unsigned int getHighlightedCount();
 	unsigned int getTargetCount();

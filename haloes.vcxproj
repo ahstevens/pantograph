@@ -20,6 +20,7 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SplinePath.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="StudyManager.cpp" />
     <ClCompile Include="TouchManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -27,12 +28,13 @@
     <ClInclude Include="Cosmo.h" />
     <ClInclude Include="DrawFunctions.h" />
     <ClInclude Include="Filament.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="gl_includes.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pantograph.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SplinePath.h" />
     <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="StudyManager.h" />
     <ClInclude Include="TouchManager.h" />
   </ItemGroup>
   <ItemGroup>

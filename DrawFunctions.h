@@ -1,5 +1,7 @@
+#pragma once
+
 #include "windows.h"
-#include "GL/glut.h"
+#include "gl_includes.h"
 #include "ColorsAndSizes.h"
 #include <glm\glm.hpp>
 #include <string.h>
