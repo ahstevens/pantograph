@@ -429,7 +429,7 @@ void Cosmo::renderLens()
 					continue; // nothing else to do, so short-circuit to next for loop iteration
 				}
 				else // current lens renders particle points
-					glColor4f(1.f, 1.f, 1.f, lensInnerBrightness * (1.f - sqrtf(dist_sq) / radius));
+					glColor4f(1.f, 1.f, 1.f, lensInnerBrightness * (1.f - dist_sq / radius_sq));
 			else // point is not in sphere
 				glColor4f(1.f, 1.f, 1.f, lensOuterBrightness + ( lensBrightnessRange() * brightnessRatio ));
 

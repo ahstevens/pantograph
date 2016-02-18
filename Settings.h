@@ -10,6 +10,8 @@
 #include <vector>
 #include <glm\glm.hpp>
 
+#include <random>
+
 #define ADD_DYEPOLE 1
 #define DELETE_ALL_DYEPOLES 2
 #define SELECT_DYEPOLE 3
@@ -29,6 +31,42 @@ public:
 	//FocalCamera* camera;
 	//TextureManager* textMan;
 	
+	struct Study {
+		enum MODE { MOUSE = 0, PANTO = 1 };
+
+		std::string participant;
+		unsigned int trial;
+		unsigned int block;
+		unsigned int replicate;
+		MODE currentMode;
+
+		unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
+
+		void init(unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
+		{
+			trial = block = replicate = 0;
+
+			std::random_device rd;
+			std::mt19937 generator(rd());
+			std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
+
+			this->nConditions = nConditions;
+			this->nBlocks = nBlocks;
+			this->nRepsPerBlock = nRepsPerBlock;
+			this->nTrialsPerBlock = nRepsPerBlock * nConditions;
+		}
+
+		void next()
+		{
+
+		}
+
+		void end()
+		{
+
+		}
+
+	}  study;
 	
 	bool mirror;
 

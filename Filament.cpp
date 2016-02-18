@@ -13,6 +13,8 @@ Filament::Filament()
 
 	nHighlighted = 0;
 
+	percentTillDone = 95.f;
+
 	color = glm::vec4(1.f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
@@ -42,6 +44,8 @@ Filament::Filament(float length)
 
 	nHighlighted = 0;
 
+	percentTillDone = 95.f;
+
 	color = glm::vec4(1.f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
 	primaryTargetColor = glm::vec4(1.f, 0.5f, 0.f, 1.f);
@@ -51,16 +55,19 @@ Filament::Filament(float length)
 	std::mt19937 generator(rd());
 	std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
 	std::uniform_real_distribution<float> signed_unit_distribution(-1.f, 1.f);
-	std::uniform_real_distribution<float> midCP(0.2f, 0.4f);
+	std::uniform_real_distribution<float> midCP(0.25f, 0.45f);
 	std::uniform_real_distribution<float> circle(0.f, 2.f * (float)M_PI);
-	std::uniform_real_distribution<float> splineFactor(2.f, 10.f);
+	std::uniform_real_distribution<float> splineFactor(2.f, 5.f);
 
 		
 	glm::vec3 cp0, cp1, cp2, cp3;
-	cp0.x = unit_distribution(generator);
-	cp0.y = unit_distribution(generator);
-	cp0.z = unit_distribution(generator);
-	cp0 = glm::normalize(cp0) * (length / 4.f); // length/4 is sphere radius
+	//cp0.x = unit_distribution(generator);
+	//cp0.y = unit_distribution(generator);
+	//cp0.z = unit_distribution(generator);
+	//cp0 = glm::normalize(cp0) * (length / 4.f); // length/4 is sphere radius
+
+	cp0 = glm::normalize(glm::axis(glm::quat(signed_unit_distribution(generator), signed_unit_distribution(generator), signed_unit_distribution(generator), signed_unit_distribution(generator))));
+	cp0 *= length / 2.f;
 	cp3 = -cp0;
 
 	glm::vec3 vecAB = cp3 - cp0;
@@ -87,7 +94,7 @@ Filament::Filament(float length)
 	glm::vec3 cp2OffsetRingPt = glm::vec3(cosf(cp2CirclePt), sinf(cp2CirclePt), 0.f);
 
 	cp1 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp1OffsetRingPt, 1.f))) + (midCP(generator)) * vecAB;
-	cp2 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp2OffsetRingPt, 1.f))) + (0.5f + midCP(generator)) * vecAB;
+	cp2 = glm::vec3(glm::vec4(coordFrame * glm::vec4(cp2OffsetRingPt, 1.f))) + (1.f - midCP(generator)) * vecAB;
 
 	splinePath.addPoint(cp0, deltas);
 	splinePath.addPoint(cp1, deltas);
@@ -97,7 +104,7 @@ Filament::Filament(float length)
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(500, 5.f);
+	generate(10000, 5.f);
 	//generate(path.size(), 0.f);
 }
 
@@ -135,6 +142,14 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	std::mt19937 generator(rd());
 	std::uniform_real_distribution <float> distribution(-radius, radius);
 
+	std::normal_distribution <float> radDist(0.f, radius);
+	//std::exponential_distribution <float> radDist(2.f);
+	//std::uniform_real_distribution <float> radDist(0.f, radius);
+
+	std::uniform_real_distribution <float> quatDist(-1.f, 1.f);
+	
+	
+
 	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
 	{
 		glm::vec3 curVec = *(it + 1) - *it;
@@ -150,9 +165,10 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 				float progress = (offset + (float)i * pointSpacing) / curVecLen;
 				Particle p;
 				p.pos = *it + progress * curVec;
-				p.pos.x += distribution( generator );
-				p.pos.y += distribution( generator );
-				p.pos.z += distribution( generator );
+
+				glm::vec3 randVec = glm::normalize(glm::axis(glm::quat(quatDist(generator), quatDist(generator), quatDist(generator), quatDist(generator))));
+				p.pos += randVec * radDist(generator);
+
 				p.col = color;
 				p.highlighted = false;
 				vSample.push_back(p);
@@ -201,11 +217,14 @@ bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 {
 	if (!done)
 	{
-		if (nHighlighted == vSample.size() && !done)
+		float percentHighlighted = ((float)nHighlighted / (float)vSample.size()) * 100.f;
+
+		if ( percentHighlighted >= percentTillDone && !done)
 		{
 			for (auto& p : vSample)
 				p.col = completeColor;
 
+			nHighlighted = vSample.size();
 			done = true;
 		}
 		else
@@ -222,7 +241,6 @@ bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 					p.col = highlightColor;
 					p.highlighted = true;
 					nHighlighted++;
-					std::cout << "Highlighted " << nHighlighted << " of " << vSample.size() << " target particles (" << ((float)nHighlighted / (float)vSample.size()) * 100.f << "%)" << std::endl;
 				}
 			}
 	}

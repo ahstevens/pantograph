@@ -5,6 +5,7 @@ Settings::Settings()
 	resetToDefaults();
 	//camera = new FocalCamera();
 	//textMan = new TextureManager();
+	study.init(2, 5, 5);
 }
 
 void Settings::resetToDefaults()

@@ -26,7 +26,7 @@ private:
 
 	SplinePath splinePath;
 	std::vector< glm::vec3 > path;
-	float len, radius, deltas, brightness;
+	float len, radius, deltas, brightness, percentTillDone;
 
 	glm::vec4 color, highlightColor, completeColor, primaryTargetColor;
 
