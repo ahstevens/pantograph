@@ -252,3 +252,5 @@ FakesAssemblies/
 
 #project data folder
 haloes_data/
+snapshots/
+data/

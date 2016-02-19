@@ -40,19 +40,21 @@ void StudyManager::init(std::string participant, bool isRightHanded, unsigned in
 	this->nTrialsPerBlock = nRepsPerBlock * nConditions;
 
 	prepareOutput(participant);
-
-	clock.start();
 }
 
 void StudyManager::next()
 {
 	trial++;
-	clock.start();
 }
 
 void StudyManager::end()
 {
 
+}
+
+void StudyManager::resetClock()
+{
+	clock.start();
 }
 
 bool StudyManager::fileExists(const std::string &fname)

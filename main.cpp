@@ -254,7 +254,7 @@ void updateLens()
 	if (settings->modeSwitched)
 	{
 		settings->study->next();
-		settings->study->logData("initial interaction", cosmo->getLensPosition(), cosmo->getFilament());
+		settings->study->logData("interaction initiated", cosmo->getLensPosition(), cosmo->getFilament());
 		settings->modeSwitched = false;
 	}
 
@@ -316,6 +316,7 @@ void perRenderUpdates()
 	
 	if (cosmo->checkHighlight()) {
 		settings->trackingCursor = true;
+		settings->study->resetClock();
 		settings->study->logData("filament begun", cosmo->getLensPosition(), cosmo->getFilament(), &settings->cursorDistance);
 	}
 }
@@ -575,7 +576,7 @@ void motion(int x, int y)
 	}
 }
 
-// called when a mouse is in motion with a button down
+// called when a mouse is in motion
 void passiveMotion(int x, int y)
 {
 	rx = float(x); ry = float(winHeight - y);
@@ -663,7 +664,6 @@ void keyboard( unsigned char key, int x, int y )
 	if (key == 'f') { cosmo->generateFilament(); }
 	if (key == '-') { if (eyeOffset - 0.01f >= 0.f) eyeOffset -= 0.01f; else eyeOffset = 0.f; cout << "eyeOffset = " << eyeOffset << endl; }
 	if (key == '=') { eyeOffset+=0.01f; cout << "eyeOffset = " << eyeOffset << endl; }
-
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
 	if(key == 'o') cosmo->radius *= 1.05;
@@ -699,6 +699,9 @@ void specialFunction(int glutKey, int mouseX, int mouseY)
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
 	if (glutKey == GLUT_KEY_PAGE_DOWN)
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 0.9f);
+
+	if (glutKey == GLUT_KEY_F12) settings->study->snapshotTGA("snapshot");
+
 
 	if (glutKey == GLUT_KEY_RIGHT)
 	{		

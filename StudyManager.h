@@ -20,7 +20,11 @@ public:
 	void next();
 	void end();
 
+	void resetClock();
+
 	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr, float *cursorDist = nullptr);
+
+	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
 private:
 	enum MODE { MOUSE = 0, PANTO = 1 };
@@ -32,8 +36,6 @@ private:
 	bool fileExists(const std::string &fname);
 
 	void prepareOutput(std::string name);
-
-	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
 	std::string intToString(int i, unsigned int pad_to_magnitude = 0);
 
