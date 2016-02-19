@@ -13,6 +13,7 @@
 #include "Cosmo.h"
 #include "Settings.h"
 #include "TouchManager.h"
+#include "Polhemus.h"
 
 #define VP_LEFT		-10.0f
 #define VP_RIGHT	10.0f
@@ -28,6 +29,8 @@ using namespace std;
 Settings* settings;
 
 TouchManager* touchManager;
+
+Polhemus* polhemus;
 
 float rx,ry;
 //float rw, rh;
@@ -355,6 +358,10 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 		drawVolumeCursor(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2], cosmo->getLensSize());
 	}
+
+	glm::vec3 polPos = polhemus->getPosition();
+	std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
+	drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
 
 	touchManager->draw3D();
 }
@@ -739,6 +746,8 @@ void init(std::string name, bool isRightHanded)
 	{
 		printf("ERROR initializing touch manager!\n");
 	}
+
+	polhemus = Polhemus::getInstance();
 
 	glClearColor(MAIN_BACKGROUND_COLOR, 1.0);
 	glDepthFunc(GL_LESS);
