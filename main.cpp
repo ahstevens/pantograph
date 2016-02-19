@@ -272,6 +272,8 @@ void updateLens()
 
 void perRenderUpdates()
 {
+	polhemus->update();
+
 	if (settings->transitionRequested) 
 		calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
 
