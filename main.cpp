@@ -364,9 +364,9 @@ void drawScene(int eye) //0=left or mono, 1=right
 		drawVolumeCursor(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2], cosmo->getLensSize());
 	}
 
-	glm::vec3 polPos = polhemus->getPosition();
+	//glm::vec3 polPos = polhemus->getPosition();
 	//std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
-	drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
+	//drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
 
 	touchManager->draw3D();
 }
@@ -476,16 +476,28 @@ void mouseButton(int button, int state, int x, int y)
 		//	isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
 		//	cosmo->generateFilament();
 
-		if (settings->mouseMode)
+		if (!settings->pantographMode)
 		{
+			settings->mouseMode = true;
+			settings->modeSwitched = true;
+
+			settings->dimmingRequested = true;
+			cosmo->setLensMode(true);
+
 			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
 			mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
-		}		
+		}
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		leftMouseDown = false;
+
+		settings->mouseMode = false;
+		settings->dimmingRequested = false;
+
+		settings->transitionRequested = true;
+		cosmo->setLensMode(false);
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
@@ -493,29 +505,6 @@ void mouseButton(int button, int state, int x, int y)
 		rightMouseDown = true;
 		holdMx = rx;
 		holdMy = ry;
-
-		if(!settings->pantographMode)
-		{
-			settings->mouseMode = !settings->mouseMode;
-			settings->modeSwitched = true;
-
-			if (settings->mouseMode)
-			{
-				settings->dimmingRequested = true;
-				//cosmo->setAxisMode(true);
-				cosmo->setLensMode(true);
-
-				mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
-				mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
-			}
-			else
-			{
-				settings->dimmingRequested = false;
-				//cosmo->setAxisMode(false);
-				cosmo->setLensMode(false);
-				settings->transitionRequested = true;
-			}
-		}
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
@@ -525,17 +514,17 @@ void mouseButton(int button, int state, int x, int y)
 		rotY = rotY + dragX;	
 		//cerr << "Rot Up Y " << rotY << "\n";
 		dragX = dragY = 0.0;
-
 	}
 
 	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
 	{
-		if (!leftMouseDown)
-		{
-			holdRotationAxis = cosmo->getMovableRotationAxis();
-			holdMx = rx;
-			holdMy = ry;
-		}
+		// for using middle mouse button + drag to orient rotation axis
+		//if (!leftMouseDown)
+		//{
+		//	holdRotationAxis = cosmo->getMovableRotationAxis();
+		//	holdMx = rx;
+		//	holdMy = ry;
+		//}
 		middleMouseDown = true;
 	}
 
@@ -577,15 +566,16 @@ void motion(int x, int y)
 		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
 	}
 
-	if (settings->mouseMode && middleMouseDown && !leftMouseDown)
-	{
-		float h_displacement = (float) (holdMx - rx) / 10.f;
-		float v_displacement = (float)(holdMy - ry) / 10.f;
+	// use middle mouse button + drag to orient rotation axis
+	//if (settings->mouseMode && middleMouseDown && !leftMouseDown)
+	//{
+	//	float h_displacement = (float) (holdMx - rx) / 10.f;
+	//	float v_displacement = (float)(holdMy - ry) / 10.f;
 
-		glm::vec3 newAxis = glm::vec3( glm::rotate(glm::radians(h_displacement), glm::vec3(0.f, 0.f, 1.f)) * glm::vec4(holdRotationAxis, 0.f));
+	//	glm::vec3 newAxis = glm::vec3( glm::rotate(glm::radians(h_displacement), glm::vec3(0.f, 0.f, 1.f)) * glm::vec4(holdRotationAxis, 0.f));
 
-		cosmo->setMovableRotationAxis(newAxis);
-	}
+	//	cosmo->setMovableRotationAxis(newAxis);
+	//}
 }
 
 // called when a mouse is in motion
