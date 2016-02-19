@@ -224,6 +224,8 @@ unsigned int Filament::getTargetCount()
 
 bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 {
+	bool firstHighlight = false;
+
 	if (!done)
 	{
 		float percentHighlighted = ((float)nHighlighted / (float)vSample.size()) * 100.f;
@@ -249,12 +251,12 @@ bool Filament::highlight(glm::vec3 lensPos, float radius_sq)
 				{
 					p.col = highlightColor;
 					p.highlighted = true;
-					nHighlighted++;
+					if (nHighlighted++ == 0) firstHighlight = true;
 				}
 			}
 	}
 
-	return done;
+	return firstHighlight;
 }
 
 float Filament::getMinDistTo(glm::vec3 *p)

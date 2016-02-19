@@ -20,6 +20,8 @@ Cosmo::Cosmo()
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
 
+	highlightFlag = false;
+
 	filament = nullptr;
 }
 
@@ -341,6 +343,16 @@ void Cosmo::requestDimming()
 
 float Cosmo::lensBrightnessRange() { return lensInnerBrightness - lensOuterBrightness;  }
 
+bool Cosmo::checkHighlight()
+{
+	if (highlightFlag)
+	{
+		highlightFlag = false;
+		return true;
+	}
+
+	return false;
+}
 //-------------------------------------------------------------------------------
 
 
@@ -394,7 +406,7 @@ void Cosmo::renderLens()
 
 	float radius_sq = radius * radius;
 
-	filament->highlight(lensPos, radius_sq);
+	if(filament->highlight(lensPos, radius_sq) && !highlightFlag) highlightFlag = true;
 
 	// render the data
 	glPointSize(2.f);

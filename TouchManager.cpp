@@ -1,8 +1,6 @@
 #include "TouchManager.h"
 #include <iostream>
 
-
-
 TouchManager::TouchManager(Settings* sets)
 {
 	ConnectServer("127.0.0.1", PQMT_DEFAULT_CLIENT_PORT);
@@ -14,12 +12,6 @@ TouchManager::TouchManager(Settings* sets)
 	ignoreGestures = false;
 	gestureActive = false; 
 	settings = sets;
-
-	//xyFingerID = -1;
-	//zFingerID = -1;
-
-	//fingerIDWaitingToResetOnUp = -1;
-
 
 	//pantograph stuff
 	firstFingerID = -1;
@@ -64,21 +56,7 @@ int TouchManager::Init()
 		printf("FAILED error code: %d\n", err_code);
 		return err_code;
 	}
-	////////////you can set the move_threshold when the tcq.type is RQST_RAWDATA_INSIDE;
-	////send threshold
-	//int move_threshold = 0;// 0 pixel, receuve all the touch points that touching in the windows area of this client;
-	//if((err_code = SendThreshold(move_threshold)) != PQMTE_SUCCESS){
-	//	cout << " send threadhold fail, error code:" << err_code << endl;
-	//	return err_code;
-	//}
-	
-	//////// you can set the resolution of the touch point(raw data) here;
-	//// setrawdata_resolution
-	//int maxX = 32768, maxY = 32768;
-	//if((err_code= SetRawDataResolution(maxX, maxY)) != PQMTE_SUCCESS){
-	//	cout << " set raw data resolution fail, error code:" << err_code << endl;
-	//}
-	////////////////////////
+
 	//get server resolution
 	if((err_code = GetServerResolution(OnGetServerResolution, NULL)) != PQMTE_SUCCESS)
 	{
@@ -149,12 +127,6 @@ void TouchManager:: InitFuncOnTG()
 	m_pf_on_tges[TG_MULTI_MOVE_UP] = &TouchManager::OnTG_MultiMoveUp;
 	m_pf_on_tges[TG_MULTI_MOVE_LEFT] = &TouchManager::OnTG_MultiMoveLeft;
 	m_pf_on_tges[TG_MULTI_MOVE_DOWN] = &TouchManager::OnTG_MultiMoveDown;
-
-
-
-
-
-
 }
 void TouchManager::SetFuncsOnReceiveProc()
 {
@@ -292,7 +264,8 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					secondFingerY = y;
 					pantograph->setFinger2(x,y);
 					pantograph->setDrawReticle(true);
-					settings->pantographMode = !settings->pantographMode;
+					settings->pantographMode = true;
+					settings->modeSwitched = true;
 					
 					//check if swap needed:
 					if (pantograph->swapNeeded())
@@ -386,35 +359,28 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 	}//end pantograph mode
 
 }
+
 void TouchManager:: OnTouchGesture(const TouchGesture & tg)
 {
-	if (ignoreGestures || settings->positioningDyePot || settings->pantographMode)
+	if (ignoreGestures || settings->pantographMode)
 		return;
 
-	//printf("C");
-	//printf("gest:%s\n", GetGestureName(tg));
-	//printf("C");
 	if(TG_NO_ACTION == tg.type)
 		return ;
 
-	//printf("C");
-	//assert(tg.type <= TG_TOUCH_END);
-	//DefaultOnTG(tg,this);
-	//printf("gest:%s\n", GetGestureName(tg));
 	PFuncOnTouchGesture pf = m_pf_on_tges[tg.type];
-	//printf("type:%d",tg.type);
+
 	if (tg.type == 86) //There is some type "86" gesture, that is not documented anywhere, and causes all sorts of stuff to crash e.g. GetGestureName()
 	{                  //So lets just ignore any of these type 86 (Hex 0x0056) gestures
 		//printf("ERROR:type86found!\n");
 		return; 
 	}
-	//printf("C");
+
 	if(NULL != pf){
 		pf(tg,this);
 	}
-	//printf("D");
-
 }
+
 void TouchManager:: OnTG_TouchStart(const TouchGesture & tg,void * call_object)
 {
 	if (SHOW_DEBUG_MESSAGES) printf("TG_TOUCH_START: No Params, can be used to initialize stuff.\n");
@@ -649,11 +615,7 @@ void TouchManager::OnTG_NearParrelUp(const TouchGesture & tg,void * call_object)
 		float distFromInitDown = sqrt( (tm->lastParallelX-tm->initParallelX)*(tm->lastParallelX-tm->initParallelX) + (tm->lastParallelY-tm->initParallelY)*(tm->lastParallelY-tm->initParallelY));
 		if (distFromInitDown < 15) //check if didnt much much
 		{
-			//call select existing dyepole
-			tm->settings->toProcessCode.push_back(SELECT_DYEPOLE);
-			tm->settings->toProcessX.push_back((int)tg.params[0]);
-			tm->settings->toProcessY.push_back(glutGet(GLUT_WINDOW_HEIGHT)-(int)tg.params[1]);
-			tm->settings->toProcessZ.push_back(0);
+			//do stuff
 		}
 	}
 }
@@ -662,11 +624,6 @@ void TouchManager::OnTG_NearParrelClick(const TouchGesture & tg,void * call_obje
 {
 	if (SHOW_DEBUG_MESSAGES) printf("TG_NEAR_PARREL_CLICK at (%0.0f, %0.0f)\n", tg.params[0], tg.params[1]);
 	TouchManager* tm = static_cast<TouchManager*>(call_object);
-	/*
-	tm->settings->toProcessX.push_back((int)tg.params[0]);
-	tm->settings->toProcessY.push_back(glutGet(GLUT_WINDOW_HEIGHT)-(int)tg.params[1]);
-	tm->settings->toProcessCode.push_back(ADD_DYEPOLE);
-	*/
 }
 
 
@@ -674,11 +631,6 @@ void TouchManager::OnTG_NearParrelDBClick(const TouchGesture & tg,void * call_ob
 {
 	if (SHOW_DEBUG_MESSAGES) printf("TG_NEAR_PARREL_DB_CLICK at (%0.0f, %0.0f)\n", tg.params[0], tg.params[1]);
 	TouchManager* tm = static_cast<TouchManager*>(call_object);
-	/*
-	tm->settings->toProcessX.push_back((int)tg.params[0]);
-	tm->settings->toProcessY.push_back(glutGet(GLUT_WINDOW_HEIGHT)-(int)tg.params[1]);
-	tm->settings->toProcessCode.push_back(REMOVE_ALL_DYEPOLES);
-	*/
 }
 
 void TouchManager::OnTG_NearParrelMoveRight(const TouchGesture & tg,void * call_object)
@@ -721,18 +673,8 @@ void TouchManager::OnTG_MultiMove(const TouchGesture & tg,void * call_object)
 	if (SHOW_DEBUG_MESSAGES) printf("TG_MULTI_MOVE at (%0.0f, %0.0f)\n", tg.params[0], tg.params[1]);
 	TouchManager* tm = static_cast<TouchManager*>(call_object);
 	
-	/*tm->settings->camera->ChangeHeading((tg.params[0] - tm->lastMultiX)/15);
-	tm->settings->camera->ChangePitch((tg.params[1] - tm->lastMultiY)/15);*/
-	//tm->settings->camera->changeViewAngle((tm->lastMultiX - tg.params[0])/8, -(tm->lastMultiY - tg.params[1])/8);
 	tm->lastMultiX = tg.params[0];
 	tm->lastMultiY = tg.params[1];
-
-	/*if (tm->numFingersDown < 3)
-		tm->settings->camera->StopMoving();
-	else if (tm->numFingersDown == 4)
-		tm->settings->camera->SetVelocity(500);
-	else if (tm->numFingersDown == 5)
-		tm->settings->camera->SetVelocity(-500);*/
 }
 
 void TouchManager::OnTG_MultiUp(const TouchGesture & tg,void * call_object)
@@ -740,10 +682,6 @@ void TouchManager::OnTG_MultiUp(const TouchGesture & tg,void * call_object)
 	if (SHOW_DEBUG_MESSAGES) printf("TG_MULTI_UP at (%0.0f, %0.0f)\n", tg.params[0], tg.params[1]);
 	TouchManager* tm = static_cast<TouchManager*>(call_object);
 	tm->gestureActive = false;
-	//tm->multiMoveMode = false;
-	//tm->settings->camera->StopMoving();
-	//if (GetTickCount64() - tm->multiClickTimer < 300)  //if under 300 milliseconds between multi-down and multi-up, this is a "Multi-Click"
-		//tm->settings->camera->ViewFocalPointFromAbove();
 }
 
 void TouchManager::OnTG_MultiMoveRight(const TouchGesture & tg,void * call_object)

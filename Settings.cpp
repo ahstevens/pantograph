@@ -10,20 +10,9 @@ Settings::Settings()
 
 void Settings::resetToDefaults()
 {
-	mirror = true;
-	quadSteeringActive = false;
-	seeding = true;
-
-	positioningAUVWaypoint = false;
-	positioningAUVGrid = 0;
-	gridMode = 0;
-	speedToNextWaypoint = 3;
-
-
 	pantographMode = false;
 	mouseMode = false;
 
-	positioningDyePot = false;
 	positioningXYFingerLocation[0] = -1;
 	positioningXYFingerLocation[1] = -1;
 	positioningZFingerLocation[0] = -1;
@@ -41,11 +30,11 @@ void Settings::resetToDefaults()
 	worldDepths[0] = -1;
 	worldDepths[1] = -1;
 	
-	drawTemps = false;
-
 	dimmingRequested = false;
-
 	transitionRequested = false;
-
 	transitionOnLensExit = false;
+
+	trackingCursor = false;
+	cursorDistance = 0.f;	
+	cursorTrackingRate = 100.f; // Hz
 }

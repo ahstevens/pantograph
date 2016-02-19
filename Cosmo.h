@@ -59,12 +59,14 @@ class Cosmo: public Object
 
 		void generateFilament();
 		Filament* getFilament();
-
+		
 		unsigned int getRemainingTargets();
 
 		void render();
 
 		std::deque<glm::vec3> centerPoints;
+
+		bool checkHighlight();
 
     protected:
 		struct MovableRotationAxis {
@@ -100,4 +102,6 @@ class Cosmo: public Object
         std::vector<int> vSampleIDs;
 
 		Filament* filament;
+
+		bool highlightFlag;
 };

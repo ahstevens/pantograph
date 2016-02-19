@@ -33,13 +33,13 @@ class Stopwatch;
 class Stopwatch
 {
 	public:
-		enum State {NotStarted, Started, Stopped};
+		enum State { STOPPED, RUNNING, PAUSED };
 		Stopwatch();
 
 		void start();
 		double read();
 		double sinceLastRead();
-		double stop();
+		double pause();
 		void go();
 
 	protected:

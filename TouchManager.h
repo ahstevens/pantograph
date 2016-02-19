@@ -1,5 +1,4 @@
-#ifndef __TouchManager_h__
-#define __TouchManager_h__
+#pragma once
 
 #include "PQMTClient.h"
 #include <stdio.h>
@@ -172,5 +171,3 @@ private:
 	void resetFingers();
 
 };
-
-#endif // end of header

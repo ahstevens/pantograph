@@ -26,7 +26,7 @@
  */
 Stopwatch::Stopwatch()
 {
-	state = NotStarted;
+	state = STOPPED;
 }
 
 /*----------------------------Stopwatch Interface----------------------------*/
@@ -39,7 +39,7 @@ void Stopwatch::start()
 {
 	ftime(&startTime);
 	SET_TIME(lastReadTime, startTime);
-	state = Started;
+	state = RUNNING;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -50,10 +50,10 @@ void Stopwatch::start()
  */
 double Stopwatch::read()
 {
-	if (state == NotStarted)
+	if (state == STOPPED)
 		return -1.0;
 
-	if (state == Started)
+	if (state == RUNNING)
 		ftime(&lastReadTime);
 
 	return DIFFERENCE_BETWEEN_TIMES(startTime, lastReadTime);
@@ -71,10 +71,10 @@ double Stopwatch::sinceLastRead()
 	TIME_STRUCT currentTime;
 	double retval;
 
-	if (state == NotStarted)
+	if (state == STOPPED)
 		return -1.0;
 
-	if (state == Stopped)
+	if (state == PAUSED)
 		return read();
 
 	ftime(&currentTime);
@@ -90,11 +90,11 @@ double Stopwatch::sinceLastRead()
  *	This procedure stops the stopwatch, recording the time of stopping for
  *	subsequent read and sinceLastRead operations.
  */
-double Stopwatch::stop()
+double Stopwatch::pause()
 {
 	double retval = read();
 
-	state = Stopped;
+	state = PAUSED;
 
 	return retval;
 }
@@ -112,17 +112,17 @@ void Stopwatch::go()
 	long elapsedSeconds;
 	long elapsedPieces;
 
-	if (state == NotStarted)
+	if (state == STOPPED)
 	{
 		start();
 		return;
 	}
-	else if (state == Started)
+	else if (state == RUNNING)
 		return;
 
 	//we do it the following way so we don't have to fiddle with the
 	//cases where the milliseconds are negative.
-	state = Started;
+	state = RUNNING;
 	elapsedTime = sinceLastRead(); //fool it into taking the time since we stopped it.
 	elapsedSeconds = (int)elapsedTime;
 	elapsedPieces = (long) (DIVISIONS_PER_SECOND * (elapsedTime - elapsedSeconds));

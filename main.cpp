@@ -11,19 +11,8 @@
 #include <glm\gtc\type_ptr.hpp> 
 #include <glm\gtx\rotate_vector.hpp>
 #include "Cosmo.h"
-#include "Stopwatch.h"
 #include "Settings.h"
 #include "TouchManager.h"
-
-/*
-//--------------------------------------------------
-float frustumLeft   =-29.65f, frustumRight  = 29.65f;    // 59.3
-float frustumBottom =-16.8f,  frustumTop    = 16.8f;     // 33.6
-float frustumNear   = 65.0f,  frustumFar    = 300.0f;   
-float eyeOffset     = 3.25f;
-float cowZ          = 30.f;
-//--------------------------------------------------
-*/
 
 #define VP_LEFT		-10.0f
 #define VP_RIGHT	10.0f
@@ -35,7 +24,6 @@ float cowZ          = 30.f;
 using namespace std;
 #define OSC_ANGLE 1.f
 #define REFRESH 10
-Stopwatch *aclock;
 
 Settings* settings;
 
@@ -254,13 +242,29 @@ void updateLens()
 	glm::mat4 MVinv = glm::inverse( glm::make_mat4( mv ) );
 
 	// get model-space coordinate for pantograph point and set it
-	glm::vec4 newpt = MVinv * glm::vec4(settings->currentlySelectedPoint[0],
+	glm::vec4 newPos = MVinv * glm::vec4(settings->currentlySelectedPoint[0],
 		settings->currentlySelectedPoint[1],
 		settings->currentlySelectedPoint[2],
 		1.f);
 	
-	cosmo->setLensPosition(newpt.x, newpt.y, newpt.z);
-	cosmo->setMovableRotationCenter(newpt.x, newpt.y, newpt.z);
+	glm::vec3 *oldPos = new glm::vec3(*cosmo->getLensPosition());
+	cosmo->setLensPosition(newPos.x, newPos.y, newPos.z);
+	cosmo->setMovableRotationCenter(newPos.x, newPos.y, newPos.z);
+
+	if (settings->modeSwitched)
+	{
+		settings->study->next();
+		settings->study->logData("initial interaction", cosmo->getLensPosition(), cosmo->getFilament());
+		settings->modeSwitched = false;
+	}
+
+	if (settings->trackingCursor)
+	{
+		settings->cursorDistance += glm::length(glm::vec3(newPos) - *oldPos);
+		settings->study->logData("cursor track", cosmo->getLensPosition(), cosmo->getFilament(), &(settings->cursorDistance));
+	}
+
+	delete oldPos;
 }
 
 void perRenderUpdates()
@@ -295,8 +299,25 @@ void perRenderUpdates()
 		settings->currentlySelectedPoint[2] = mZ;
 	}
 
+	if (settings->trackingCursor && cosmo->getRemainingTargets() == 0)
+	{
+		settings->trackingCursor = false;
+		settings->study->logData("filament completed", cosmo->getLensPosition(), cosmo->getFilament(), &(settings->cursorDistance));
+	}
+	
+	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
+	{		
+		cosmo->generateFilament();
+		settings->cursorDistance = 0.f;
+	}
+
 	if (settings->pantographMode || settings->mouseMode)
 		updateLens();
+	
+	if (cosmo->checkHighlight()) {
+		settings->trackingCursor = true;
+		settings->study->logData("filament begun", cosmo->getLensPosition(), cosmo->getFilament(), &settings->cursorDistance);
+	}
 }
 
 void drawScene(int eye) //0=left or mono, 1=right
@@ -354,14 +375,6 @@ void drawOverlay()
 	glDisable(GL_LIGHTING);
 
 	touchManager->draw2D();
-
-	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
-	{
-		//glColor4fv(glm::value_ptr(advanceButtonColor));		
-		//drawLabeledButton(advanceButtonPos.x - advanceButtonDim.x / 2.f, advanceButtonPos.y - advanceButtonDim.y / 2.f, advanceButtonDim.x, advanceButtonDim.y, buttonActive, "Proceed");
-		settings->study->logData("test log", cosmo->getLensPosition(), cosmo->getFilament());
-		cosmo->generateFilament();
-	}
 
 	static float fps = 0.0f;
 	static float lastTime = 0.0f;
@@ -471,6 +484,7 @@ void mouseButton(int button, int state, int x, int y)
 		if(!settings->pantographMode)
 		{
 			settings->mouseMode = !settings->mouseMode;
+			settings->modeSwitched = true;
 
 			if (settings->mouseMode)
 			{
@@ -778,10 +792,6 @@ int main(int argc, char *argv[])
 
     if(QUAD_BUFFER) { glutDisplayFunc( redraw_stereo ); glutIdleFunc( redraw_stereo ); }
     else { glutDisplayFunc( redraw ); glutIdleFunc( redraw ); }
-
-
-	aclock = new Stopwatch();
-	aclock->start();
 
 	reset_values();
 

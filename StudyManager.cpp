@@ -40,12 +40,14 @@ void StudyManager::init(std::string participant, bool isRightHanded, unsigned in
 	this->nTrialsPerBlock = nRepsPerBlock * nConditions;
 
 	prepareOutput(participant);
+
+	clock.start();
 }
 
 void StudyManager::next()
 {
 	trial++;
-
+	clock.start();
 }
 
 void StudyManager::end()
@@ -76,6 +78,7 @@ void StudyManager::prepareOutput(std::string name)
 		outFile << "participant,handedness,";
 		outFile << "trial,block,replicate,condition_interaction,log_type,";
 		outFile << "cursor.x,cursor.y,cursor.z,";
+		outFile << "cursorDist,";
 		outFile << "filament.cp0.x,filament.cp0.y,filament.cp0.z,";
 		outFile << "filament.cp1.x,filament.cp1.y,filament.cp1.z,";
 		outFile << "filament.cp2.x,filament.cp2.y,filament.cp2.z,";
@@ -88,11 +91,8 @@ void StudyManager::prepareOutput(std::string name)
 		std::cout << "Error opening file " << outFileName << " for writing output" << std::endl;
 }
 
-void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *filament)
+void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *filament, float *cursorDist)
 {
-	time_t seconds;
-	time(&seconds);
-
 	// Construct string for rendering mode enum
 	std::string conditionString;
 
@@ -119,6 +119,7 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	outFile << (cursorPos ? std::to_string(cursorPos->x) : "") << ",";
 	outFile << (cursorPos ? std::to_string(cursorPos->y) : "") << ",";
 	outFile << (cursorPos ? std::to_string(cursorPos->z) : "") << ",";
+	outFile << (cursorDist ? std::to_string(*cursorDist) : "") << ",";
 	outFile << (filament ? std::to_string(filament->getSplineControlPoint(0).x) : "") << ",";
 	outFile << (filament ? std::to_string(filament->getSplineControlPoint(0).y) : "") << ",";
 	outFile << (filament ? std::to_string(filament->getSplineControlPoint(0).z) : "") << ",";
@@ -134,7 +135,7 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	outFile << (filament ? std::to_string(filament->getLength()) : "") << ",";
 	outFile << (filament ? std::to_string(filament->getRadius()) : "") << ",";
 	outFile << (filament && cursorPos ? std::to_string(filament->getMinDistTo(cursorPos)) : "") << ",";
-	outFile << std::to_string(seconds) << std::endl;
+	outFile << clock.read() << std::endl;
 
 }
 

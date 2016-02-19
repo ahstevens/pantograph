@@ -9,6 +9,7 @@
 
 #include <glm\glm.hpp>
 #include "Filament.h"
+#include "Stopwatch.h"
 
 class StudyManager
 {
@@ -19,13 +20,14 @@ public:
 	void next();
 	void end();
 
-	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr);
+	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr, float *cursorDist = nullptr);
 
 private:
+	enum MODE { MOUSE = 0, PANTO = 1 };
+	
+	static StudyManager *instance;
 	StudyManager();
 	~StudyManager();
-
-	static StudyManager *instance;
 	
 	bool fileExists(const std::string &fname);
 
@@ -35,13 +37,7 @@ private:
 
 	std::string intToString(int i, unsigned int pad_to_magnitude = 0);
 
-
-	enum MODE { MOUSE = 0, PANTO = 1 };
-
-
-	struct Record {
-		std::string *participant;
-	};
+	Stopwatch clock;
 
 	std::ofstream outFile;
 	std::string outFileName;
@@ -54,7 +50,5 @@ private:
 	MODE currentMode;
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
-
-	std::vector<Record> log;
 };
 
