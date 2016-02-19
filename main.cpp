@@ -766,10 +766,11 @@ int main(int argc, char *argv[])
 	std::cin >> name;
 
 	std::string handedness;
-	std::cout << "Enter subject's handedness (L or R): ";
 	while (!(handedness == "L" || handedness == "R"))
 	{
-		std::cin >> std::uppercase >> handedness;
+		std::cout << "Enter subject's handedness (L or R): ";
+		std::cin >> handedness;
+		std::transform(handedness.begin(), handedness.end(), handedness.begin(), ::toupper);
 	}
 
 	generate_theta();
