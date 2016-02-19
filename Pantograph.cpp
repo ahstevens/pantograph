@@ -265,7 +265,7 @@ bool Pantograph::getDepthFactor( float *depthFactor )
 		
 		float distanceBetweenFactor = ( distanceBetween - minDistanceBetween ) / ( maxDistanceBetween - minDistanceBetween );
 		//float zCoord = zMin + (zRange * distanceBetweenFactor);
-		*depthFactor = distanceBetweenFactor;
+		*depthFactor = 1.f - distanceBetweenFactor;
 		
 		return true;
 	}
