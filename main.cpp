@@ -24,7 +24,7 @@
 #define FAR 		100.0f 
 using namespace std;
 #define OSC_ANGLE 1.f
-#define REFRESH 10
+#define REFRESH 30
 
 Settings* settings;
 
@@ -362,7 +362,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 	}
 
 	glm::vec3 polPos = polhemus->getPosition();
-	std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
+	//std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
 	drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
 
 	touchManager->draw3D();
