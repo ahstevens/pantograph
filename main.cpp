@@ -198,12 +198,12 @@ void processPendingInteractions()
 		cosmo->setLensMode(true);
 		//cosmo->setAxisMode(true);
 
-		// draw axes
-		glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
-			settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
-			settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
+		// change rotation axis to be vector between fingers
+		//glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
+		//	settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+		//	settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
 
-		cosmo->setMovableRotationAxis(yAxis);
+		//cosmo->setMovableRotationAxis(yAxis);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
