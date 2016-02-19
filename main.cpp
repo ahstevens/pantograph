@@ -310,9 +310,12 @@ void perRenderUpdates()
 		settings->study->logData("filament completed", cosmo->getLensPosition(), cosmo->getFilament(), &(settings->cursorDistance));
 	}
 	
+	// RESET VARIABLES AT BEGINNING OF TRIAL
 	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
 	{		
 		cosmo->generateFilament();
+		cosmo->setMovableRotationCenter(glm::vec3(0.f));
+		mZ = 0.f;
 		settings->cursorDistance = 0.f;
 	}
 
