@@ -108,7 +108,7 @@ Filament::Filament(float length)
 	while (!splinePath.isEnd())
 		path.push_back(splinePath.advanceAlongSpline());
 
-	generate(10000, 5.f);
+	generate(10000, 10.f);
 	//generate(path.size(), 0.f);
 }
 
@@ -144,15 +144,13 @@ void Filament::generate(unsigned int nPoints, float spreadFactor)
 	// generate set of random numbers for displacing points along filament spline
 	std::random_device rd;
 	std::mt19937 generator(rd());
-	std::uniform_real_distribution <float> distribution(-radius, radius);
+	//std::uniform_real_distribution <float> distribution(-radius, radius);
 
-	std::normal_distribution <float> radDist(0.f, radius);
+	//std::normal_distribution <float> radDist(0.f, radius);
 	//std::exponential_distribution <float> radDist(2.f);
-	//std::uniform_real_distribution <float> radDist(0.f, radius);
+	std::uniform_real_distribution <float> radDist(0.f, radius);
 
-	std::uniform_real_distribution <float> quatDist(-1.f, 1.f);
-	
-	
+	std::uniform_real_distribution <float> quatDist(-1.f, 1.f);	
 
 	for (std::vector<glm::vec3>::iterator it = path.begin(); it != (path.end() - 1); ++it)
 	{
