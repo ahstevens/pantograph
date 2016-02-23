@@ -291,7 +291,8 @@ void perRenderUpdates()
 	else cosmo->setRotationAngle(rotY + dragX);
 	
 	// adjust panto depth so that back of dataset always accessible
-	settings->worldDepths[0] = (-cosmo->getMaxDistance() - cow.z)*scale;
+	//settings->worldDepths[0] = (-cosmo->getMaxDistance() - cow.z)*scale;
+	//settings->worldDepths[1] = 10.f - 0.001f;
 
 	touchManager->perRenderUpdate();
 
@@ -339,7 +340,6 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
-	settings->worldDepths[1] = 10.f - 0.001f;
 
 	// render cosmos point cloud
 	cosmo->render();
@@ -606,6 +606,9 @@ void reset_values()
 	//winWidth = 1024; winHeight = 1024;
 	scale = 0.2f;
 	vectorScale = 1.0f;
+	
+	settings->worldDepths[0] = -75.f * scale;
+	settings->worldDepths[1] = 10.f - 0.000001f;
 }
 
 void keyboard( unsigned char key, int x, int y )
@@ -731,8 +734,8 @@ void init(std::string name, bool isRightHanded)
 	advanceButtonPos = glm::vec2(glutGet(GLUT_WINDOW_WIDTH) / 2.f, glutGet(GLUT_WINDOW_HEIGHT) / 2.f);
 
 	srand(time(NULL));
-	settings = new Settings();
-	
+
+	settings = new Settings();	
 	settings->study->init(name, isRightHanded, 2, 5, 5);
 
 	touchManager = new TouchManager(settings);
