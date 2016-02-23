@@ -622,8 +622,8 @@ void keyboard( unsigned char key, int x, int y )
 		cout << "scale: "<< (int) scale *100 << endl;
 	}
 
-	if(key == '[') cow.z += 0.1f*scale;
-	if(key == ']') cow.z -= 0.1f*scale;
+	if(key == '[') touchManager->setPantoHand(false);
+	if(key == ']') touchManager->setPantoHand(true);
 
 	float dx = -sin(rotY*3.141592f/180.0f);
 	float dz = cos(rotY*3.141592f/180.0f);

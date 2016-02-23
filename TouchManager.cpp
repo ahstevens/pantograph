@@ -22,6 +22,7 @@ TouchManager::TouchManager(Settings* sets)
 	secondFingerY = -1;
 	pantograph = new Pantograph();
 	pantograph->settings = settings;
+	pantograph->setLeftHanded(settings->study->isSubjectLeftHanded());
 	
 
 	settings->finger1sX = settings->finger1sY = settings->finger2sX = settings->finger2sY = -1;
@@ -715,6 +716,11 @@ void TouchManager::draw3D()
 	pantograph->draw3D();
 }
 
+void TouchManager::setPantoHand(bool rightHanded)
+{
+	pantograph->setLeftHanded(!rightHanded);
+}
+
 void TouchManager::perRenderUpdate()
 {
 	//send new screen coords to process into model coords during next render
@@ -729,6 +735,8 @@ void TouchManager::perRenderUpdate()
 		settings->finger2sX = secondFingerX;
 		settings->finger2sY = secondFingerY;
 		
+		pantograph->recalcSelection();
+
 		//and if a render returned model coords
 		if (settings->positioningModelCoords[0] != -1 && settings->positioningModelCoords[1] != -1)
 		{

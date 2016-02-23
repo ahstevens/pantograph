@@ -57,6 +57,11 @@ void StudyManager::resetClock()
 	clock.start();
 }
 
+bool StudyManager::isSubjectLeftHanded()
+{
+	return !rightHanded;
+}
+
 bool StudyManager::fileExists(const std::string &fname)
 {
 	struct stat buffer;

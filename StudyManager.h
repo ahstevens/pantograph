@@ -26,6 +26,8 @@ public:
 
 	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
+	bool isSubjectLeftHanded();
+
 private:
 	enum MODE { MOUSE = 0, PANTO = 1 };
 	

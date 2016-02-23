@@ -36,6 +36,8 @@ public:
 	
 	int Init();
 
+	void setPantoHand(bool rightHanded);
+
 	Settings* settings;
 	
 

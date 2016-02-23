@@ -7,7 +7,7 @@ Polhemus* Polhemus::instance = NULL;
 Polhemus* Polhemus::getInstance( )
 {
     if ( !instance )
-        instance = new Polhemus( "Tracker0", "192.168.8.149" );//"localhost" );
+        instance = new Polhemus( "Tracker0", "localhost" );//"192.168.8.149" );
     return instance;
 }
 
