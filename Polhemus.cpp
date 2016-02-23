@@ -14,13 +14,17 @@ Polhemus* Polhemus::getInstance( )
 Polhemus::Polhemus(std::string trackerName, std::string serverLocation)
 {
 	vrpnTracker = new vrpn_Tracker_Remote( std::string( trackerName + "@" + serverLocation ).c_str() );
-	vrpnTracker->register_change_handler( 0, handle_tracker_callback );
+	vrpnTracker->register_change_handler( NULL, handle_tracker_callback );
 }
 
 Polhemus::~Polhemus(void)
 {
+	std::cout << "Unregistering Tracker Callback... ";
 	vrpnTracker->unregister_change_handler(0, handle_tracker_callback);
+	std::cout << "done" << std::endl;
+	std::cout << "Freeing up memory from vrpnTracker... ";
 	delete vrpnTracker;
+	std::cout << "done" << std::endl;
 }
 
 void VRPN_CALLBACK Polhemus::handle_tracker_callback( void* userData, const vrpn_TRACKERCB t )

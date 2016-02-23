@@ -612,7 +612,7 @@ void keyboard( unsigned char key, int x, int y )
 {
 	//cerr << "Key " << key << " int " << int(key) << "\n";
 
-	if(key == 'q') exit(0);
+	if(key == 'q') glutLeaveMainLoop();
 	if(key == ',') { 
 		scale = scale*0.90f; 
 		cout << "scale: "<< (int) scale *100 << endl;
