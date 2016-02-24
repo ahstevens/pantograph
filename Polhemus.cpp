@@ -15,6 +15,9 @@ Polhemus::Polhemus(std::string trackerName, std::string serverLocation)
 {
 	vrpnTracker = new vrpn_Tracker_Remote( std::string( trackerName + "@" + serverLocation ).c_str() );
 	vrpnTracker->register_change_handler( NULL, handle_tracker_callback );
+
+	vrpnButton = new vrpn_Button_Remote(std::string("Button0@" + serverLocation).c_str());
+	vrpnButton->register_change_handler(NULL, handle_button_callback);
 }
 
 Polhemus::~Polhemus(void)
@@ -43,6 +46,18 @@ void VRPN_CALLBACK Polhemus::handle_tracker( void* userData, const vrpn_TRACKERC
 	pos.z = (float)t.pos[2];
 }
 
+void VRPN_CALLBACK Polhemus::handle_button_callback(void* userData, const vrpn_BUTTONCB t)
+{
+	getInstance()->handle_button(userData, t);
+}
+
+void VRPN_CALLBACK Polhemus::handle_button(void* userData, const vrpn_BUTTONCB t)
+{
+	//std::cout << "Button " << t.button << " state is " << t.state << std::endl;
+	if (t.button == 0)
+		triggerDown = t.state;
+}
+
 void Polhemus::update()
 {
 	vrpnTracker->mainloop();
@@ -57,6 +72,8 @@ glm::quat Polhemus::getQuaternion()
 {
 	return quat * calibration;
 }
+
+bool Polhemus::checkButton() { return triggerDown; }
 
 // the following function assumes that the probe is aligned along its origin
 // (i.e., points down the +x axis with the top of the probe pointing along +z)

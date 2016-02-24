@@ -366,9 +366,9 @@ void drawScene(int eye) //0=left or mono, 1=right
 	// render cosmos point cloud
 	cosmo->render();
 
-	//glm::vec3 polPos = polhemus->getPosition();
+	glm::vec3 polPos = polhemus->getPosition();
 	//std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
-	//drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
+	if(polhemus->checkButton()) drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
 }
 
 void drawOverlay()
