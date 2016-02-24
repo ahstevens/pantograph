@@ -721,7 +721,8 @@ void TouchManager::setPantoHand(bool rightHanded)
 	pantograph->setLeftHanded(!rightHanded);
 }
 
-void TouchManager::perRenderUpdate()
+// Returns TRUE when finger screen coords received, FALSE otherwise
+bool TouchManager::perRenderUpdate()
 {
 	//send new screen coords to process into model coords during next render
 	float pantoX, pantoY, pantoDepth;
@@ -733,9 +734,7 @@ void TouchManager::perRenderUpdate()
 		settings->finger1sX = firstFingerX;
 		settings->finger1sY = firstFingerY;
 		settings->finger2sX = secondFingerX;
-		settings->finger2sY = secondFingerY;
-		
-		pantograph->recalcSelection();
+		settings->finger2sY = secondFingerY;		
 
 		//and if a render returned model coords
 		if (settings->positioningModelCoords[0] != -1 && settings->positioningModelCoords[1] != -1)
@@ -744,6 +743,8 @@ void TouchManager::perRenderUpdate()
 			settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
 			settings->currentlySelectedPoint[2] = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * pantoDepth;
 		}
+		else
+			return true;
 
 	}//end if valid selection
 	else
@@ -753,4 +754,6 @@ void TouchManager::perRenderUpdate()
 		settings->finger2sX = -1;
 		settings->finger2sY = -1;
 	}
+
+	return false;
 }

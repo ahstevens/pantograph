@@ -68,6 +68,9 @@ class Cosmo: public Object
 
 		bool checkHighlight();
 
+		void skipLensModeThisRender();
+		bool lensModeThisRender();
+
     protected:
 		struct MovableRotationAxis {
 			glm::vec3 axis;
@@ -103,5 +106,5 @@ class Cosmo: public Object
 
 		Filament* filament;
 
-		bool highlightFlag;
+		bool highlightFlag, waitTillNextRender;
 };

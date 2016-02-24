@@ -32,7 +32,7 @@ public:
 
 	void draw2D();
 	void draw3D();
-	void perRenderUpdate();
+	bool perRenderUpdate();
 	
 	int Init();
 

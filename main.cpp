@@ -272,6 +272,8 @@ void updateLens()
 
 void perRenderUpdates()
 {
+	processPendingInteractions();
+
 	polhemus->update();
 
 	if (settings->transitionRequested) 
@@ -294,9 +296,8 @@ void perRenderUpdates()
 	//settings->worldDepths[0] = (-cosmo->getMaxDistance() - cow.z)*scale;
 	//settings->worldDepths[1] = 10.f - 0.001f;
 
-	touchManager->perRenderUpdate();
-
-	processPendingInteractions();
+	if(touchManager->perRenderUpdate())
+		cosmo->skipLensModeThisRender();
 
 	if (settings->mouseMode)
 	{
@@ -341,12 +342,9 @@ void drawScene(int eye) //0=left or mono, 1=right
 	// translate from scene	origin 10 units behind near clipping plane to each eye
 	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
-	// render cosmos point cloud
-	cosmo->render();
-
 	//draw active positioning pole:
 	//if (settings->positioningModelCoords[2] != -1)
-	if (settings->pantographMode || settings->mouseMode)
+	if ((settings->pantographMode || settings->mouseMode) && cosmo->lensModeThisRender())
 	{
 		glLineWidth(2);
 		glColor4f(0.8, 0.8, 0.95, 0.25);
@@ -361,14 +359,16 @@ void drawScene(int eye) //0=left or mono, 1=right
 			glVertex3f(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]);
 		glEnd();
 
+		touchManager->draw3D();
 		drawVolumeCursor(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2], cosmo->getLensSize());
 	}
+
+	// render cosmos point cloud
+	cosmo->render();
 
 	//glm::vec3 polPos = polhemus->getPosition();
 	//std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
 	//drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
-
-	touchManager->draw3D();
 }
 
 void drawOverlay()

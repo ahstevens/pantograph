@@ -20,7 +20,7 @@ Cosmo::Cosmo()
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
 
-	highlightFlag = false;
+	highlightFlag = waitTillNextRender = false;
 
 	filament = nullptr;
 }
@@ -353,6 +353,10 @@ bool Cosmo::checkHighlight()
 
 	return false;
 }
+
+void Cosmo::skipLensModeThisRender() { waitTillNextRender = true; }
+
+bool Cosmo::lensModeThisRender() { return !waitTillNextRender; }
 //-------------------------------------------------------------------------------
 
 
@@ -528,8 +532,13 @@ void Cosmo::render()
 		// cosmos
 		if (lensMode)
 		{
-			renderLens();
-			filament->setBrightness((lensOuterBrightness + (lensBrightnessRange() * brightnessRatio))*2.f);
+			if (waitTillNextRender)
+				waitTillNextRender = false;
+			else
+			{
+				renderLens();
+				filament->setBrightness((lensOuterBrightness + (lensBrightnessRange() * brightnessRatio))*2.f);
+			}
 		}
 		else
 		{
