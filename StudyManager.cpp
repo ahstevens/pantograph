@@ -30,7 +30,9 @@ void StudyManager::init(std::string participant, bool isRightHanded, unsigned in
 	std::mt19937 generator(rd());
 	std::uniform_int_distribution<int> boolDist(0, 1);
 
-	currentMode = static_cast<MODE>(boolDist(generator));
+	//currentMode = static_cast<InteractionMode>(boolDist(generator));
+
+	currentMode = TRAINING;
 
 	this->participant = participant;
 	this->rightHanded = isRightHanded;
@@ -103,13 +105,22 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	// Construct string for rendering mode enum
 	std::string conditionString;
 
+	assert(currentMode != ERR);
+
 	switch (currentMode)
 	{
+
+	case TRAINING:
+		conditionString = std::string("training");
+		break;
 	case MOUSE:
 		conditionString = std::string("mouse");
 		break;
-	case PANTO:
+	case PANTOGRAPH:
 		conditionString = std::string("panto");
+		break;
+	case POLHEMUS:
+		conditionString = std::string("polhemus");
 		break;
 	default:
 		conditionString = std::string("none");

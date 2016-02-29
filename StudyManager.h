@@ -14,6 +14,14 @@
 class StudyManager
 {
 public:
+	enum InteractionMode {
+		ERR,
+		TRAINING,
+		MOUSE,
+		PANTOGRAPH,
+		POLHEMUS
+	};
+
 	static StudyManager* getInstance();
 	
 	void init(std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock);
@@ -28,9 +36,7 @@ public:
 
 	bool isSubjectLeftHanded();
 
-private:
-	enum MODE { MOUSE = 0, PANTO = 1 };
-	
+private:	
 	static StudyManager *instance;
 	StudyManager();
 	~StudyManager();
@@ -51,7 +57,7 @@ private:
 	unsigned int trial;
 	unsigned int block;
 	unsigned int replicate;
-	MODE currentMode;
+	InteractionMode currentMode;
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
 };
