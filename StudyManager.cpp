@@ -22,9 +22,11 @@ StudyManager::~StudyManager()
 
 
 
-void StudyManager::init(std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
+void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
 {
 	trial = block = replicate = 0;
+
+	studyStarted = trialStarted = false;
 
 	std::random_device rd;
 	std::mt19937 generator(rd());
@@ -32,8 +34,10 @@ void StudyManager::init(std::string participant, bool isRightHanded, unsigned in
 
 	//currentMode = static_cast<InteractionMode>(boolDist(generator));
 
-	currentMode = TRAINING;
+	modeRestriction = currentMode = NONE;
+	currentState = OFF;
 
+	this->cosmo = cosmo;
 	this->participant = participant;
 	this->rightHanded = isRightHanded;
 	this->nConditions = nConditions;
@@ -47,12 +51,20 @@ void StudyManager::init(std::string participant, bool isRightHanded, unsigned in
 void StudyManager::next()
 {
 	trial++;
+	cosmo->generateFilament();
+	cosmo->setMovableRotationCenter(glm::vec3(0.f));
 }
 
 void StudyManager::end()
 {
 
 }
+
+void StudyManager::startTrial() { trialStarted = true; }
+
+bool StudyManager::isStudyStarted() { return studyStarted; }
+
+bool StudyManager::isTrialStarted() { return trialStarted; }
 
 void StudyManager::resetClock()
 {
@@ -109,10 +121,6 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 
 	switch (currentMode)
 	{
-
-	case TRAINING:
-		conditionString = std::string("training");
-		break;
 	case MOUSE:
 		conditionString = std::string("mouse");
 		break;

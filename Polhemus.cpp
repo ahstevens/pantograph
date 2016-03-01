@@ -18,6 +18,8 @@ Polhemus::Polhemus(std::string trackerName, std::string serverLocation)
 
 	vrpnButton = new vrpn_Button_Remote(std::string("Button0@" + serverLocation).c_str());
 	vrpnButton->register_change_handler(NULL, handle_button_callback);
+
+	triggerDown = false;
 }
 
 Polhemus::~Polhemus(void)
@@ -73,7 +75,7 @@ glm::quat Polhemus::getQuaternion()
 	return quat * calibration;
 }
 
-bool Polhemus::checkButton() { return triggerDown; }
+bool Polhemus::isTriggerDown() { return triggerDown; }
 
 // the following function assumes that the probe is aligned along its origin
 // (i.e., points down the +x axis with the top of the probe pointing along +z)

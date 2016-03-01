@@ -12,11 +12,14 @@ class Settings
 public:
     Settings();
 
+	void activate(StudyManager::InteractionMode m);
+	void deactivate();
+
 	void resetToDefaults();
 
 	StudyManager *study;
 
-	bool pantographMode, mouseMode, modeSwitched;
+	bool modeSwitched;
 
 	int positioningXYFingerLocation[2];
 	int positioningZFingerLocation[2];
@@ -36,6 +39,8 @@ public:
 
 	bool trackingCursor;
 	float cursorDistance, cursorTrackingRate;
+
+	float polhemusMovementMultiplier;
 
 private:
 

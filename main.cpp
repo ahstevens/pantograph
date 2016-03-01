@@ -80,7 +80,6 @@ std::string inputFiles[] = { "haloes_data/256cosmo.0.7.cosmo" };
 Cosmo *cosmo;
 bool point = true;
 bool velocity = false;
-std::vector<Cosmo*> vCosmo;
 //----------------------------------------------------------------------------
 #define TRANS_FRAMES 40
 int transTimer;
@@ -194,9 +193,6 @@ void processPendingInteractions()
 		settings->finger2modelCoords[1] = p1y;
 		settings->finger2modelCoords[2] = p1z;
 
-		// activate lens mode
-		cosmo->setLensMode(true);
-		//cosmo->setAxisMode(true);
 
 		// change rotation axis to be vector between fingers
 		//glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
@@ -228,8 +224,6 @@ void processPendingInteractions()
 		settings->positioningModelCoords[1] = -1;
 		settings->positioningModelCoords[2] = -1;
 
-		// turn off lens mode
-		if (!settings->mouseMode) cosmo->setLensMode(false);
 		//if(!settings->mouseMode) cosmo->setAxisMode(false);
 	}
 	
@@ -254,11 +248,11 @@ void updateLens()
 	cosmo->setLensPosition(newPos.x, newPos.y, newPos.z);
 	cosmo->setMovableRotationCenter(newPos.x, newPos.y, newPos.z);
 
-	if (settings->modeSwitched)
+	if (settings->modeSwitched && !settings->study->isTrialStarted())
 	{
-		settings->study->next();
 		settings->study->logData("interaction initiated", cosmo->getLensPosition(), cosmo->getFilament());
 		settings->modeSwitched = false;
+		settings->study->startTrial();
 	}
 
 	if (settings->trackingCursor)
@@ -272,9 +266,33 @@ void updateLens()
 
 void perRenderUpdates()
 {
-	processPendingInteractions();
+	if(settings->study->modeRestriction == StudyManager::NONE ||
+		settings->study->modeRestriction == StudyManager::PANTOGRAPH)
+		processPendingInteractions();
 
-	polhemus->update();
+	if (settings->study->modeRestriction == StudyManager::NONE ||
+		settings->study->modeRestriction == StudyManager::POLHEMUS)
+	{
+		polhemus->update();
+
+		if (polhemus->isTriggerDown())
+		{
+			if (settings->study->currentMode == StudyManager::NONE)
+				settings->activate(StudyManager::POLHEMUS);
+
+			glm::vec3 pos = polhemus->getPosition() * settings->polhemusMovementMultiplier;
+			settings->currentlySelectedPoint[0] = pos.x;
+			settings->currentlySelectedPoint[1] = pos.y;
+			settings->currentlySelectedPoint[2] = pos.z;
+		}
+		else if (settings->study->currentMode == StudyManager::POLHEMUS)
+			settings->deactivate();
+	}
+
+	if (settings->study->currentState == StudyManager::ACTIVE)
+		cosmo->setLensMode(true);
+	else
+		cosmo->setLensMode(false);
 
 	if (settings->transitionRequested) 
 		calculateTransition(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1]);
@@ -299,7 +317,7 @@ void perRenderUpdates()
 	if(touchManager->perRenderUpdate())
 		cosmo->skipLensModeThisRender();
 
-	if (settings->mouseMode)
+	if (settings->study->currentMode == StudyManager::MOUSE)
 	{
 		settings->currentlySelectedPoint[0] = mXscreen;
 		settings->currentlySelectedPoint[1] = mYscreen;
@@ -313,15 +331,14 @@ void perRenderUpdates()
 	}
 	
 	// RESET VARIABLES AT BEGINNING OF TRIAL
-	if (cosmo->getRemainingTargets() == 0 && !settings->mouseMode && !settings->pantographMode)
-	{		
-		cosmo->generateFilament();
-		cosmo->setMovableRotationCenter(glm::vec3(0.f));
-		mZ = 0.f;
+	if (cosmo->getRemainingTargets() == 0 && settings->study->currentState == StudyManager::OFF)
+	{
+		settings->study->next();
 		settings->cursorDistance = 0.f;
+		mZ = 0.f;
 	}
 
-	if (settings->pantographMode || settings->mouseMode)
+	if (settings->study->currentState == StudyManager::ACTIVE)
 		updateLens();
 	
 	if (cosmo->checkHighlight()) {
@@ -344,7 +361,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	//draw active positioning pole:
 	//if (settings->positioningModelCoords[2] != -1)
-	if ((settings->pantographMode || settings->mouseMode) && cosmo->lensModeThisRender())
+	if (settings->study->currentState == StudyManager::ACTIVE && cosmo->lensModeThisRender())
 	{
 		glLineWidth(2);
 		glColor4f(0.8, 0.8, 0.95, 0.25);
@@ -365,10 +382,6 @@ void drawScene(int eye) //0=left or mono, 1=right
 
 	// render cosmos point cloud
 	cosmo->render();
-
-	glm::vec3 polPos = polhemus->getPosition();
-	//std::cout << "polhemus pos = (" << polPos.x << ", " << polPos.y << ", " << polPos.z << ")" << std::endl;
-	if(polhemus->checkButton()) drawVolumeCursor(polPos.x, polPos.y, polPos.z, cosmo->getLensSize());
 }
 
 void drawOverlay()
@@ -476,13 +489,10 @@ void mouseButton(int button, int state, int x, int y)
 		//	isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
 		//	cosmo->generateFilament();
 
-		if (!settings->pantographMode)
+		if (settings->study->modeRestriction == StudyManager::NONE ||
+			settings->study->modeRestriction == StudyManager::MOUSE)
 		{
-			settings->mouseMode = true;
-			settings->modeSwitched = true;
-
-			settings->dimmingRequested = true;
-			cosmo->setLensMode(true);
+			settings->activate(StudyManager::MOUSE);
 
 			mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
 			mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
@@ -493,11 +503,12 @@ void mouseButton(int button, int state, int x, int y)
 	{
 		leftMouseDown = false;
 
-		settings->mouseMode = false;
-		settings->dimmingRequested = false;
 
-		settings->transitionRequested = true;
-		cosmo->setLensMode(false);
+		if (settings->study->modeRestriction == StudyManager::NONE ||
+			settings->study->modeRestriction == StudyManager::MOUSE)
+		{
+			settings->deactivate();
+		}
 	}
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
@@ -538,7 +549,8 @@ void mouseButton(int button, int state, int x, int y)
 	// so discard one of the events
 	if ( ( (button == 3) || (button == 4) ) && state == GLUT_DOWN ) // It's a wheel event
    {
-	   if (settings->mouseMode)
+
+	   if (settings->study->currentMode == StudyManager::MOUSE)
 	   {
 		   if (button == 3) // wheel up
 		   {
@@ -560,14 +572,14 @@ void motion(int x, int y)
 	rx = float(x); ry = float(winHeight - y);
 
 	// LEFT MOUSE DOWN
-	if (settings->mouseMode && leftMouseDown)
+	if (settings->study->currentMode == StudyManager::MOUSE)
 	{
 		mXscreen = (VP_RIGHT - VP_LEFT) * (rx / winWidth - 0.5f);
 		mYscreen = aspect*(VP_TOP - VP_BOTTOM) * (ry / winHeight - 0.5f);
 	}
 
 	// use middle mouse button + drag to orient rotation axis
-	//if (settings->mouseMode && middleMouseDown && !leftMouseDown)
+	//if ((settings->study->currentMode == StudyManager::TRAINING || settings->study->currentMode == StudyManager::MOUSE) && middleMouseDown && !leftMouseDown)
 	//{
 	//	float h_displacement = (float) (holdMx - rx) / 10.f;
 	//	float v_displacement = (float)(holdMy - ry) / 10.f;
@@ -736,7 +748,7 @@ void init(std::string name, bool isRightHanded)
 	srand(time(NULL));
 
 	settings = new Settings();	
-	settings->study->init(name, isRightHanded, 2, 5, 5);
+	settings->study->init(cosmo, name, isRightHanded, 2, 5, 5);
 
 	touchManager = new TouchManager(settings);
 	int err_code = touchManager->Init();
@@ -785,6 +797,7 @@ int main(int argc, char *argv[])
     mainWindow = glutCreateWindow("Pantograph");
     glutSetWindow(mainWindow);
     glutFullScreen();
+	cosmo = new Cosmo();
 	init(name, (handedness == "R" ? true : false));
 
 	//---------------------------------------------------------------------------
@@ -806,7 +819,7 @@ int main(int argc, char *argv[])
 
 	reset_values();
 
-    cosmo = new Cosmo();
+    
 	cosmo->read( inputFiles[0] );
 	cosmo->resample(50000);
 	cosmo->setScale(scale);
@@ -820,8 +833,6 @@ int main(int argc, char *argv[])
 	cosmo->setMovableRotationAxisScale(20.f);
 	cosmo->setVelocityMode(false);
 	cosmo->generateFilament();
-
-	vCosmo.push_back(cosmo);
 		    
     //---------------------------------------------------------------------------
     std::cout << " -------------------------------" << std::endl;

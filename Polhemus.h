@@ -28,7 +28,7 @@ public:
 	glm::vec3 getPosition();
 	glm::quat getQuaternion();
 
-	bool checkButton();
+	bool isTriggerDown();
 	
 	void calibrate();
 	void calibrateReset();

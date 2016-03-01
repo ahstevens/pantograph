@@ -10,23 +10,35 @@
 #include <glm\glm.hpp>
 #include "Filament.h"
 #include "Stopwatch.h"
+#include "Cosmo.h"
 
 class StudyManager
 {
 public:
 	enum InteractionMode {
 		ERR,
-		TRAINING,
+		NONE,
 		MOUSE,
 		PANTOGRAPH,
 		POLHEMUS
 	};
 
+	enum InteractionState {
+		STATE_ERR,
+		ACTIVE,
+		OFF
+	};
+
 	static StudyManager* getInstance();
 	
-	void init(std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock);
+	void init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock);
 	void next();
 	void end();
+
+	void startTrial();
+
+	bool isStudyStarted();
+	bool isTrialStarted();
 
 	void resetClock();
 
@@ -35,6 +47,10 @@ public:
 	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
 	bool isSubjectLeftHanded();
+
+	InteractionMode modeRestriction;
+	InteractionMode currentMode;
+	InteractionState currentState;
 
 private:	
 	static StudyManager *instance;
@@ -47,6 +63,8 @@ private:
 
 	std::string intToString(int i, unsigned int pad_to_magnitude = 0);
 
+	Cosmo *cosmo;
+
 	Stopwatch clock;
 
 	std::ofstream outFile;
@@ -57,8 +75,9 @@ private:
 	unsigned int trial;
 	unsigned int block;
 	unsigned int replicate;
-	InteractionMode currentMode;
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
+
+	bool studyStarted, trialStarted;
 };
 

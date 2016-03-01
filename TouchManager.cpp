@@ -235,7 +235,8 @@ void TouchManager::resetFingers()
 //	you can do mouse map like "OnTG_Down" etc;
 void TouchManager::OnTouchPoint(const TouchPoint & tp)
 {
-	if (settings->mouseMode) return;
+	if (settings->study->modeRestriction != StudyManager::PANTOGRAPH &&
+		settings->study->modeRestriction != StudyManager::NONE) return;
 
 	float x = tp.x - glutGet(GLUT_WINDOW_X);
 	float y = glutGet(GLUT_WINDOW_HEIGHT)-(tp.y-glutGet(GLUT_WINDOW_Y));
@@ -265,8 +266,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 					secondFingerY = y;
 					pantograph->setFinger2(x,y);
 					pantograph->setDrawReticle(true);
-					settings->pantographMode = true;
-					settings->modeSwitched = true;
+					settings->activate(StudyManager::PANTOGRAPH);
 					
 					//check if swap needed:
 					if (pantograph->swapNeeded())
@@ -280,7 +280,6 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 						firstFingerY = y;
 					}
 
-					settings->dimmingRequested = true;
 					break;
 				}
 				else //second finger was set previously
@@ -343,8 +342,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				pantograph->resetFingers();
 				settings->positioningXYFingerLocation[0] = -1;
 				settings->positioningXYFingerLocation[1] = -1;
-				if(settings->pantographMode) settings->transitionRequested = true;
-				settings->pantographMode = false;
+				settings->deactivate();
 				break;
 			}
 			else if (tp.id == secondFingerID)
@@ -363,7 +361,7 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 
 void TouchManager:: OnTouchGesture(const TouchGesture & tg)
 {
-	if (ignoreGestures || settings->pantographMode)
+	if (ignoreGestures || settings->study->currentMode == StudyManager::PANTOGRAPH)
 		return;
 
 	if(TG_NO_ACTION == tg.type)
