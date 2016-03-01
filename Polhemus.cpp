@@ -55,9 +55,8 @@ void VRPN_CALLBACK Polhemus::handle_button_callback(void* userData, const vrpn_B
 
 void VRPN_CALLBACK Polhemus::handle_button(void* userData, const vrpn_BUTTONCB t)
 {
-	//std::cout << "Button " << t.button << " state is " << t.state << std::endl;
-	if (t.button == 0)
-		triggerDown = t.state;
+	//std::cout << "Button " << t.button << " state changed to " << t.state << std::endl;
+	triggerDown = t.state;
 }
 
 void Polhemus::update()

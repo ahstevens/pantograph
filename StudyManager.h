@@ -48,6 +48,8 @@ public:
 
 	bool isSubjectLeftHanded();
 
+	float getEyeOffset();
+
 	InteractionMode modeRestriction;
 	InteractionMode currentMode;
 	InteractionState currentState;
@@ -77,6 +79,8 @@ private:
 	unsigned int replicate;
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
+
+	float eyeOffset;
 
 	bool studyStarted, trialStarted;
 };

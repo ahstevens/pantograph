@@ -25,6 +25,8 @@ StudyManager::~StudyManager()
 void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
 {
 	trial = block = replicate = 0;
+	
+	eyeOffset = 0.25f;
 
 	studyStarted = trialStarted = false;
 
@@ -75,6 +77,8 @@ bool StudyManager::isSubjectLeftHanded()
 {
 	return !rightHanded;
 }
+
+float StudyManager::getEyeOffset() { return eyeOffset; }
 
 bool StudyManager::fileExists(const std::string &fname)
 {

@@ -70,7 +70,6 @@ bool stereo = true;
 
 #define QUAD_BUFFER true
 //float eyeOffset     = 3.25f * 10.0f/16.8f;
-float eyeOffset     = 0.25f;
 
 //---------------------------------------------------------------------------- 
 
@@ -141,6 +140,18 @@ void generate_theta()
 	{
 		rotation[i] = OSC_ANGLE * sin(float(i)*3.141592f/(REFRESH)) / 2.f;
 	}
+}
+
+void stayInWorld(glm::vec3 &newPos, glm::vec3 oldPos)
+{
+	if (newPos.x < VP_LEFT || newPos.x > VP_RIGHT)
+		newPos.x = oldPos.x;
+
+	if (newPos.y < VP_BOTTOM || newPos.y > VP_TOP)
+		newPos.y = oldPos.y;
+	
+	if (newPos.z < settings->worldDepths[0] || newPos.z > settings->worldDepths[1])
+		newPos.z = oldPos.z;
 }
 
 void processPendingInteractions()
@@ -280,7 +291,9 @@ void perRenderUpdates()
 			if (settings->study->currentMode == StudyManager::NONE)
 				settings->activate(StudyManager::POLHEMUS);
 
-			glm::vec3 pos = polhemus->getPosition() * settings->polhemusMovementMultiplier;
+			glm::vec3 pos = (polhemus->getPosition() - settings->polhemusOrigin) * settings->polhemusMovementMultiplier;
+			stayInWorld(pos, glm::vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]));
+
 			settings->currentlySelectedPoint[0] = pos.x;
 			settings->currentlySelectedPoint[1] = pos.y;
 			settings->currentlySelectedPoint[2] = pos.z;
@@ -357,7 +370,8 @@ void drawScene(int eye) //0=left or mono, 1=right
 	glLoadIdentity();
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
-	glTranslatef(!eye ? eyeOffset : -eyeOffset, 0.0, -NEAR_CP - 10.0); // center of universe offset..
+	float eyeOff = settings->study->getEyeOffset();
+	glTranslatef(!eye ? eyeOff : -eyeOff, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
 	//draw active positioning pole:
 	//if (settings->positioningModelCoords[2] != -1)
@@ -416,11 +430,36 @@ void drawOverlay()
 		lastTime = currentTime;
 	}
 	
-	sprintf(buffer, "Targets Remaining: %u", cosmo->getRemainingTargets());
+	if (!settings->study->isStudyStarted())
+	{
+		sprintf(buffer, "Targets Remaining: %u", cosmo->getRemainingTargets());
+		glColor3f(1, 1, 1);
+		glLineWidth(10);
+		drawStrokeLabel3D(20, 20, 0, 0.5, buffer);
+	}
+
+	std::string modeText;
+	switch (settings->study->currentMode)
+	{
+	case StudyManager::NONE:
+		modeText = "NONE";
+		break;
+	case StudyManager::MOUSE:
+		modeText = "MOUSE";
+		break;
+	case StudyManager::PANTOGRAPH:
+		modeText = "PANTOGRAPH";
+		break;
+	case StudyManager::POLHEMUS:
+		modeText = "POLHEMUS";
+		break;
+	}
+
+	sprintf(buffer, "Interaction Mode: %s", modeText.c_str());
 	glColor3f(1, 1, 1);
 	glLineWidth(10);
-	drawStrokeLabel3D(20, 20, 0, 0.5, buffer);
-	
+	drawStrokeLabel3D(20, winHeight - 20, 0, 0.1, buffer);
+
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -431,11 +470,13 @@ void redraw( void )
 {
 	perRenderUpdates();
 
+	float eyeOff = settings->study->getEyeOffset();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//--------------------------------------------------
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(VP_LEFT + eyeOffset,	VP_RIGHT + eyeOffset,
+	glFrustum(VP_LEFT + eyeOff,	VP_RIGHT + eyeOff,
 		aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
 	//--------------------------------------------------
 	drawScene(0);
@@ -452,6 +493,7 @@ void redraw_stereo(void)
 {
 	perRenderUpdates();
 
+	float eyeOff = settings->study->getEyeOffset();
   	//--------------------------------------------------
 	// LEFT EYE = 0, RIGHT EYE = 1
 	for (int eye = 0; eye < 2; ++eye)
@@ -461,8 +503,8 @@ void redraw_stereo(void)
 		//--------------------------------------------------
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glFrustum(VP_LEFT + (!eye ? eyeOffset : -eyeOffset),
-			VP_RIGHT + (!eye ? eyeOffset : -eyeOffset),
+		glFrustum(VP_LEFT + (!eye ? eyeOff : -eyeOff),
+			VP_RIGHT + (!eye ? eyeOff : -eyeOff),
 			aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
 		//--------------------------------------------------
 		drawScene(eye);
@@ -489,8 +531,9 @@ void mouseButton(int button, int state, int x, int y)
 		//	isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true))
 		//	cosmo->generateFilament();
 
-		if (settings->study->modeRestriction == StudyManager::NONE ||
-			settings->study->modeRestriction == StudyManager::MOUSE)
+		if ((settings->study->modeRestriction == StudyManager::NONE ||
+			settings->study->modeRestriction == StudyManager::MOUSE) &&
+			settings->study->currentMode == StudyManager::NONE)
 		{
 			settings->activate(StudyManager::MOUSE);
 
@@ -504,8 +547,9 @@ void mouseButton(int button, int state, int x, int y)
 		leftMouseDown = false;
 
 
-		if (settings->study->modeRestriction == StudyManager::NONE ||
-			settings->study->modeRestriction == StudyManager::MOUSE)
+		if ((settings->study->modeRestriction == StudyManager::NONE ||
+			settings->study->modeRestriction == StudyManager::MOUSE) &&
+			settings->study->currentMode == StudyManager::MOUSE)
 		{
 			settings->deactivate();
 		}
@@ -679,8 +723,12 @@ void keyboard( unsigned char key, int x, int y )
 	if(key == 'y') { cosmo->resample(2500000); }
 
 	if (key == 'f') { cosmo->generateFilament(); }
-	if (key == '-') { if (eyeOffset - 0.01f >= 0.f) eyeOffset -= 0.01f; else eyeOffset = 0.f; cout << "eyeOffset = " << eyeOffset << endl; }
-	if (key == '=') { eyeOffset+=0.01f; cout << "eyeOffset = " << eyeOffset << endl; }
+
+	if (key == 'c')
+	{ 
+		settings->polhemusOrigin = polhemus->getPosition();
+		std::cout << "New calibrated Polhemus origin is at ( " << settings->polhemusOrigin.x << ", " << settings->polhemusOrigin.y << ", " << settings->polhemusOrigin.z << " )" << std::endl;
+	}
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
 	if(key == 'o') cosmo->radius *= 1.05;

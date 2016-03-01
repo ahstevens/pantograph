@@ -42,6 +42,8 @@ public:
 
 	float polhemusMovementMultiplier;
 
+	glm::vec3 polhemusOrigin;
+
 private:
 
 };

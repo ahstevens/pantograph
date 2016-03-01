@@ -235,8 +235,11 @@ void TouchManager::resetFingers()
 //	you can do mouse map like "OnTG_Down" etc;
 void TouchManager::OnTouchPoint(const TouchPoint & tp)
 {
-	if (settings->study->modeRestriction != StudyManager::PANTOGRAPH &&
-		settings->study->modeRestriction != StudyManager::NONE) return;
+	if ((settings->study->modeRestriction != StudyManager::PANTOGRAPH &&
+		settings->study->modeRestriction != StudyManager::NONE) ||
+		(settings->study->currentMode != StudyManager::PANTOGRAPH &&
+			settings->study->currentMode != StudyManager::NONE))
+		return;
 
 	float x = tp.x - glutGet(GLUT_WINDOW_X);
 	float y = glutGet(GLUT_WINDOW_HEIGHT)-(tp.y-glutGet(GLUT_WINDOW_Y));
