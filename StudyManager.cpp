@@ -24,17 +24,11 @@ StudyManager::~StudyManager()
 
 void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
 {
-	trial = block = replicate = 0;
-	
-	eyeOffset = 0.25f;
+	eyeSeparation = 0.25f;
+
+	motion = true;
 
 	studyStarted = trialStarted = false;
-
-	std::random_device rd;
-	std::mt19937 generator(rd());
-	std::uniform_int_distribution<int> boolDist(0, 1);
-
-	//currentMode = static_cast<InteractionMode>(boolDist(generator));
 
 	modeRestriction = currentMode = NONE;
 	currentState = OFF;
@@ -47,12 +41,95 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 	this->nRepsPerBlock = nRepsPerBlock;
 	this->nTrialsPerBlock = nRepsPerBlock * nConditions;
 
+
+	// GENERATE TRIAL BLOCKS
+	std::vector< InteractionMode > interactions;
+	interactions.push_back( MOUSE );
+	interactions.push_back( PANTOGRAPH );
+	interactions.push_back( POLHEMUS );
+
+	std::vector< float > eyeseps;
+	eyeseps.push_back(0.25f);
+	eyeseps.push_back(0.f);
+
+	std::vector< bool > oscillation;
+	oscillation.push_back( true );
+	oscillation.push_back( false );
+
+
+	std::vector< std::vector<Condition> > block;
+
+	for (int i = 0; i < interactions.size(); ++i)
+		for (int j = 0; j < eyeseps.size(); ++j)
+			for (int k = 0; k < oscillation.size(); ++k)
+			{
+				std::vector<Condition> replicates;
+
+				Condition c;
+				c.interaction = interactions[ i ];
+				c.eye_separation = eyeseps[ j ];
+				c.motion = oscillation[ k ];
+
+				for (int l = 0; l < nRepsPerBlock; ++l)
+					replicates.push_back( c );
+
+				block.push_back(replicates);			
+			}
+
+
+	for (int i = 0; i < nBlocks; ++i)
+	{
+		std::random_shuffle(block.begin(), block.end());
+
+		blocks.push_back(block);
+	}
+
+	std::cout << "Commencing study..." << std::endl;
+	std::cout << std::endl;
+
 	prepareOutput(participant);
 }
 
 void StudyManager::next()
 {
-	trial++;
+	// get current trial block from queue
+	std::vector< std::vector< Condition > > *block = &blocks.back();
+	std::vector< Condition > *cond = &block->back();
+
+	if (cond->size() == 0)
+	{
+		std::cout << "Block " << nBlocks - blocks.size() + 1 << ": Condition " << nConditions - block->size() + 1 << " of " << nConditions << " completed!" << std::endl;
+		block->pop_back();
+
+		if (block->size() == 0) // BLOCK DONE
+		{
+			std::cout << "Block " << nBlocks - blocks.size() + 1 << " of " << nBlocks << " completed!" << std::endl;
+			blocks.pop_back();
+
+			if (blocks.size() == 0)
+				end();
+			else
+				block = &blocks.back();
+
+			//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next block." << std::endl << std::endl;
+		}
+		else // CONDITION REPLICATES DONE
+		{
+			//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next condition." << std::endl << std::endl;
+		}
+
+		cond = &block->back();
+	}
+
+
+	Condition *repl = &cond->back();
+	cond->pop_back();
+
+	modeRestriction = repl->interaction;
+	eyeSeparation = repl->eye_separation;
+	motion = repl->motion;
+
+	// generate trial
 	cosmo->generateFilament();
 	cosmo->setMovableRotationCenter(glm::vec3(0.f));
 }
@@ -78,7 +155,7 @@ bool StudyManager::isSubjectLeftHanded()
 	return !rightHanded;
 }
 
-float StudyManager::getEyeOffset() { return eyeOffset; }
+float StudyManager::getEyeSeparation() { return eyeSeparation; }
 
 bool StudyManager::fileExists(const std::string &fname)
 {
@@ -101,7 +178,9 @@ void StudyManager::prepareOutput(std::string name)
 	{
 		std::cout << "Opened file " << outFileName << " for writing output" << std::endl;
 		outFile << "participant,handedness,";
-		outFile << "trial,block,replicate,condition_interaction,log_type,";
+		outFile << "block,trial,";
+		outFile << "interaction,stereo,motion,";
+		outFile << "log_type,";
 		outFile << "cursor.x,cursor.y,cursor.z,";
 		outFile << "cursorDist,";
 		outFile << "filament.cp0.x,filament.cp0.y,filament.cp0.z,";
@@ -141,10 +220,11 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	// Begin outputting trial into file
 	outFile << participant << ",";
 	outFile << (rightHanded ? "R" : "L") << ",";
-	outFile << trial << ",";
-	outFile << block << ",";
-	outFile << replicate << ",";
+	outFile << ( !studyStarted ? 0 : ( nBlocks - blocks.size() ) ) << ",";
+	outFile << ( !studyStarted ? 0 : ( nTrialsPerBlock - ( ( blocks.back().size() - 1 ) * nRepsPerBlock + blocks.back().back().size() ) ) ) << ",";
 	outFile << conditionString << ",";
+	outFile << ( ( eyeSeparation > 0.01f ) ? 1 : 0 ) << ",";
+	outFile << motion << ",";
 	outFile << type << ",";
 	outFile << (cursorPos ? std::to_string(cursorPos->x) : "") << ",";
 	outFile << (cursorPos ? std::to_string(cursorPos->y) : "") << ",";

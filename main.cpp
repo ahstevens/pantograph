@@ -370,7 +370,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 	glLoadIdentity();
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
-	float eyeOff = settings->study->getEyeOffset();
+	float eyeOff = settings->study->getEyeSeparation();
 	glTranslatef(!eye ? eyeOff : -eyeOff, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
 	//draw active positioning pole:
@@ -470,7 +470,7 @@ void redraw( void )
 {
 	perRenderUpdates();
 
-	float eyeOff = settings->study->getEyeOffset();
+	float eyeOff = settings->study->getEyeSeparation();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//--------------------------------------------------
@@ -493,7 +493,7 @@ void redraw_stereo(void)
 {
 	perRenderUpdates();
 
-	float eyeOff = settings->study->getEyeOffset();
+	float eyeOff = settings->study->getEyeSeparation();
   	//--------------------------------------------------
 	// LEFT EYE = 0, RIGHT EYE = 1
 	for (int eye = 0; eye < 2; ++eye)

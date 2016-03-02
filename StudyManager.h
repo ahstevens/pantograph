@@ -48,13 +48,19 @@ public:
 
 	bool isSubjectLeftHanded();
 
-	float getEyeOffset();
+	float getEyeSeparation();
 
 	InteractionMode modeRestriction;
 	InteractionMode currentMode;
 	InteractionState currentState;
 
 private:	
+	struct Condition {
+		InteractionMode interaction;
+		float eye_separation;
+		bool motion;
+	};
+
 	static StudyManager *instance;
 	StudyManager();
 	~StudyManager();
@@ -69,18 +75,18 @@ private:
 
 	Stopwatch clock;
 
+	std::vector< std::vector< std::vector< Condition > > > blocks;
+
 	std::ofstream outFile;
 	std::string outFileName;
 
 	std::string participant;
 	bool rightHanded;
-	unsigned int trial;
-	unsigned int block;
-	unsigned int replicate;
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
 
-	float eyeOffset;
+	float eyeSeparation;
+	bool motion;
 
 	bool studyStarted, trialStarted;
 };
