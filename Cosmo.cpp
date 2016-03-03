@@ -480,7 +480,7 @@ void Cosmo::renderVelocities()
 		for (int i = 0; i < (int)vSample.size() / 2; ++i)
 		{
 			p = vSample.at(i).pos;
-			v = (vSample.at(i).vel) * 0.0035f / scale * vectorScale;
+			v = (vSample.at(i).vel) * 0.0035f / scale;
 			c = vSample.at(i).col;
 
 			// its done in CPU, implement geometry shader and move to GPU

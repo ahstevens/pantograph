@@ -28,7 +28,7 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 
 	motion = true;
 
-	studyStarted = trialStarted = false;
+	studyStarted = trialStarted = done = false;
 
 	modeRestriction = currentMode = NONE;
 	currentState = OFF;
@@ -84,10 +84,17 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 		blocks.push_back(block);
 	}
 
+	prepareOutput(participant);
+}
+
+void StudyManager::begin()
+{
+	studyStarted = true;
+
 	std::cout << "Commencing study..." << std::endl;
 	std::cout << std::endl;
 
-	prepareOutput(participant);
+	next();
 }
 
 void StudyManager::next()
@@ -129,14 +136,12 @@ void StudyManager::next()
 	eyeSeparation = repl->eye_separation;
 	motion = repl->motion;
 
-	// generate trial
-	cosmo->generateFilament();
-	cosmo->setMovableRotationCenter(glm::vec3(0.f));
+	trialStarted = false;
 }
 
 void StudyManager::end()
 {
-
+	done = true;
 }
 
 void StudyManager::startTrial() { trialStarted = true; }
@@ -145,17 +150,15 @@ bool StudyManager::isStudyStarted() { return studyStarted; }
 
 bool StudyManager::isTrialStarted() { return trialStarted; }
 
-void StudyManager::resetClock()
-{
-	clock.start();
-}
+bool StudyManager::isStudyDone() { return done; }
 
-bool StudyManager::isSubjectLeftHanded()
-{
-	return !rightHanded;
-}
+bool StudyManager::isSubjectLeftHanded() { return !rightHanded; }
 
 float StudyManager::getEyeSeparation() { return eyeSeparation; }
+
+void StudyManager::toggleMotion() { motion = !motion; }
+
+bool StudyManager::getMotion() { return motion; }
 
 bool StudyManager::fileExists(const std::string &fname)
 {
@@ -189,14 +192,19 @@ void StudyManager::prepareOutput(std::string name)
 		outFile << "filament.cp3.x,filament.cp3.y,filament.cp3.z,";
 		outFile << "filament.length,filament.radius,";
 		outFile << "cursor_to_filament_min_dist,";
-		outFile << "timestamp" << std::endl;
+		outFile << "time" << std::endl;
 	}
 	else
 		std::cout << "Error opening file " << outFileName << " for writing output" << std::endl;
 }
 
-void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *filament, float *cursorDist)
+void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *filament, float *cursorDist, bool resetClock)
 {
+	double timestamp = clock.read();
+
+	if (resetClock) clock.start();
+
+
 	// Construct string for rendering mode enum
 	std::string conditionString;
 

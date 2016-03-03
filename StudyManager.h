@@ -32,6 +32,7 @@ public:
 	static StudyManager* getInstance();
 	
 	void init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock);
+	void begin();
 	void next();
 	void end();
 
@@ -39,16 +40,18 @@ public:
 
 	bool isStudyStarted();
 	bool isTrialStarted();
+	bool isStudyDone();
 
-	void resetClock();
-
-	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr, float *cursorDist = nullptr);
+	void logData(std::string type = "default", glm::vec3 *cursorPos = nullptr, Filament *filament = nullptr, float *cursorDist = nullptr, bool resetClock = false);
 
 	bool snapshotTGA(std::string filename, bool append_timestamp = true);
 
 	bool isSubjectLeftHanded();
 
 	float getEyeSeparation();
+
+	void toggleMotion();
+	bool getMotion();
 
 	InteractionMode modeRestriction;
 	InteractionMode currentMode;
@@ -88,6 +91,6 @@ private:
 	float eyeSeparation;
 	bool motion;
 
-	bool studyStarted, trialStarted;
+	bool studyStarted, trialStarted, done;
 };
 
