@@ -22,7 +22,7 @@ StudyManager::~StudyManager()
 
 
 
-void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock)
+void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nBlocks, unsigned int nRepsPerBlock)
 {
 	eyeSeparation = 0.25f;
 
@@ -36,10 +36,8 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 	this->cosmo = cosmo;
 	this->participant = participant;
 	this->rightHanded = isRightHanded;
-	this->nConditions = nConditions;
 	this->nBlocks = nBlocks;
 	this->nRepsPerBlock = nRepsPerBlock;
-	this->nTrialsPerBlock = nRepsPerBlock * nConditions;
 
 
 	// GENERATE TRIAL BLOCKS
@@ -83,6 +81,10 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 
 		blocks.push_back(block);
 	}
+
+	this->nConditions = interactions.size() * eyeseps.size() * oscillation.size();
+	
+	this->nTrialsPerBlock = nRepsPerBlock * this->nConditions;
 
 	prepareOutput(participant);
 }
@@ -136,6 +138,7 @@ void StudyManager::next()
 	eyeSeparation = repl->eye_separation;
 	motion = repl->motion;
 
+	clock.start();
 	trialStarted = false;
 }
 
@@ -200,7 +203,7 @@ void StudyManager::prepareOutput(std::string name)
 
 void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *filament, float *cursorDist, bool resetClock)
 {
-	double timestamp = clock.read();
+	double time = clock.read();
 
 	if (resetClock) clock.start();
 
@@ -253,7 +256,7 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	outFile << (filament ? std::to_string(filament->getLength()) : "") << ",";
 	outFile << (filament ? std::to_string(filament->getRadius()) : "") << ",";
 	outFile << (filament && cursorPos ? std::to_string(filament->getMinDistTo(cursorPos)) : "") << ",";
-	outFile << clock.read() << std::endl;
+	outFile << time << std::endl;
 
 }
 

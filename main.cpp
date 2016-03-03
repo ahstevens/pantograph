@@ -806,7 +806,7 @@ void init(std::string name, bool isRightHanded)
 	srand(time(NULL));
 
 	settings = new Settings();	
-	settings->study->init(cosmo, name, isRightHanded, 12, 2, 5);
+	settings->study->init(cosmo, name, isRightHanded, 2, 5);
 
 	touchManager = new TouchManager(settings);
 	int err_code = touchManager->Init();

@@ -31,7 +31,7 @@ public:
 
 	static StudyManager* getInstance();
 	
-	void init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nConditions, unsigned int nBlocks, unsigned int nRepsPerBlock);
+	void init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nBlocks, unsigned int nRepsPerBlock);
 	void begin();
 	void next();
 	void end();
