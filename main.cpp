@@ -60,7 +60,7 @@ int rt; // rotation timer
 float aspect = 1.0f;
 float scale;
 GLint mainWindow;
-bool stereo = true;
+float eyeSep = 0.25f;
 
 #define QUAD_BUFFER true
 //float eyeOffset     = 3.25f * 10.0f/16.8f;
@@ -71,7 +71,6 @@ std::string inputFiles[] = { "haloes_data/256cosmo.0.7.cosmo" };
 //std::string inputFiles[] = { "/mnt/main/haloes_data/256cosmo.0.7.cosmo" };
 
 Cosmo *cosmo;
-bool point = true;
 bool velocity = false;
 //----------------------------------------------------------------------------
 #define TRANS_FRAMES 40
@@ -274,8 +273,6 @@ void updateLens()
 
 void perRenderUpdates()
 {
-	if (settings->study->isStudyDone()) glutLeaveMainLoop();
-
 	if(settings->study->modeRestriction == StudyManager::NONE ||
 		settings->study->modeRestriction == StudyManager::PANTOGRAPH)
 		processPendingInteractions();
@@ -320,7 +317,7 @@ void perRenderUpdates()
 	rt = timer % (REFRESH * 2); // 60 Hz on 60 Hz machine
 
 	if (settings->study->getMotion()) cosmo->setMovableRotationAngle(rotation[rt]);
-	else cosmo->setRotationAngle(rotY + dragX);
+	else cosmo->setMovableRotationAngle(0.f);
 	
 	// adjust panto depth so that back of dataset always accessible
 	//settings->worldDepths[0] = (-cosmo->getMaxDistance() - cow.z)*scale;
@@ -345,14 +342,12 @@ void perRenderUpdates()
 	// RESET VARIABLES AT BEGINNING OF TRIAL
 	if (cosmo->getRemainingTargets() == 0 && settings->study->currentState == StudyManager::OFF)
 	{
-		if(settings->study->isStudyStarted())
-			settings->study->next();
-
-		cosmo->generateFilament();
-		cosmo->setMovableRotationCenter(glm::vec3(0.f));
-
 		settings->cursorDistance = 0.f;
 		mZ = 0.f;
+
+		settings->study->next();
+
+		if (settings->study->isStudyDone()) glutLeaveMainLoop();
 	}
 
 	if (settings->study->currentState == StudyManager::ACTIVE)
@@ -373,7 +368,7 @@ void drawScene(int eye) //0=left or mono, 1=right
 	glLoadIdentity();
 
 	// translate from scene	origin 10 units behind near clipping plane to each eye
-	float eyeOff = settings->study->getEyeSeparation();
+	float eyeOff = settings->study->getStereo() ? eyeSep : 0.f;
 	glTranslatef(!eye ? eyeOff : -eyeOff, 0.0, -NEAR_CP - 10.0); // center of universe offset..
 
 	//draw active positioning pole:
@@ -473,13 +468,11 @@ void redraw( void )
 {
 	perRenderUpdates();
 
-	float eyeOff = settings->study->getEyeSeparation();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//--------------------------------------------------
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(VP_LEFT + eyeOff,	VP_RIGHT + eyeOff,
+	glFrustum(VP_LEFT,	VP_RIGHT,
 		aspect*VP_BOTTOM, aspect*VP_TOP, NEAR_CP, FAR);
 	//--------------------------------------------------
 	drawScene(0);
@@ -496,7 +489,7 @@ void redraw_stereo(void)
 {
 	perRenderUpdates();
 
-	float eyeOff = settings->study->getEyeSeparation();
+	float eyeOff = settings->study->getStereo() ? eyeSep : 0.f;
   	//--------------------------------------------------
 	// LEFT EYE = 0, RIGHT EYE = 1
 	for (int eye = 0; eye < 2; ++eye)
@@ -672,49 +665,55 @@ void keyboard( unsigned char key, int x, int y )
 {
 	//cerr << "Key " << key << " int " << int(key) << "\n";
 
+
+	// POLHEMUS CALIBRATION
 	if (key == ' ')
 	{
 		settings->polhemusOrigin = polhemus->getPosition();
 		std::cout << "New calibrated Polhemus origin is at ( " << settings->polhemusOrigin.x << ", " << settings->polhemusOrigin.y << ", " << settings->polhemusOrigin.z << " )" << std::endl;
 	}
 
+	// DISABLE KEYBOARD WHEN NOT IN FREE MODE
 	if (settings->study->modeRestriction != StudyManager::NONE) return;
 
-	if (key = '\n') settings->study->begin();
+	// BEGIN STUDY
+	if (key == 13) settings->study->begin();
 
+	// QUIT
 	if(key == 'q') glutLeaveMainLoop();
-	if(key == ',') { 
-		scale = scale*0.90f; 
-		std::cout << "scale: "<< (int) scale *100 << std::endl;
-	}
-	if(key == '.') { 
-		scale = scale*1.10f; 
-		std::cout << "scale: "<< (int) scale *100 << std::endl;
-	}
 
-	if(key == '[') touchManager->setPantoHand(false);
-	if(key == ']') touchManager->setPantoHand(true);
+	if (key == 'f') cosmo->generateFilament();
+	if (key == 'm') settings->study->toggleMotion();
+	if (key == 's') settings->study->toggleStereo();
+	if (key == 'o') cosmo->toggleShowOscillationAxis();
 
-	float dx = -sin(rotY*3.141592f/180.0f);
-	float dz = cos(rotY*3.141592f/180.0f);
-	if(key == 'a') { cow.z += 0.5f*dz/scale; cow.x += 0.5f*dx/scale;};
-	if(key == 'z') { cow.z -= 0.5f*dz/scale; cow.x -= 0.5f*dx/scale;};
 
-	if(key == '0') settings->study->toggleMotion();
+	//if(key == ',') { 
+	//	scale = scale*0.90f; 
+	//	std::cout << "scale: "<< (int) scale *100 << std::endl;
+	//}
+	//if(key == '.') { 
+	//	scale = scale*1.10f; 
+	//	std::cout << "scale: "<< (int) scale *100 << std::endl;
+	//}
 
-	if(key == 'g') cosmo->resample(100000);
+	//if(key == '[') touchManager->setPantoHand(false);
+	//if(key == ']') touchManager->setPantoHand(true);
 
-	if (key == 'p')	point = !point;
-	if (key == 'v')
-	{
-		velocity = !velocity;
-		cosmo->setVelocityMode(velocity);
-	}
+	//float dx = -sin(rotY*3.141592f/180.0f);
+	//float dz = cos(rotY*3.141592f/180.0f);
+	//if(key == 'a') { cow.z += 0.5f*dz/scale; cow.x += 0.5f*dx/scale;};
+	//if(key == 'z') { cow.z -= 0.5f*dz/scale; cow.x -= 0.5f*dx/scale;};
 
-	
 
-	if (key == '/') { cosmo->toggleTrailsMode(); }
-	if (key == '\'') { cosmo->toggleShowOscillationAxis(); }
+	//if (key == 'v')
+	//{
+	//	velocity = !velocity;
+	//	cosmo->setVelocityMode(velocity);
+	//}
+		
+
+	//if (key == '/') { cosmo->toggleTrailsMode(); }
 /*
 	if(key == '1') cosmo = vCosmo.at(0);
 	if(key == '2') cosmo = vCosmo.at(1);
@@ -727,17 +726,16 @@ void keyboard( unsigned char key, int x, int y )
 	//if(key == '9') cosmo = vCosmo.at(8);
 	if(key == '0') cosmo = vCosmo.at(9);
 */
-	if(key == 'w') { cosmo->resample(100000); }
-	if(key == 'e') { cosmo->resample(100000); }
-	if(key == 'r') { cosmo->resample(1000000); }
-	if (key == 't') { 
-		//settings->transitionOnLensExit = !settings->transitionOnLensExit;
-		//std::cout << "Transition on lens exit set to " << settings->transitionOnLensExit << std::endl; 
-		std::cout << "Transition on lens exit is unavailable in this version" << std::endl;
-	}
-	if(key == 'y') { cosmo->resample(2500000); }
+	//if(key == 'w') { cosmo->resample(100000); }
+	//if(key == 'e') { cosmo->resample(100000); }
+	//if(key == 'r') { cosmo->resample(1000000); }
 
-	if (key == 'f') { cosmo->generateFilament(); }
+	// LENS TRANSITION
+	//if (key == 't') { 
+	//	//settings->transitionOnLensExit = !settings->transitionOnLensExit;
+	//	//std::cout << "Transition on lens exit set to " << settings->transitionOnLensExit << std::endl; 
+	//	std::cout << "Transition on lens exit is unavailable in this version" << std::endl;
+	//}
 
 /*
 	if(key == 'i') cosmo->radius *= 0.95;
@@ -770,6 +768,8 @@ void reshape(int w, int h)
 // Special key event callbacks
 void specialFunction(int glutKey, int mouseX, int mouseY) 
 {
+	if (settings->study->modeRestriction != StudyManager::NONE) return;
+
 	if (glutKey == GLUT_KEY_PAGE_UP)
 		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
 	if (glutKey == GLUT_KEY_PAGE_DOWN)
@@ -806,7 +806,7 @@ void init(std::string name, bool isRightHanded)
 	srand(time(NULL));
 
 	settings = new Settings();	
-	settings->study->init(cosmo, name, isRightHanded, 2, 5);
+	settings->study->init(cosmo, name, isRightHanded, 1, 2);
 
 	touchManager = new TouchManager(settings);
 	int err_code = touchManager->Init();

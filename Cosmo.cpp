@@ -184,6 +184,7 @@ void Cosmo::generateFilament()
 
 	filament = new Filament(maxDistance / 2.f);
 	setLensSize(filament->getRadius() * 2.f);
+	highlightFlag = false;
 }
 
 Filament* Cosmo::getFilament() { return filament; }
@@ -309,6 +310,11 @@ void Cosmo::toggleTrailsMode()
 	this->showTrails = !this->showTrails;
 }
 
+void Cosmo::hideOscillationAxis()
+{
+	this->oscAxis.show = false;
+}
+
 void Cosmo::toggleShowOscillationAxis()
 {
 	this->oscAxis.show = !this->oscAxis.show;
@@ -376,6 +382,8 @@ void Cosmo::renderCursorTrails()
 
 void Cosmo::renderOscillationAxis()
 {
+	if (!lensMode) return;
+
 	glm::vec3 scaledAxis = oscAxis.axis * oscAxis.scale;
 
 	glColor4f(0.75f, 0.f, 0.75f, 1.f);

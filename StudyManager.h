@@ -48,7 +48,8 @@ public:
 
 	bool isSubjectLeftHanded();
 
-	float getEyeSeparation();
+	void toggleStereo();
+	bool getStereo();
 
 	void toggleMotion();
 	bool getMotion();
@@ -60,7 +61,7 @@ public:
 private:	
 	struct Condition {
 		InteractionMode interaction;
-		float eye_separation;
+		bool stereo;
 		bool motion;
 	};
 
@@ -88,8 +89,7 @@ private:
 
 	unsigned int nConditions, nBlocks, nRepsPerBlock, nTrialsPerBlock;
 
-	float eyeSeparation;
-	bool motion;
+	bool motion, stereo;
 
 	bool studyStarted, trialStarted, done;
 };

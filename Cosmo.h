@@ -51,6 +51,7 @@ class Cosmo: public Object
 		void setVelocityMode(bool yesno);
 
 		void toggleTrailsMode();
+		void hideOscillationAxis();
 		void toggleShowOscillationAxis();
 
 		void getMV(double *mv);

@@ -24,9 +24,7 @@ StudyManager::~StudyManager()
 
 void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHanded, unsigned int nBlocks, unsigned int nRepsPerBlock)
 {
-	eyeSeparation = 0.25f;
-
-	motion = true;
+	motion = stereo = true;
 
 	studyStarted = trialStarted = done = false;
 
@@ -46,9 +44,9 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 	interactions.push_back( PANTOGRAPH );
 	interactions.push_back( POLHEMUS );
 
-	std::vector< float > eyeseps;
-	eyeseps.push_back(0.25f);
-	eyeseps.push_back(0.f);
+	std::vector< bool > stereoscopy;
+	stereoscopy.push_back( true );
+	stereoscopy.push_back( false );
 
 	std::vector< bool > oscillation;
 	oscillation.push_back( true );
@@ -58,14 +56,14 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 	std::vector< std::vector<Condition> > block;
 
 	for (int i = 0; i < interactions.size(); ++i)
-		for (int j = 0; j < eyeseps.size(); ++j)
+		for (int j = 0; j < stereoscopy.size(); ++j)
 			for (int k = 0; k < oscillation.size(); ++k)
 			{
 				std::vector<Condition> replicates;
 
 				Condition c;
 				c.interaction = interactions[ i ];
-				c.eye_separation = eyeseps[ j ];
+				c.stereo = stereoscopy[ j ];
 				c.motion = oscillation[ k ];
 
 				for (int l = 0; l < nRepsPerBlock; ++l)
@@ -82,7 +80,7 @@ void StudyManager::init(Cosmo *cosmo, std::string participant, bool isRightHande
 		blocks.push_back(block);
 	}
 
-	this->nConditions = interactions.size() * eyeseps.size() * oscillation.size();
+	this->nConditions = interactions.size() * stereoscopy.size() * oscillation.size();
 	
 	this->nTrialsPerBlock = nRepsPerBlock * this->nConditions;
 
@@ -93,6 +91,8 @@ void StudyManager::begin()
 {
 	studyStarted = true;
 
+	cosmo->hideOscillationAxis();
+
 	std::cout << "Commencing study..." << std::endl;
 	std::cout << std::endl;
 
@@ -101,49 +101,63 @@ void StudyManager::begin()
 
 void StudyManager::next()
 {
-	// get current trial block from queue
-	std::vector< std::vector< Condition > > *block = &blocks.back();
-	std::vector< Condition > *cond = &block->back();
-
-	if (cond->size() == 0)
+	if (studyStarted)
 	{
-		std::cout << "Block " << nBlocks - blocks.size() + 1 << ": Condition " << nConditions - block->size() + 1 << " of " << nConditions << " completed!" << std::endl;
-		block->pop_back();
+		// get current trial block from queue
+		std::vector< std::vector< Condition > > *block = &blocks.back();
+		std::vector< Condition > *cond = &block->back();
 
-		if (block->size() == 0) // BLOCK DONE
+		if (cond->size() == 0)
 		{
-			std::cout << "Block " << nBlocks - blocks.size() + 1 << " of " << nBlocks << " completed!" << std::endl;
-			blocks.pop_back();
+			std::cout << "Block " << nBlocks - blocks.size() + 1 << ": Condition " << nConditions - block->size() + 1 << " of " << nConditions << " completed!" << std::endl;
+			block->pop_back();
 
-			if (blocks.size() == 0)
-				end();
-			else
-				block = &blocks.back();
+			if (block->size() == 0) // BLOCK DONE
+			{
+				std::cout << "Block " << nBlocks - blocks.size() + 1 << " of " << nBlocks << " completed!" << std::endl;
+				blocks.pop_back();
 
-			//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next block." << std::endl << std::endl;
+				if (blocks.size() == 0)
+				{
+					end();
+					return;
+				}
+				else
+					block = &blocks.back();
+
+				//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next block." << std::endl << std::endl;
+			}
+			else // CONDITION REPLICATES DONE
+			{
+				//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next condition." << std::endl << std::endl;
+			}
+
+			cond = &block->back();
 		}
-		else // CONDITION REPLICATES DONE
-		{
-			//std::cout << "Please take a short break, then press the ENTER key when ready to begin the next condition." << std::endl << std::endl;
-		}
 
-		cond = &block->back();
+
+		Condition *repl = &cond->back();
+		cond->pop_back();
+
+		modeRestriction = repl->interaction;
+		stereo = repl->stereo;
+		motion = repl->motion;
+
+		clock.start();
+		trialStarted = false;
 	}
 
-
-	Condition *repl = &cond->back();
-	cond->pop_back();
-
-	modeRestriction = repl->interaction;
-	eyeSeparation = repl->eye_separation;
-	motion = repl->motion;
-
-	clock.start();
-	trialStarted = false;
+	cosmo->generateFilament();
+	cosmo->setMovableRotationCenter(glm::vec3(0.f));
 }
 
 void StudyManager::end()
 {
+	std::cout << std::endl;
+	std::cout << "============================================================" << std::endl;
+	std::cout << "| >>>>>>>>>>>>>>>>>>>> STUDY COMPLETE <<<<<<<<<<<<<<<<<<<< |" << std::endl;
+	std::cout << "============================================================" << std::endl;
+	std::cout << std::endl;
 	done = true;
 }
 
@@ -157,7 +171,9 @@ bool StudyManager::isStudyDone() { return done; }
 
 bool StudyManager::isSubjectLeftHanded() { return !rightHanded; }
 
-float StudyManager::getEyeSeparation() { return eyeSeparation; }
+void StudyManager::toggleStereo() { stereo = !stereo; }
+
+bool StudyManager::getStereo() { return stereo; }
 
 void StudyManager::toggleMotion() { motion = !motion; }
 
@@ -234,7 +250,7 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	outFile << ( !studyStarted ? 0 : ( nBlocks - blocks.size() ) ) << ",";
 	outFile << ( !studyStarted ? 0 : ( nTrialsPerBlock - ( ( blocks.back().size() - 1 ) * nRepsPerBlock + blocks.back().back().size() ) ) ) << ",";
 	outFile << conditionString << ",";
-	outFile << ( ( eyeSeparation > 0.01f ) ? 1 : 0 ) << ",";
+	outFile << stereo << ",";
 	outFile << motion << ",";
 	outFile << type << ",";
 	outFile << (cursorPos ? std::to_string(cursorPos->x) : "") << ",";

@@ -17,7 +17,7 @@ Filament::Filament()
 
 	nHighlighted = 0;
 
-	percentTillDone = 99.f;
+	percentTillDone = 99.9f;
 
 	color = glm::vec4(1.f, 0.1f, 0.1f, 1.f);
 	highlightColor = glm::vec4(0.75f, 0.75f, 0.f, 1.f);
