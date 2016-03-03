@@ -287,7 +287,7 @@ void perRenderUpdates()
 			if (settings->study->currentMode == StudyManager::NONE)
 				settings->activate(StudyManager::POLHEMUS);
 
-			glm::vec3 pos = (polhemus->getPosition() - settings->polhemusOrigin) * settings->polhemusMovementMultiplier;
+			glm::vec3 pos = (settings->polhemusOrigin - polhemus->getPosition()) * settings->polhemusMovementMultiplier;
 			stayInWorld(pos, glm::vec3(settings->currentlySelectedPoint[0], settings->currentlySelectedPoint[1], settings->currentlySelectedPoint[2]));
 
 			settings->currentlySelectedPoint[0] = pos.x;
@@ -671,6 +671,7 @@ void keyboard( unsigned char key, int x, int y )
 	{
 		settings->polhemusOrigin = polhemus->getPosition();
 		std::cout << "New calibrated Polhemus origin is at ( " << settings->polhemusOrigin.x << ", " << settings->polhemusOrigin.y << ", " << settings->polhemusOrigin.z << " )" << std::endl;
+		polhemus->calibrate();
 	}
 
 	// DISABLE KEYBOARD WHEN NOT IN FREE MODE

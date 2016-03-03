@@ -20,7 +20,9 @@ Cosmo::Cosmo()
 	normalBrightness = 1.f;
 	brightnessRatio = lensInnerBrightness;
 
-	highlightFlag = waitTillNextRender = false;
+	waitTillNextRender = -1;
+
+	highlightFlag = false;
 
 	filament = nullptr;
 }
@@ -360,12 +362,11 @@ bool Cosmo::checkHighlight()
 	return false;
 }
 
-void Cosmo::skipLensModeThisRender() { waitTillNextRender = true; }
+void Cosmo::skipLensModeThisRender() { waitTillNextRender = 0; }
 
-bool Cosmo::lensModeThisRender() { return !waitTillNextRender; }
+bool Cosmo::lensModeThisRender() { return waitTillNextRender == -1; }
+
 //-------------------------------------------------------------------------------
-
-
 
 void Cosmo::renderCursorTrails()
 {
@@ -540,8 +541,11 @@ void Cosmo::render()
 		// cosmos
 		if (lensMode)
 		{
-			if (waitTillNextRender)
-				waitTillNextRender = false;
+			if (waitTillNextRender > -1)
+			{
+				if (waitTillNextRender == 1) waitTillNextRender = -1;
+				else waitTillNextRender++;
+			}				
 			else
 			{
 				renderLens();

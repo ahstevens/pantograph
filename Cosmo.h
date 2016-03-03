@@ -107,5 +107,7 @@ class Cosmo: public Object
 
 		Filament* filament;
 
-		bool highlightFlag, waitTillNextRender;
+		int waitTillNextRender;
+
+		bool highlightFlag;
 };
