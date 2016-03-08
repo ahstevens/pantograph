@@ -26,7 +26,7 @@ Pantograph::Pantograph()
 	//look and feel variables:
 	distanceOutwards = 75;
 	minDistanceBetween  = 100;
-	maxDistanceBetween  = 400;
+	maxDistanceBetween  = 318.2;
 
 	swapChecked = false;
 	drawReticle = false;

@@ -86,9 +86,6 @@
     <ClInclude Include="StudyManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gl_includes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Polhemus.h">
       <Filter>Header Files</Filter>
     </ClInclude>

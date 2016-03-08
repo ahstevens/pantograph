@@ -29,7 +29,6 @@
     <ClInclude Include="Cosmo.h" />
     <ClInclude Include="DrawFunctions.h" />
     <ClInclude Include="Filament.h" />
-    <ClInclude Include="gl_includes.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pantograph.h" />
     <ClInclude Include="Polhemus.h" />

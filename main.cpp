@@ -698,7 +698,7 @@ void keyboard( unsigned char key, int x, int y )
 	}
 
 	// QUIT
-	if(key == 'q') glutLeaveMainLoop();
+	if(key == 'q' || key == 27) glutLeaveMainLoop();
 
 	if (key == 'f') cosmo->generateFilament();
 	if (key == 'm') settings->study->toggleMotion();
