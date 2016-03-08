@@ -92,6 +92,7 @@ void StudyManager::begin()
 	studyStarted = true;
 
 	cosmo->hideOscillationAxis();
+	cosmo->setLensType(Cosmo::Lens::SPHERE_POINTS);
 
 	std::cout << "Commencing study..." << std::endl;
 	std::cout << std::endl;

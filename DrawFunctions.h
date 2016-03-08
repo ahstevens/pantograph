@@ -1,7 +1,7 @@
 #pragma once
 
 #include "windows.h"
-#include "gl_includes.h"
+#include "GL\gl_includes.h"
 #include "ColorsAndSizes.h"
 #include <glm\glm.hpp>
 #include <string.h>

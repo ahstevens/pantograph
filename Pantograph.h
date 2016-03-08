@@ -2,7 +2,7 @@
 #define __Pantograph_h__
 
 #include <windows.h>
-#include "gl_includes.h"
+#include "GL\gl_includes.h"
 #include <math.h>
 #include "DrawFunctions.h"
 #include "stdio.h"

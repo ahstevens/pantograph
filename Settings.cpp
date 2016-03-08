@@ -51,5 +51,5 @@ void Settings::resetToDefaults()
 	cursorDistance = 0.f;	
 	cursorTrackingRate = 100.f; // Hz
 
-	polhemusMovementMultiplier = 20.f;
+	polhemusMovementMultiplier = 35.f;
 }

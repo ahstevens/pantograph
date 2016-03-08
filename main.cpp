@@ -3,7 +3,7 @@
 #define FREEGLUT_LIB_PRAGMAS 0
 #define GLEW_STATIC
 
-#include "gl_includes.h"
+#include "GL\gl_includes.h"
 
 #include <iostream>
 #include <math.h>
@@ -46,6 +46,7 @@ float holdMx, holdMy;
 
 glm::vec3 holdRotationAxis;
 
+bool cursorOnMouse = false;
 bool leftMouseDown, rightMouseDown, middleMouseDown;
 
 float dragX, dragY; // used for rotating the universe
@@ -171,8 +172,10 @@ void processPendingInteractions()
 			glVertex3f(100, 100, settings->worldDepths[ 1 ]);
 		glEnd();
 
+		// this gives us the Z value in NDC (or is it Screen Coords?) from the plane we just created
+		glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+
 		// get finger 1 model space coords
-		glReadPixels(settings->finger1sX, settings->finger1sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger1sX, settings->finger1sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
 		settings->finger1modelCoords[0] = (float)posX;
@@ -180,7 +183,6 @@ void processPendingInteractions()
 		settings->finger1modelCoords[2] = (float)posZ;
 
 		// get finger 2 model space coords
-		glReadPixels(settings->finger2sX, settings->finger2sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger2sX, settings->finger2sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
 		settings->finger2modelCoords[0] = (float)posX;
@@ -324,9 +326,41 @@ void perRenderUpdates()
 
 	if (settings->study->currentMode == StudyManager::MOUSE)
 	{
-		settings->currentlySelectedPoint[0] = mXscreen;
-		settings->currentlySelectedPoint[1] = mYscreen;
-		settings->currentlySelectedPoint[2] = mZ;
+		if (cursorOnMouse)
+		{
+			GLint viewport[4];
+			GLdouble modelview[16];
+			GLdouble projection[16];
+			GLfloat winZ = 0.0;
+			GLdouble posX, posY, posZ;
+
+			glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+			glGetDoublev(GL_PROJECTION_MATRIX, projection);
+			glGetIntegerv(GL_VIEWPORT, viewport);
+
+			glBegin(GL_QUADS);
+				glNormal3f(0, 0, 1);
+				glVertex3f(-100, 100, mZ);
+				glVertex3f(-100, -100, mZ);
+				glVertex3f(100, -100, mZ);
+				glVertex3f(100, 100, mZ);
+			glEnd();
+
+			glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+			gluUnProject(rx, ry, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+
+			settings->currentlySelectedPoint[0] = (float)posX;
+			settings->currentlySelectedPoint[1] = (float)posY;
+			settings->currentlySelectedPoint[2] = (float)posZ;
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		else
+		{
+			settings->currentlySelectedPoint[0] = mXscreen;
+			settings->currentlySelectedPoint[1] = mYscreen;
+			settings->currentlySelectedPoint[2] = mZ;
+		}
 	}
 
 	if (settings->study->isStudyStarted() && settings->trackingCursor && cosmo->getRemainingTargets() == 0)
@@ -637,24 +671,7 @@ void passiveMotion(int x, int y)
 	//else
 	//	buttonActive = false;
 
-	buttonActive = isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true);
-}
-
-void reset_values()
-{
-	timer = 0;
-	holdCow = glm::vec3(0.f);
-	xeye = 0.0f;
-	cow = glm::vec3(0.f);
-	rotX = rotY = 0.0;
-	transitionVector = glm::vec3(0.f, 0.f, 0.f);
-
-	transTimer = -1;
-	//winWidth = 1024; winHeight = 1024;
-	scale = 0.2f;
-	
-	settings->worldDepths[0] = -75.f * scale;
-	settings->worldDepths[1] = 10.f - 0.000001f;
+	//buttonActive = isOnButton(rx, ry, advanceButtonPos.x, advanceButtonPos.y, advanceButtonDim.x, advanceButtonDim.y, true);
 }
 
 void keyboard( unsigned char key, int x, int y )
@@ -674,7 +691,11 @@ void keyboard( unsigned char key, int x, int y )
 	if (settings->study->modeRestriction != StudyManager::NONE) return;
 
 	// BEGIN STUDY
-	if (key == 13) settings->study->begin();
+	if (key == 13)
+	{
+		cursorOnMouse = false;
+		settings->study->begin();
+	}
 
 	// QUIT
 	if(key == 'q') glutLeaveMainLoop();
@@ -683,6 +704,9 @@ void keyboard( unsigned char key, int x, int y )
 	if (key == 'm') settings->study->toggleMotion();
 	if (key == 's') settings->study->toggleStereo();
 	if (key == 'o') cosmo->toggleShowOscillationAxis();
+	
+
+	if (key == '\\') cursorOnMouse = !cursorOnMouse;
 
 
 	//if(key == ',') { 
@@ -740,6 +764,36 @@ void keyboard( unsigned char key, int x, int y )
 */
 }
 
+//-------------------------------------------------------------------------------
+// Special key event callbacks
+void specialFunction(int glutKey, int mouseX, int mouseY)
+{
+	if (settings->study->modeRestriction != StudyManager::NONE) return;
+
+	if (glutKey == GLUT_KEY_PAGE_UP)
+		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
+	if (glutKey == GLUT_KEY_PAGE_DOWN)
+		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 0.9f);
+
+	if (glutKey == GLUT_KEY_F12) settings->study->snapshotTGA("snapshot");
+
+
+	if (glutKey == GLUT_KEY_RIGHT)
+	{
+		if (cosmo->getLensType() == Cosmo::Lens::CYLINDER_VELOCITY)
+			cosmo->setLensType(Cosmo::Lens::SPHERE_POINTS);
+		else
+			cosmo->setLensType(static_cast<Cosmo::Lens>(((int)cosmo->getLensType()) + 1));
+	}
+	if (glutKey == GLUT_KEY_LEFT)
+	{
+		if (cosmo->getLensType() == Cosmo::Lens::SPHERE_POINTS)
+			cosmo->setLensType(Cosmo::Lens::CYLINDER_VELOCITY);
+		else
+			cosmo->setLensType(static_cast<Cosmo::Lens>(((int)cosmo->getLensType()) - 1));
+	}
+}
+
 
 void reshape(int w, int h)
 { 
@@ -761,34 +815,21 @@ void reshape(int w, int h)
 	glLoadIdentity(); 
 }
 
-//-------------------------------------------------------------------------------
-// Special key event callbacks
-void specialFunction(int glutKey, int mouseX, int mouseY) 
+void reset_values()
 {
-	if (settings->study->modeRestriction != StudyManager::NONE) return;
+	timer = 0;
+	holdCow = glm::vec3(0.f);
+	xeye = 0.0f;
+	cow = glm::vec3(0.f);
+	rotX = rotY = 0.0;
+	transitionVector = glm::vec3(0.f, 0.f, 0.f);
 
-	if (glutKey == GLUT_KEY_PAGE_UP)
-		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 1.1f);
-	if (glutKey == GLUT_KEY_PAGE_DOWN)
-		cosmo->setMovableRotationAxisScale(cosmo->getMovableRotationAxisScale() * 0.9f);
+	transTimer = -1;
+	//winWidth = 1024; winHeight = 1024;
+	scale = 0.2f;
 
-	if (glutKey == GLUT_KEY_F12) settings->study->snapshotTGA("snapshot");
-
-
-	if (glutKey == GLUT_KEY_RIGHT)
-	{		
-		if (cosmo->getLensType() == Cosmo::Lens::CYLINDER_VELOCITY)
-			cosmo->setLensType(Cosmo::Lens::SPHERE_POINTS);
-		else
-			cosmo->setLensType(static_cast<Cosmo::Lens>( ( (int)cosmo->getLensType() ) + 1) );
-	}
-	if (glutKey == GLUT_KEY_LEFT)
-	{
-		if (cosmo->getLensType() == Cosmo::Lens::SPHERE_POINTS)
-			cosmo->setLensType(Cosmo::Lens::CYLINDER_VELOCITY);
-		else
-			cosmo->setLensType(static_cast<Cosmo::Lens>(((int)cosmo->getLensType()) - 1));
-	}
+	settings->worldDepths[0] = -75.f * scale;
+	settings->worldDepths[1] = 10.f - 0.000001f;
 }
 
 //This is the GLUT initialization function
@@ -803,7 +844,7 @@ void init(std::string name, bool isRightHanded)
 	srand(time(NULL));
 
 	settings = new Settings();	
-	settings->study->init(cosmo, name, isRightHanded, 1, 2);
+	settings->study->init(cosmo, name, isRightHanded, 3, 5);
 
 	touchManager = new TouchManager(settings);
 	int err_code = touchManager->Init();

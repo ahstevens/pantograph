@@ -336,9 +336,9 @@ void Pantograph::draw2D()
 		//draw accept button
 		//drawFingerIndicator(acceptBubbleX, acceptBubbleY, BUTTON_RADIUS, 2);
 		//////////////NEW ACCEPT BUTTON/////////////////
-		glColor3f(1.0,0.85,0.0);
-		drawArcButton( finger2X, finger2Y, DRAG_BUBBLE_RADIUS + SELECT_INNER_RADIUS, DRAG_BUBBLE_RADIUS + SELECT_OUTER_RADIUS,
-					  SELECT_ANGLE_START + lastInterfingerAngle - 1.570795, SELECT_ANGLE_END + lastInterfingerAngle - 1.570795, "HIGHLIGHT", false );
+		//glColor3f(1.0,0.85,0.0);
+		//drawArcButton( finger2X, finger2Y, DRAG_BUBBLE_RADIUS + SELECT_INNER_RADIUS, DRAG_BUBBLE_RADIUS + SELECT_OUTER_RADIUS,
+		//			  SELECT_ANGLE_START + lastInterfingerAngle - 1.570795, SELECT_ANGLE_END + lastInterfingerAngle - 1.570795, "HIGHLIGHT", false );
 
 		//draw distance indicator 
 		if ( lastDistanceBetween < minDistanceBetween )
