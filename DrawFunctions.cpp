@@ -620,7 +620,7 @@ bool isOnArcButton(float x, float y, float centerX, float centerY, float innerRa
 	float vectorY = centerY - y;
 	float dist = sqrt(  pow((vectorX),2) + pow((vectorY),2) );
 	float angle = atan2(vectorY, vectorX) + M_PI;//atan(vectorY/vectorX);
-	printf("dist = %f, angle = %f\n", dist, angle);
+	//printf("dist = %f, angle = %f\n", dist, angle);
 	if (angle >= minAngle && angle <= maxAngle)
 	{
 		if (dist > innerRadius && dist < outerRadius)

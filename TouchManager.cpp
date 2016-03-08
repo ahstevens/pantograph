@@ -745,7 +745,7 @@ bool TouchManager::perRenderUpdate()
 		{
 			settings->currentlySelectedPoint[0] = settings->positioningModelCoords[0];
 			settings->currentlySelectedPoint[1] = settings->positioningModelCoords[1];
-			settings->currentlySelectedPoint[2] = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * pantoDepth;
+			settings->currentlySelectedPoint[2] = settings->positioningModelCoords[2];
 		}
 		else
 			return true;

@@ -149,18 +149,6 @@ void stayInWorld(glm::vec3 &newPos, glm::vec3 oldPos)
 
 void processPendingInteractions()
 {
-	//float depth = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * pantoDepth;
-
-	//printf("Processing Mouse Click\n");
-	//draw a ground plane at height zero to fill depth buffer so we can get selection depth from it
-	glBegin(GL_QUADS);
-		glNormal3f(0, 0, 1);
-		glVertex3f(-100, 100, settings->worldDepths[ 1 ]);
-		glVertex3f(-100, -100, settings->worldDepths[ 1 ]);
-		glVertex3f(100, -100, settings->worldDepths[ 1 ]);
-		glVertex3f(100, 100, settings->worldDepths[ 1 ]);
-	glEnd();
-
 	GLint viewport[4];
 	GLdouble modelview[16];
 	GLdouble projection[16];
@@ -174,6 +162,15 @@ void processPendingInteractions()
 	//if fingers down convert screen coords to model coords
 	if (settings->finger1sX != -1 && settings->finger1sY != -1 && settings->finger2sX != -1 && settings->finger2sY != -1)
 	{
+		//draw a plane at screen height to fill depth buffer so we can get selection depth from it
+		glBegin(GL_QUADS);
+			glNormal3f(0, 0, 1);
+			glVertex3f(-100, 100, settings->worldDepths[ 1 ]);
+			glVertex3f(-100, -100, settings->worldDepths[ 1 ]);
+			glVertex3f(100, -100, settings->worldDepths[ 1 ]);
+			glVertex3f(100, 100, settings->worldDepths[ 1 ]);
+		glEnd();
+
 		// get finger 1 model space coords
 		glReadPixels(settings->finger1sX, settings->finger1sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger1sX, settings->finger1sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
@@ -196,16 +193,31 @@ void processPendingInteractions()
 		//										settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
 		//										settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
 		//cosmo->setMovableRotationAxis(yAxis);
+	
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
-	if (settings->positioningPointLocation[0] != -1 && settings->positioningPointLocation[1] != -1)
+	if (settings->positioningPointLocation[0] != -1 && settings->positioningPointLocation[1] != -1 && settings->positioningPointLocation[2] != -1)
 	{
+		float depth = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * settings->positioningPointLocation[2];
+
+		glBegin(GL_QUADS);
+			glNormal3f(0, 0, 1);
+			glVertex3f(-100, 100, depth);
+			glVertex3f(-100, -100, depth);
+			glVertex3f(100, -100, depth);
+			glVertex3f(100, 100, depth);
+		glEnd();
+
 		glReadPixels(settings->positioningPointLocation[0], settings->positioningPointLocation[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->positioningPointLocation[0], settings->positioningPointLocation[1], winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-
+		
 		settings->positioningModelCoords[0] = (float)posX;
 		settings->positioningModelCoords[1] = (float)posY;
+		settings->positioningModelCoords[2] = (float)posZ;
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	}//if need to update active positioning
 	else
@@ -217,8 +229,6 @@ void processPendingInteractions()
 
 		//if(!settings->mouseMode) cosmo->setAxisMode(false);
 	}
-	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 }//end processPendingInteractions()
 
