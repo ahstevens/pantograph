@@ -26,10 +26,9 @@ void Settings::deactivate()
 
 void Settings::resetToDefaults()
 {
-	positioningXYFingerLocation[0] = -1;
-	positioningXYFingerLocation[1] = -1;
-	positioningZFingerLocation[0] = -1;
-	positioningZFingerLocation[1] = -1;
+	positioningPointLocation[0] = -1;
+	positioningPointLocation[1] = -1;
+	positioningPointLocation[2] = -1;
 
 	positioningModelCoords[0] = -1;
 	positioningModelCoords[1] = -1;

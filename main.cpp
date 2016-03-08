@@ -149,14 +149,16 @@ void stayInWorld(glm::vec3 &newPos, glm::vec3 oldPos)
 
 void processPendingInteractions()
 {
+	//float depth = settings->worldDepths[0] + (settings->worldDepths[1] - settings->worldDepths[0]) * pantoDepth;
+
 	//printf("Processing Mouse Click\n");
 	//draw a ground plane at height zero to fill depth buffer so we can get selection depth from it
 	glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glVertex3f(-100, 100, 10);
-		glVertex3f(-100, -100, 10);
-		glVertex3f(100, -100, 10);
-		glVertex3f(100, 100, 10);
+		glVertex3f(-100, 100, settings->worldDepths[ 1 ]);
+		glVertex3f(-100, -100, settings->worldDepths[ 1 ]);
+		glVertex3f(100, -100, settings->worldDepths[ 1 ]);
+		glVertex3f(100, 100, settings->worldDepths[ 1 ]);
 	glEnd();
 
 	GLint viewport[4];
@@ -176,49 +178,34 @@ void processPendingInteractions()
 		glReadPixels(settings->finger1sX, settings->finger1sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger1sX, settings->finger1sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
-		float p1x, p1y, p1z;
-		p1x = (float)posX;
-		p1y = (float)posY;
-		p1z = (float)posZ;
-
-		settings->finger1modelCoords[0] = p1x;
-		settings->finger1modelCoords[1] = p1y;
-		settings->finger1modelCoords[2] = p1z;
+		settings->finger1modelCoords[0] = (float)posX;
+		settings->finger1modelCoords[1] = (float)posY;
+		settings->finger1modelCoords[2] = (float)posZ;
 
 		// get finger 2 model space coords
 		glReadPixels(settings->finger2sX, settings->finger2sY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 		gluUnProject(settings->finger2sX, settings->finger2sY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
-		p1x = (float)posX;
-		p1y = (float)posY;
-		p1z = (float)posZ;
-
-		settings->finger2modelCoords[0] = p1x;
-		settings->finger2modelCoords[1] = p1y;
-		settings->finger2modelCoords[2] = p1z;
+		settings->finger2modelCoords[0] = (float)posX;
+		settings->finger2modelCoords[1] = (float)posY;
+		settings->finger2modelCoords[2] = (float)posZ;
 
 
 		// change rotation axis to be vector between fingers
 		//glm::vec3 yAxis = normalize(glm::vec3(settings->finger2modelCoords[0] - settings->finger1modelCoords[0],
-		//	settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
-		//	settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
-
+		//										settings->finger2modelCoords[1] - settings->finger1modelCoords[1],
+		//										settings->finger2modelCoords[2] - settings->finger1modelCoords[2]));
 		//cosmo->setMovableRotationAxis(yAxis);
 	}
 
 	//if actively positioning finger, maintain corresponding model coordinates
-	if (settings->positioningXYFingerLocation[0] != -1 && settings->positioningZFingerLocation[2] != -1)
+	if (settings->positioningPointLocation[0] != -1 && settings->positioningPointLocation[1] != -1)
 	{
-		glReadPixels(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-		gluUnProject(settings->positioningXYFingerLocation[0], settings->positioningXYFingerLocation[1], winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+		glReadPixels(settings->positioningPointLocation[0], settings->positioningPointLocation[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+		gluUnProject(settings->positioningPointLocation[0], settings->positioningPointLocation[1], winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
-		float p1x, p1y, p1z;
-		p1x = (float)posX;
-		p1y = (float)posY;
-		p1z = (float)posZ;
-
-		settings->positioningModelCoords[0] = p1x;
-		settings->positioningModelCoords[1] = p1y;
+		settings->positioningModelCoords[0] = (float)posX;
+		settings->positioningModelCoords[1] = (float)posY;
 
 	}//if need to update active positioning
 	else
@@ -273,8 +260,7 @@ void updateLens()
 
 void perRenderUpdates()
 {
-	if(settings->study->modeRestriction == StudyManager::NONE ||
-		settings->study->modeRestriction == StudyManager::PANTOGRAPH)
+	if(settings->study->currentMode == StudyManager::PANTOGRAPH)
 		processPendingInteractions();
 
 	if (settings->study->modeRestriction == StudyManager::NONE ||

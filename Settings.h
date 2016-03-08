@@ -21,8 +21,7 @@ public:
 
 	bool modeSwitched;
 
-	int positioningXYFingerLocation[2];
-	int positioningZFingerLocation[2];
+	int positioningPointLocation[3];
 	float positioningModelCoords[4]; //x,y,maxDepth,actualDepth,selectedDepth
 	float currentlySelectedPoint[3];//x,y,depth
 

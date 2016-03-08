@@ -227,8 +227,9 @@ void TouchManager::resetFingers()
 	secondFingerID = -1;
 	secondFingerX = -1;
 	secondFingerY = -1;
-	settings->positioningXYFingerLocation[0] = -1;
-	settings->positioningXYFingerLocation[1] = -1;				
+	settings->positioningPointLocation[0] = -1;
+	settings->positioningPointLocation[1] = -1;
+	settings->positioningPointLocation[2] = -1;
 }
 
 // here, just record the position of point,
@@ -343,8 +344,9 @@ void TouchManager::OnTouchPoint(const TouchPoint & tp)
 				secondFingerX = -1;
 				secondFingerY = -1;
 				pantograph->resetFingers();
-				settings->positioningXYFingerLocation[0] = -1;
-				settings->positioningXYFingerLocation[1] = -1;
+				settings->positioningPointLocation[0] = -1;
+				settings->positioningPointLocation[1] = -1;
+				settings->positioningPointLocation[2] = -1;
 				settings->deactivate();
 				break;
 			}
@@ -725,12 +727,13 @@ void TouchManager::setPantoHand(bool rightHanded)
 // Returns TRUE when finger screen coords received, FALSE otherwise
 bool TouchManager::perRenderUpdate()
 {
-	//send new screen coords to process into model coords during next render
 	float pantoX, pantoY, pantoDepth;
+	//send new screen coords to process into model coords during next render
 	if (pantograph->getSelectPoint(&pantoX, &pantoY) && pantograph->getDepthFactor(&pantoDepth))
 	{
-		settings->positioningXYFingerLocation[0] = pantoX;
-		settings->positioningXYFingerLocation[1] = pantoY;
+		settings->positioningPointLocation[0] = pantoX;
+		settings->positioningPointLocation[1] = pantoY;
+		settings->positioningPointLocation[2] = pantoDepth;
 
 		settings->finger1sX = firstFingerX;
 		settings->finger1sY = firstFingerY;
