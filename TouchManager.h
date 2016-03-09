@@ -38,6 +38,8 @@ public:
 
 	void setPantoHand(bool rightHanded);
 
+	float getPantoSpread();
+
 	Settings* settings;
 	
 

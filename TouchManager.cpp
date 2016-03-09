@@ -724,6 +724,11 @@ void TouchManager::setPantoHand(bool rightHanded)
 	pantograph->setLeftHanded(!rightHanded);
 }
 
+float TouchManager::getPantoSpread()
+{
+	return pantograph->maxDistanceBetween - pantograph->minDistanceBetween;
+}
+
 // Returns TRUE when finger screen coords received, FALSE otherwise
 bool TouchManager::perRenderUpdate()
 {

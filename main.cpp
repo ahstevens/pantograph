@@ -47,7 +47,10 @@ float holdMx, holdMy;
 glm::vec3 holdRotationAxis;
 
 bool cursorOnMouse = false;
+bool mouseWheelMatchesPantoSpread = true;
 bool leftMouseDown, rightMouseDown, middleMouseDown;
+
+float pantoSpread;
 
 float dragX, dragY; // used for rotating the universe
 float rotation[500];
@@ -476,10 +479,10 @@ void drawOverlay()
 		modeText = "MOUSE";
 		break;
 	case StudyManager::PANTOGRAPH:
-		modeText = "PANTOGRAPH";
+		modeText = "TOUCHSCREEN";
 		break;
 	case StudyManager::POLHEMUS:
-		modeText = "POLHEMUS";
+		modeText = "JOYSTICK";
 		break;
 	}
 
@@ -622,15 +625,16 @@ void mouseButton(int button, int state, int x, int y)
 
 	   if (settings->study->currentMode == StudyManager::MOUSE)
 	   {
+		   float increment = mouseWheelMatchesPantoSpread ? (settings->worldDepths[1] - settings->worldDepths[0]) / pantoSpread : 0.5f;
 		   if (button == 3) // wheel up
 		   {
-			   if (mZ - 1.f < settings->worldDepths[0]) mZ = settings->worldDepths[0];
-			   else mZ -= 0.5f;
+			   if (mZ - increment < settings->worldDepths[0]) mZ = settings->worldDepths[0];
+			   else mZ -= increment;
 		   }
 		   else // wheel down
 		   {
-			   if (mZ + 1.f > settings->worldDepths[1]) mZ = settings->worldDepths[1];
-			   else mZ += 0.5f;
+			   if (mZ + increment > settings->worldDepths[1]) mZ = settings->worldDepths[1];
+			   else mZ += increment;
 		   }
 	   }
    }
@@ -694,6 +698,7 @@ void keyboard( unsigned char key, int x, int y )
 	if (key == 13)
 	{
 		cursorOnMouse = false;
+		mouseWheelMatchesPantoSpread = true;
 		settings->study->begin();
 	}
 
@@ -706,7 +711,9 @@ void keyboard( unsigned char key, int x, int y )
 	if (key == 'o') cosmo->toggleShowOscillationAxis();
 	
 
-	if (key == '\\') cursorOnMouse = !cursorOnMouse;
+	//if (key == '\\') cursorOnMouse = !cursorOnMouse;
+
+	//if (key == '=') mouseWheelMatchesPantoSpread = !mouseWheelMatchesPantoSpread;
 
 
 	//if(key == ',') { 
@@ -852,6 +859,8 @@ void init(std::string name, bool isRightHanded)
 	{
 		printf("ERROR initializing touch manager!\n");
 	}
+
+	pantoSpread = touchManager->getPantoSpread();
 
 	polhemus = Polhemus::getInstance();
 
