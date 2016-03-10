@@ -180,6 +180,13 @@ void StudyManager::toggleMotion() { motion = !motion; }
 
 bool StudyManager::getMotion() { return motion; }
 
+float StudyManager::getProgress() { 
+	float trialsRemaining = (float)((blocks.size() - 1) * nTrialsPerBlock + (blocks.back().size() - 1) * nRepsPerBlock + blocks.back().back().size() + 1);
+	float nTrials = (float)(nTrialsPerBlock * nBlocks);
+	float trialsCompleted = nTrials - trialsRemaining;
+	return (trialsCompleted / nTrials) * 100.f; 
+}
+
 bool StudyManager::fileExists(const std::string &fname)
 {
 	struct stat buffer;

@@ -54,6 +54,8 @@ public:
 	void toggleMotion();
 	bool getMotion();
 
+	float getProgress();
+
 	InteractionMode modeRestriction;
 	InteractionMode currentMode;
 	InteractionState currentState;

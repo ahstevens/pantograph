@@ -50,6 +50,8 @@ bool cursorOnMouse = false;
 bool mouseWheelMatchesPantoSpread = true;
 bool leftMouseDown, rightMouseDown, middleMouseDown;
 
+bool showProgress = false;
+
 float pantoSpread;
 
 float dragX, dragY; // used for rotating the universe
@@ -468,6 +470,14 @@ void drawOverlay()
 		glLineWidth(10);
 		drawStrokeLabel3D(20, 20, 0, 0.5, buffer);
 	}
+	else if (showProgress)
+	{
+		sprintf(buffer, "Progress: %.1f%%", settings->study->getProgress());
+		glColor3f(1, 1, 1);
+		glLineWidth(10);
+		drawStrokeLabel3D(20, 20, 0, 0.5, buffer);
+	}
+
 
 	std::string modeText;
 	switch (settings->study->isStudyStarted() ? settings->study->modeRestriction : settings->study->currentMode)
@@ -690,6 +700,8 @@ void keyboard( unsigned char key, int x, int y )
 		std::cout << "New calibrated Polhemus origin is at ( " << settings->polhemusOrigin.x << ", " << settings->polhemusOrigin.y << ", " << settings->polhemusOrigin.z << " )" << std::endl;
 		polhemus->calibrate();
 	}
+
+	if (key == 'p' && settings->study->isStudyStarted()) showProgress = !showProgress;
 
 	// DISABLE KEYBOARD WHEN NOT IN FREE MODE
 	if (settings->study->modeRestriction != StudyManager::NONE) return;
