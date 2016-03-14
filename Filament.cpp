@@ -57,7 +57,6 @@ Filament::Filament(float length)
 
 	std::random_device rd;
 	std::mt19937 generator(rd());
-	std::normal_distribution<float> unit_distribution(0.00001f, 1.f);
 	std::uniform_real_distribution<float> signed_unit_distribution(-1.f, 1.f);
 	std::uniform_real_distribution<float> midCP(0.25f, 0.45f);
 	std::uniform_real_distribution<float> circle(0.f, 2.f * (float)M_PI);
@@ -65,10 +64,6 @@ Filament::Filament(float length)
 
 		
 	glm::vec3 cp0, cp1, cp2, cp3;
-	//cp0.x = unit_distribution(generator);
-	//cp0.y = unit_distribution(generator);
-	//cp0.z = unit_distribution(generator);
-	//cp0 = glm::normalize(cp0) * (length / 4.f); // length/4 is sphere radius
 
 	cp0 = glm::normalize(glm::axis(glm::quat(signed_unit_distribution(generator), signed_unit_distribution(generator), signed_unit_distribution(generator), signed_unit_distribution(generator))));
 	cp0 *= length / 2.f;

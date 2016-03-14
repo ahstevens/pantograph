@@ -160,6 +160,7 @@ void StudyManager::end()
 	std::cout << "============================================================" << std::endl;
 	std::cout << std::endl;
 	done = true;
+	exit(0);
 }
 
 void StudyManager::startTrial() { trialStarted = true; }
@@ -235,9 +236,9 @@ void StudyManager::logData(std::string type, glm::vec3 *cursorPos, Filament *fil
 	// Construct string for rendering mode enum
 	std::string conditionString;
 
-	assert(currentMode != ERR);
+	assert(modeRestriction != ERR);
 
-	switch (currentMode)
+	switch (modeRestriction)
 	{
 	case MOUSE:
 		conditionString = std::string("mouse");
